@@ -391,13 +391,13 @@
   2024)` were exported with nothing drawn on them, and nothing said so: the
   drawing maidr makes of a Base R chart again stopped on a `main`, `sub`,
   `xlab` or `ylab` given as a number, a logical, several values or a list
-  such as `list("Title", font = 2)`, on a `title()` given several `line` or
-  `outer` values, on `axis(labels = NA)` and `axis(1, at = numeric(0))`,
-  and on an `mtext()` spread over several sides, `adj` or `padj` values,
-  such as `mtext(c("Left", "Right"), side = c(2, 4))`; it
-  left out values of an `mtext()` whose `at` held fewer positions than
-  values, or a missing one, and drew a missing `mtext()` text or tick label
-  as "NA". Each is now drawn as R draws it, several title values a line
+  such as `list("Title", font = 2)`, on a `title()` or `axis()` given
+  several `line`, `outer`, `tick` or `pos` values or a missing one, on
+  `axis(labels = NA)` and `axis(1, at = numeric(0))`, and on an `mtext()`
+  spread over several sides, `adj` or `padj` values, such as
+  `mtext(c("Left", "Right"), side = c(2, 4))`; it left out values of an
+  `mtext()` whose `at` held fewer positions than values, or a missing one,
+  and drew a missing `mtext()` text or tick label as "NA". Each is now drawn as R draws it, several title values a line
   apart, and the title and axis titles a screen reader reads are the same
   text, a line for each value: they were the first value alone. The y axis
   of a `plot()` of several time series, drawn a panel each, is announced as

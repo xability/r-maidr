@@ -354,6 +354,25 @@ test_that("a title's line and outer are read by their first value, as R reads th
   testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
 })
 
+test_that("an axis's tick, line, pos and outer are read by their first value, as R reads them", {
+  # gridGraphics tested them as given, and stopped on several values and on
+  # a missing tick or outer ("missing value where TRUE/FALSE needed"); the
+  # chart fell back to a picture.
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5, axes = FALSE)
+    graphics::axis(1, tick = c(FALSE, TRUE), line = c(1, 2))
+    graphics::axis(2, pos = c(2, 3), outer = NA)
+    graphics::axis(3, tick = NA, line = "1", outer = c(FALSE, TRUE))
+  })
+
+  chart <- exported_chart(function() {
+    plot(1:5, xaxt = "n")
+    axis(1, outer = NA)
+  })
+  testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+})
+
 test_that("a chart titled with a number is exported with its drawing", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

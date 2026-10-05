@@ -160,8 +160,9 @@ base_r_echoable_recording <- function(recording, size) {
 #' length one is handed to it as the string R drew, and one of length zero
 #' as no title, which is what R drew. A title of several values, or given as
 #' a list, is drawn again as R drew it (`base_r_title_as_drawn()`). Its
-#' `line` and `outer` are handed over as R read them
-#' (`base_r_title_place()`).
+#' `line` and `outer` are handed over as R read them, by their first value,
+#' a missing `outer` as `FALSE` (`base_r_scalar_arg()`): `title(main =
+#' "Speed", line = c(1, 2))` is drawn on line 1.
 #'
 #' @param recording The recorded drawing
 #' @param i The index of the `title()` entry in its display list
@@ -172,10 +173,8 @@ base_r_echoable_recording <- function(recording, size) {
 base_r_echoable_title <- function(recording, i, size) {
   entry <- recording[[1]][[i]]
   args <- as.list(entry[[2]])
-  place <- base_r_title_place(args)
-  plain <- function(x) length(x) == 1 && (is.numeric(x) || is.logical(x))
-  if (!plain(args[[6]])) args[6] <- list(place$line)
-  if (!plain(args[[7]]) || is.na(args[[7]])) args[7] <- list(place$outer)
+  args[6] <- list(base_r_scalar_arg(args[[6]]))
+  args[7] <- list(base_r_scalar_arg(args[[7]], flag = TRUE, missing = FALSE))
   texts <- args[2:5]
   one_value <- vapply(
     texts,
@@ -195,26 +194,29 @@ base_r_echoable_title <- function(recording, i, size) {
   list(entry)
 }
 
-#' Where R draws a recorded `title()`: its `line` and `outer` as R read them
+#' A number or a flag of a recorded call, as R's C code reads it
 #'
-#' R's `C_title()` reads each by its first value, `line` as a number and
-#' `outer` as a logical, a missing `outer` being `FALSE`: `title(main =
-#' "Speed", line = c(1, 2))` is drawn on line 1. gridGraphics tests them as
-#' given, and stops on several values, on none and on a missing `outer`, and
-#' reads a `line` given as text as no line.
+#' R reads such an argument, a `line` or an `outer`, with `asReal()` or
+#' `asLogical()`: by its first value, none being missing. gridGraphics tests
+#' it as given, and stops on several values, on none and on a missing flag,
+#' and reads a number given as text as missing.
 #'
-#' @param args The `title()` entry's arguments, `line` and `outer` the
-#'   sixth and seventh
-#' @return A list: `line`, a number, `NA` for none, and `outer`, `TRUE` or
-#'   `FALSE`
+#' @param x The argument, as recorded
+#' @param flag Whether R reads it as a logical, rather than a number
+#' @param missing What R takes a missing flag for
+#' @return `x` itself when gridGraphics reads it as R does, one number or
+#'   logical, and not missing for a flag; otherwise the value R read
 #' @keywords internal
 #' @noRd
-base_r_title_place <- function(args) {
-  outer <- args[[7]]
-  list(
-    line = suppressWarnings(as.numeric(args[[6]])[1]),
-    outer = is.atomic(outer) && isTRUE(as.logical(outer)[1])
-  )
+base_r_scalar_arg <- function(x, flag = FALSE, missing = NA) {
+  if (length(x) == 1 && (is.numeric(x) || is.logical(x)) && !(flag && is.na(x))) {
+    return(x)
+  }
+  if (!flag) {
+    return(suppressWarnings(as.numeric(x)[1]))
+  }
+  value <- if (is.atomic(x)) as.logical(x)[1] else NA
+  if (is.na(value)) missing else value
 }
 
 #' The expression R draws of a title given as several
@@ -296,7 +298,9 @@ base_r_echoable_mtext <- function(entry) {
 #' `axis(1, at = numeric(0))` is, where gridGraphics stops. And R reads
 #' `labels` given as logicals by the first: `TRUE` labels the ticks as it
 #' would unasked, and `FALSE` or `NA` draws no labels. gridGraphics stops on
-#' any but one `TRUE` or `FALSE`.
+#' any but one `TRUE` or `FALSE`. R reads `tick`, `line`, `pos` and `outer`
+#' by their first value too, a missing `tick` as `TRUE` and a missing
+#' `outer` as `FALSE` (`base_r_scalar_arg()`).
 #'
 #' @param entry The display-list entry
 #' @return A list of display-list entries: none for an axis R drew nothing
@@ -304,16 +308,23 @@ base_r_echoable_mtext <- function(entry) {
 #' @keywords internal
 #' @noRd
 base_r_echoable_axis <- function(entry) {
-  at <- entry[[2]][[3]]
+  args <- as.list(entry[[2]])
+  # side, at, labels, tick, line, pos, outer
+  at <- args[[3]]
   if (!is.null(at) && length(at) == 0) {
     return(list())
   }
-  labels <- entry[[2]][[4]]
-  if (!is.logical(labels) || identical(labels, TRUE) || identical(labels, FALSE)) {
+  labels <- args[[4]]
+  if (is.logical(labels) && !identical(labels, TRUE) && !identical(labels, FALSE)) {
+    args[[4]] <- length(labels) == 0 || isTRUE(labels[[1]])
+  }
+  args[5] <- list(base_r_scalar_arg(args[[5]], flag = TRUE, missing = TRUE))
+  args[6] <- list(base_r_scalar_arg(args[[6]]))
+  args[7] <- list(base_r_scalar_arg(args[[7]]))
+  args[8] <- list(base_r_scalar_arg(args[[8]], flag = TRUE, missing = FALSE))
+  if (identical(args, as.list(entry[[2]]))) {
     return(list(entry))
   }
-  args <- as.list(entry[[2]])
-  args[[4]] <- length(labels) == 0 || isTRUE(labels[[1]])
   entry[[2]] <- as.pairlist(args)
   list(entry)
 }
@@ -354,9 +365,8 @@ base_r_title_as_drawn <- function(recording, i, size) {
   drawn <- length(grDevices::recordPlot()[[1]])
 
   args <- as.list(recording[[1]][[i]][[2]])
-  place <- base_r_title_place(args)
-  line <- place$line
-  outer <- place$outer
+  line <- suppressWarnings(as.numeric(base_r_scalar_arg(args[[6]])))
+  outer <- isTRUE(as.logical(base_r_scalar_arg(args[[7]], flag = TRUE)))
   inline <- args[-(1:7)]
   cex <- graphics::par("cex")
   pars <- graphics::par()
