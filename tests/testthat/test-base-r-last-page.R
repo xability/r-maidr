@@ -1434,6 +1434,50 @@ test_that("a page that holds no recorded plot is not read as the plot before it"
   )
 })
 
+test_that("a page read before and added to since says its plot was let go of", {
+  # show() and save_html() let go of the calls recorded on a device once
+  # they have read its page. A line added to the plot is then all maidr
+  # holds of the page, and the message said R had started it with
+  # plot.new(), or a plot maidr does not record. A page started since is
+  # one of those, and says so.
+  resave <- function(display_list, added) {
+    grDevices::pdf(NULL)
+    device_id <- grDevices::dev.cur()
+    on.exit(
+      {
+        clear_base_r_device(device_id)
+        grDevices::dev.off(device_id)
+      },
+      add = TRUE
+    )
+    clear_base_r_device(device_id)
+    if (display_list) grDevices::dev.control("enable")
+    plot(1:3, main = "Saved once")
+    suppressMessages(save_html(file = tempfile(fileext = ".html")))
+    added()
+    tryCatch(
+      {
+        save_html(file = tempfile(fileext = ".html"))
+        ""
+      },
+      error = conditionMessage
+    )
+  }
+  for (display_list in c(FALSE, TRUE)) {
+    said <- resave(display_list, function() abline(h = 2, col = 2))
+    testthat::expect_match(said, "holds no Base R plot maidr recorded")
+    testthat::expect_match(said, "An earlier show() or save_html() read the plot", fixed = TRUE)
+    testthat::expect_no_match(said, "plot.new()", fixed = TRUE)
+
+    said <- resave(display_list, function() {
+      graphics::plot.new()
+      text(0.5, 0.5, "Only text")
+    })
+    testthat::expect_match(said, "holds no Base R plot maidr recorded")
+    testthat::expect_match(said, "R started that page with plot.new()", fixed = TRUE)
+  }
+})
+
 test_that("the size a chart is drawn at is settled by its own page", {
   # A six-row grid does not fit maidr's own 7 x 5 in and is drawn larger,
   # with a message. Drawn on the page before, it says nothing about the

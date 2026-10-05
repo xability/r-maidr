@@ -428,7 +428,9 @@
   `hist(x); smoothScatter(y)`, or a page `replayPlot()` puts back from a
   plot drawn while `maidr_off()` was in effect, is no longer exported as
   the histogram before it, or as a chart with nothing on it: `show()` and
-  `save_html()` stop and say the page holds no plot maidr recorded (#PR).
+  `save_html()` stop and say the page holds no plot maidr recorded. So do
+  they for a line added to a plot an earlier `show()` or `save_html()`
+  read, which let go of what maidr recorded of the plot, and say so (#PR).
 
 ## Documentation
 

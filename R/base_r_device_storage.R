@@ -242,6 +242,7 @@ clear_device_storage <- function(device_id = grDevices::dev.cur()) {
   if (!is.null(.maidr_base_r_session$devices[[key]])) {
     .maidr_base_r_session$devices[[key]] <- NULL
     reset_device_state(device_id)
+    note_base_r_calls_cleared(device_id)
   }
 
   invisible(NULL)

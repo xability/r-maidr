@@ -610,14 +610,58 @@ standalone_calls <- function(calls) {
   calls[vapply(seq_along(calls), stands, logical(1))]
 }
 
+#' Note that the calls recorded on a device were let go of
+#'
+#' `show()` and `save_html()` let go of the calls recorded on a device once
+#' they have read its page (`clear_device_storage()`). What is drawn on
+#' that page afterwards is all that is recorded on it, and may start no
+#' plot, as a line added to the plot they read does not. Kept with where R
+#' is on the device, until R starts a page there (`note_base_r_plot_new()`).
+#'
+#' @param device_id Graphics device ID
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+note_base_r_calls_cleared <- function(device_id) {
+  key <- as.character(device_id)
+  if (!is.null(.maidr_base_r_pages$at[[key]])) {
+    .maidr_base_r_pages$at[[key]]$cleared <- TRUE
+  }
+  invisible(NULL)
+}
+
+#' Whether the plot on the page a device shows was let go of
+#'
+#' maidr let go of the calls recorded on the device since R started the
+#' page it is on (`note_base_r_calls_cleared()`), and the page R shows is
+#' that page: where the device keeps a display list, it holds a mark of a
+#' call no longer recorded (`base_r_display_list_marks()`), rather than a
+#' page `replayPlot()` put back since.
+#'
+#' @param device_id Graphics device ID
+#' @return Logical
+#' @keywords internal
+#' @noRd
+base_r_page_cleared <- function(device_id = grDevices::dev.cur()) {
+  if (!isTRUE(base_r_device_position(device_id)$cleared)) {
+    return(FALSE)
+  }
+  marks <- base_r_display_list_marks(device_id)
+  recorded <- vapply(get_device_calls(device_id), function(call) call$id %||% NA_integer_, 1L)
+  is.null(marks) || any(!marks$ids %in% recorded)
+}
+
 #' Stop unless the page a device shows holds a Base R plot maidr recorded
 #'
 #' For `show()`, `save_html()` and `maidr_widget()` asked for the Base R
 #' chart. Nothing recorded at all says so as before
 #' (`no_base_r_plots_message()`). A page holding no plot maidr recorded
-#' (`base_r_page_without_plot()`) says that instead. The plots maidr
-#' recorded before it are on pages R no longer shows, and maidr can neither
-#' read nor draw the page R does show: what started it was not recorded.
+#' (`base_r_page_without_plot()`) says that instead, and why: the plot on
+#' it was read by an earlier `show()` or `save_html()`, which let go of its
+#' calls (`base_r_page_cleared()`); or what started the page, or put it
+#' back, was not recorded, and the plots maidr recorded before it are on
+#' pages R no longer shows. maidr can neither read nor draw the page R does
+#' show.
 #'
 #' @param device_id Graphics device ID
 #' @return NULL (invisible), or stops
@@ -628,15 +672,27 @@ check_base_r_page_recorded <- function(device_id = grDevices::dev.cur()) {
     stop(no_base_r_plots_message(), call. = FALSE)
   }
   if (base_r_page_without_plot(device_id)) {
+    why <- if (base_r_page_cleared(device_id)) {
+      paste0(
+        "An earlier show() or save_html() read the plot on that page, and ",
+        "maidr let go of what it had recorded of it then: what has been ",
+        "drawn on the page since is all maidr holds of it, and starts no ",
+        "plot. Draw the plot again, with what was added to it, to read it."
+      )
+    } else {
+      paste0(
+        "R started that page with plot.new() or frame(), with a plot maidr ",
+        "does not record, or with a plot drawn while maidr_off() was in ",
+        "effect, or replayPlot() put back a page drawn so, or saved in ",
+        "another session or on another device; any plot maidr recorded is on ",
+        "a page R no longer shows. Draw the chart with maidr on, from a plot ",
+        "such as plot() or hist(), to read it."
+      )
+    }
     stop(
       paste0(
         "The page R's device shows holds no Base R plot maidr recorded, ",
-        "so maidr cannot read it. R started that page with plot.new() or ",
-        "frame(), with a plot maidr does not record, or with a plot drawn ",
-        "while maidr_off() was in effect, or replayPlot() put back a page ",
-        "drawn so, or saved in another session or on another device; any ",
-        "plot maidr recorded is on a page R no longer shows. Draw the chart ",
-        "with maidr on, from a plot such as plot() or hist(), to read it."
+        "so maidr cannot read it. ", why
       ),
       call. = FALSE
     )
