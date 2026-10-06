@@ -1598,18 +1598,20 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
 #' the page. A cell larger than the page is set up as R set it up, and R
 #' stops as it does, with "figure region too large".
 #'
-#' @param panel_config The page's `layout()` of one cell
+#' @param panel_config The page's `layout()` of one cell, or its grid with
+#'   such a layout kept beside it (`cell_layout`, see `with_cell_beside()`)
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
 send_to_layout_cell <- function(panel_config) {
+  one_cell <- panel_config$cell_layout %||% panel_config
   omi <- graphics::par("omi")
   inches <- graphics::par("din") - c(omi[[2]] + omi[[4]], omi[[1]] + omi[[3]])
-  cell <- grid_panel_regions(panel_config, inches)[[1]]
+  cell <- grid_panel_regions(one_cell, inches)[[1]]
   if (length(cell) == 4L && all(cell > -1e-6 & cell < 1 + 1e-6)) {
     graphics::par(fig = pmin(pmax(cell, 0), 1))
   } else {
-    do.call(graphics::layout, c(list(panel_config$matrix), panel_config$sizes))
+    do.call(graphics::layout, c(list(one_cell$matrix), one_cell$sizes))
   }
   invisible(NULL)
 }

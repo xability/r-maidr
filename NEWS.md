@@ -361,9 +361,11 @@
   the first plot of `layout(matrix(1:2, 1), widths = c(3, 1))` took half
   the width, where R gives it three quarters, and the plot of a single
   cell, as in `layout(matrix(1), widths = lcm(5), heights = lcm(5))`,
-  filled the page. Each plot is now drawn where R draws it, with `lcm()`
-  sizes, a `respect` matrix, cells that span several rows or columns and
-  empty cells, and shows the tick labels R shows at its size. A size asked
+  filled the page. Each plot is now drawn where R draws it -- with `lcm()`
+  sizes, a `respect` matrix, cells that span several rows or columns,
+  empty cells, and in the one cell of a layout set up over a page of
+  plots, a grid's among them, to draw one over them -- and shows the tick
+  labels R shows at its size. A size asked
   for now stops when R cannot draw the page at it, and a size no one asked
   for is enlarged until every plot, the smallest included, has room. When
   it is the cells the call sized with `lcm()` that do not fit on the page,
