@@ -383,12 +383,19 @@
   and its cells fill the page, where maidr drew its columns all as wide,
   and its rows all as tall, as each other. Such a layout's cells sized
   with `lcm()` keep the share of the page R gave them on the device the
-  plots were drawn on. A grid set up without maidr after a recorded
-  `layout()` of its shape, as `withr::with_par(list(mfrow = c(1, 2)), ...)`
-  after `layout(matrix(1:2, 1), widths = c(1, 3))`, is not given the
-  recorded call's sizes: maidr reads the regions R drew the page's plots
-  in, which are the recorded call's cells only where R drew them in that
-  layout (#PR).
+  plots were drawn on; where those shares leave a plot no room for its
+  margins at the chart's size, as an `lcm(4)` column drawn on a 10 x 8 in
+  device does at 7 x 5 in, the cells are drawn the same size, as before,
+  rather than the chart stopping. The one cell of such a layout is read as
+  R reports it, a region of the page as `par(fig = )` gives one, so a cell
+  sized with `lcm()` keeps its share of the author's page: drawn smaller
+  than that page, the chart can stop where R draws it. A grid set up
+  without maidr after a recorded `layout()` of its shape, as
+  `withr::with_par(list(mfrow = c(1, 2)), ...)` after
+  `layout(matrix(1:2, 1), widths = c(1, 3))`, is not given the recorded
+  call's sizes: maidr reads the regions R drew the page's plots in, which
+  are the recorded call's cells only where R drew them in that layout
+  (#PR).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written

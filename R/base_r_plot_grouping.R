@@ -629,13 +629,17 @@ grid_of_cells <- function(groups) {
 #' every edge of the grid is an edge of a region (`grid_edges()`): drawn in
 #' cells of the same size, the plots of `layout(matrix(1:2, 1), widths =
 #' c(3, 1))` each took half the page, where R gives the first three
-#' quarters.
+#' quarters. They are the shares of the page R gave them, which are their
+#' sizes on a page of any size where `widths` and `heights` set them so,
+#' but not where `lcm()` did (`layout_sizes_on_page()`).
 #'
 #' @param highs The recorded calls drawn on the page's plots, in the order
-#'   R drew them, each with the `cell` and `fig` of its plot
+#'   R drew them, each with the `cell`, `fig` and `margins` of its plot
 #' @param dims The grid's rows and columns
 #' @return A `layout` panel configuration with its `matrix`, and the
-#'   `sizes` of its columns and rows where they are not all the same; or
+#'   `sizes` of its columns and rows where they are not all the same, with
+#'   the smallest page they leave each plot room on, `least_page`
+#'   (`least_page_for_regions()`); or
 #'   NULL where each plot is in one cell of a grid of equal columns and
 #'   rows, which is the grid of `par(mfrow = )`, or where a region is not
 #'   cells of a grid that fills the page
@@ -693,8 +697,37 @@ layout_of_regions <- function(highs, dims) {
   )
   if (sized) {
     config$sizes <- sizes
+    config$least_page <- least_page_for_regions(highs)
   }
   config
+}
+
+#' The smallest page on which the regions R gave plots leave them room
+#'
+#' A plot takes the room its margins take, in inches, whatever its region;
+#' its region, as a share of the page, is as large as that on a page of at
+#' least this size, with the outer margins around it.
+#'
+#' @param highs The recorded calls drawn on the page's plots, each with the
+#'   `fig` and `margins` of its plot (`end_base_r_call()`)
+#' @return The width and height, in inches; or NULL where no plot's margins
+#'   were recorded
+#' @keywords internal
+#' @noRd
+least_page_for_regions <- function(highs) {
+  least <- NULL
+  for (high in highs) {
+    mai <- high$margins$mai
+    omi <- high$margins$omi
+    fig <- high$fig
+    if (length(mai) == 4L && length(omi) == 4L && length(fig) == 4L) {
+      share <- c(fig[[2]] - fig[[1]], fig[[4]] - fig[[3]])
+      need <- c(mai[[2]] + mai[[4]], mai[[1]] + mai[[3]]) / share +
+        c(omi[[2]] + omi[[4]], omi[[1]] + omi[[3]])
+      least <- pmax(least %||% need, need)
+    }
+  }
+  least
 }
 
 #' The edges of a grid's columns, or rows, from the regions R drew in
@@ -963,6 +996,34 @@ layout_cell_region <- function(groups, config) {
 in_layout_cell <- function(fig, panel_config) {
   cell <- panel_config$cell_fig
   length(cell) == 4L && length(fig) == 4L && !anyNA(fig) && same_region(fig, cell)
+}
+
+#' The widths and heights a page's `layout()` is set up with on a page
+#'
+#' Those of the call that set it up; or, for a `layout()` maidr did not
+#' record, the shares of the page R gave its columns and rows
+#' (`layout_of_regions()`). R keeps those shares on a page of any size
+#' where `widths` and `heights` set them, but a column or row `lcm()` set
+#' keeps its size in centimetres instead, and R does not say which set it.
+#' On a page smaller than the author's that one keeps more of the page than
+#' its share: an `lcm(4)` column R drew on a 10 x 8 in device keeps 4 cm at
+#' 7 x 5 in, where its share leaves its plot no room for its margins, and
+#' the chart stopped where R draws it. On a page where the shares leave a
+#' plot no room (`least_page`), the cells are set up the same size, as they
+#' were before maidr read the shares.
+#'
+#' @param config The page's `layout()`, from [detect_panel_configuration()],
+#'   on the device the page is drawn on
+#' @return The `widths`, `heights` and `respect` to give `layout()`, as a
+#'   list; or NULL for cells of the same size
+#' @keywords internal
+#' @noRd
+layout_sizes_on_page <- function(config) {
+  least <- config$least_page
+  if (length(least) == 2L && any(graphics::par("din") <= least)) {
+    return(NULL)
+  }
+  config$sizes
 }
 
 #' Whether a page's `layout()` call sizes any of its cells with `lcm()`

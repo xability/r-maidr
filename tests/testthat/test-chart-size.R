@@ -93,13 +93,14 @@ size_free_schema <- function(markup) {
 #' @param chart A ggplot2 or lattice chart, or a function drawing Base R
 #'   calls, which are drawn on a device of their own
 #' @param size The width and height asked for, or `NULL` for none
-render_sized <- function(chart, size) {
+#' @param device The width and height of the device it is drawn on
+render_sized <- function(chart, size, device = c(50, 50)) {
   if (!is.function(chart)) {
     return(maidr:::create_maidr_html(chart, shiny = TRUE, width = size[1], height = size[2]))
   }
   # Room for the tallest grid drawn here: the device a chart is drawn on is
   # not the size maidr draws it at.
-  grDevices::pdf(NULL, width = 50, height = 50)
+  grDevices::pdf(NULL, width = device[1], height = device[2])
   device <- grDevices::dev.cur()
   # A device number is used again once its device is closed, and what an
   # earlier test recorded under it would be read as part of this chart.
@@ -1040,6 +1041,54 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
       testthat::expect_identical(drawn_by_maidr(draw, size), drawn_by_r(draw, size), label = label)
     }
   }
+})
+
+test_that("a layout() maidr did not record keeps R's shares where they leave its plots room", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # Read from the regions R drew in, its columns are the shares of the page
+  # R gave them. A column lcm() sized keeps its size in cm instead, and an
+  # lcm(4) column drawn on a 10 x 8 in device took its share of a 7 x 5 in
+  # chart, too narrow for its plot's margins: the chart stopped, where R
+  # draws it, and a size no one asked for was enlarged. Its cells are then
+  # drawn the same size, as they were before maidr read the shares.
+  plots <- function() {
+    plot(1:3, main = "One")
+    plot(3:1, main = "Two")
+  }
+  centimetres <- function() {
+    graphics::layout(matrix(1:2, 1), widths = c(lcm(4), 1))
+    plots()
+  }
+  same_size <- function() {
+    graphics::layout(matrix(1:2, 1))
+    plots()
+  }
+  testthat::expect_equal(
+    drawn_plot_boxes(render_sized(centimetres, c(7, 5), device = c(10, 8))),
+    native_plot_boxes(same_size, c(7, 5)),
+    tolerance = 1e-3
+  )
+  testthat::expect_no_message(
+    render_sized(centimetres, NULL, device = c(10, 8)),
+    class = "maidr_chart_size_message"
+  )
+  # At the size R drew it at, and wherever the shares leave room, they are
+  # R's cells.
+  testthat::expect_equal(
+    drawn_plot_boxes(render_sized(centimetres, c(10, 8), device = c(10, 8))),
+    native_plot_boxes(centimetres, c(10, 8)),
+    tolerance = 1e-3
+  )
+  shares <- function() {
+    graphics::layout(matrix(1:2, 1), widths = c(3, 1))
+    plots()
+  }
+  testthat::expect_equal(
+    drawn_plot_boxes(render_sized(shares, c(7, 5), device = c(10, 8))),
+    native_plot_boxes(shares, c(7, 5)),
+    tolerance = 1e-3
+  )
 })
 
 test_that("a picture of a Base R layout() page of one cell draws its plots in the cell", {
