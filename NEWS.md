@@ -405,7 +405,7 @@
   `layout(matrix(1:2, 1), widths = c(1, 3))`, is not given the recorded
   call's sizes: maidr reads the regions R drew the page's plots in, which
   are the recorded call's cells only where R drew them in that layout
-  (#PR).
+  (#361).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written
