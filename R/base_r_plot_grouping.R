@@ -552,7 +552,7 @@ layout_call_config <- function(call) {
   )
 }
 
-#' A page's configuration, with the cells of the `layout()`s of one cell R
+#' A page's configuration, with the cells of the `layout()`s of one panel R
 #' drew in on it
 #'
 #' A `layout()` of one cell sized with `lcm()` or `respect` can leave the
@@ -566,9 +566,13 @@ layout_call_config <- function(call) {
 #' and none that only a panel `plot.new()` started was drawn in, as a
 #' legend's: two cells set up one after the other over a page stopped the
 #' chart at 7 x 5 in from a 12 x 10 in device, where R draws both, and a
-#' legend's panel was drawn at its share of the author's page.
+#' legend's panel was drawn at its share of the author's page. The one
+#' panel of a sized `layout()` over several cells is kept so too, as
+#' `layout(matrix(c(0, 1, 0), 1), widths = c(1, 2, 1))` set up over a grid
+#' to draw a plot over its middle, unless it is the page's own grid.
 #'
-#' A page R drew in no grid, but in such a cell, is a page of that cell.
+#' A page R drew in no grid, but in the cell of a `layout()` of one cell,
+#' is a page of that cell.
 #'
 #' @param config The page's configuration, or NULL
 #' @param grouped The plot groups and layout calls, from group_device_calls()
@@ -579,16 +583,21 @@ layout_call_config <- function(call) {
 #' @keywords internal
 #' @noRd
 with_layout_cells <- function(config, grouped) {
-  cells <- layout_cells(grouped)
-  if (length(cells) == 0L) {
+  cells <- Filter(function(cell) {
+    !is_multipanel_config(config) || !identical(cell$layout$layout_index, config$layout_index)
+  }, layout_cells(grouped))
+  if (is.null(config)) {
+    one_cell <- Filter(function(cell) length(cell$layout$matrix) == 1L, cells)
+    config <- if (length(one_cell) > 0L) one_cell[[length(one_cell)]]$layout
+  }
+  if (length(cells) == 0L || is.null(config)) {
     return(config)
   }
-  config <- config %||% cells[[length(cells)]]$layout
   config$cells <- cells
   config
 }
 
-#' The cells of the `layout()`s of one cell R drew in on a page
+#' The cells of the `layout()`s of one panel R drew in on a page
 #'
 #' A cell holds what R drew after its `layout()` call, up to the next call
 #' that set up another grid or another region of the page: `layout()`,
@@ -609,9 +618,9 @@ with_layout_cells <- function(config, grouped) {
 #' @noRd
 layout_cells <- function(grouped) {
   # The plots of the page: those recorded calls started, and those no
-  # recorded call started that a low-level call was drawn on. R reports the
-  # cell of a layout() of one cell as that of a grid of one, so a layout()
-  # call is read only where one of them was drawn in such a cell.
+  # recorded call started that a low-level call was drawn on, where R said
+  # which cell it drew them in. A layout() call is read only where one of
+  # them was drawn after it.
   drawn <- unlist(
     lapply(grouped$groups, function(g) {
       c(
@@ -621,7 +630,7 @@ layout_cells <- function(grouped) {
     }),
     recursive = FALSE
   )
-  drawn <- Filter(function(call) identical(as.integer(call$cell[3:4]), c(1L, 1L)), drawn)
+  drawn <- Filter(function(call) length(call$cell) == 4L, drawn)
   at <- vapply(drawn, function(call) as.numeric(call$storage_index %||% NA), numeric(1))
   calls <- grouped$layout_calls
   sets_up <- which(vapply(calls, sets_up_page, logical(1)))
@@ -636,7 +645,7 @@ layout_cells <- function(grouped) {
     inside <- drawn[!is.na(at) & at > call$storage_index & at < until]
     # Read in this order: a page of many layout() pages holds as many calls,
     # and the cell's region is worked out on a device of its own.
-    if (length(inside) == 0L || !sizes_one_cell(call)) {
+    if (length(inside) == 0L || !sizes_one_panel(call)) {
       next
     }
     layout <- layout_call_config(call)
@@ -709,6 +718,26 @@ sizes_one_cell <- function(call) {
   }
   args <- layout_arguments(call$args)
   length(layout_matrix(args)) == 1L &&
+    any(c("widths", "heights", "respect") %in% names(args))
+}
+
+#' Whether a recorded layout call sets up one panel that it sizes
+#'
+#' A `layout()` of one cell (`sizes_one_cell()`), or of one panel over
+#' several cells, given `widths`, `heights` or `respect`: R draws what is
+#' drawn after it in that panel, which the sizes place on the page.
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical
+#' @keywords internal
+#' @noRd
+sizes_one_panel <- function(call) {
+  if (!identical(call$function_name, "layout")) {
+    return(FALSE)
+  }
+  args <- layout_arguments(call$args)
+  mat <- layout_matrix(args)
+  is.numeric(mat) && length(unique(mat[mat > 0])) == 1L &&
     any(c("widths", "heights", "respect") %in% names(args))
 }
 

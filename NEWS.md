@@ -365,7 +365,9 @@
   sizes, a `respect` matrix, cells that span several rows or columns,
   empty cells, and in the one cell of each layout set up over a page of
   plots, a grid's among them, to draw a plot or a legend's `plot.new()`
-  panel over them -- and shows the tick labels R shows at its size. A size asked
+  panel over them, or in the one panel of such a layout over several cells
+  given `widths`, `heights` or `respect` -- and shows the tick labels R
+  shows at its size. A size asked
   for now stops when R cannot draw the page at it, and a size no one asked
   for is enlarged until every plot, the smallest included, has room. When
   it is the cells the call sized with `lcm()` that do not fit on the page,

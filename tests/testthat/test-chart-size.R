@@ -1238,26 +1238,37 @@ test_that("a plot in a Base R layout()'s one cell is drawn there after par(mfg =
   }
 })
 
-test_that("a sized Base R layout() of one panel over several cells keeps the plot before it", {
+test_that("a sized Base R layout() of one panel over several cells draws in its panel", {
   testthat::skip_on_cran()
   skip_if_no_render()
-  # Only a layout() of one cell has a cell the plots drawn over the page are
-  # drawn in. One of a panel over several cells, given widths, heights or
-  # respect and set up over a plot, was read as the page's grid: the plot
-  # drawn before it was left out of the chart, its data and its text.
-  over <- function(set_up) {
+  # One of a panel over several cells, given widths, heights or respect and
+  # set up over a plot, was read as the page's grid: the plot drawn before
+  # it was left out of the chart, its data and its text. Read as the cell
+  # of a layout() of one cell, it was drawn over the whole page where its
+  # panel is less than the page; and set up over a grid, to draw over the
+  # middle of the page, it was drawn in a panel of the grid.
+  over <- function(set_up, before = function() plot(1:5, main = "Full")) {
     function() {
-      plot(1:5, main = "Full")
+      before()
       set_up()
       par(new = TRUE)
       plot(5:1, main = "Over", col = 2)
     }
   }
+  grid <- function() {
+    par(mfrow = c(1, 2))
+    plot(1:3, main = "Left")
+    plot(3:1, main = "Right")
+  }
   pages <- list(
     spans_rows = over(function() layout(matrix(c(1, 1)), heights = c(2, 1))),
     spans_grid = over(function() layout(matrix(1, 2, 2), widths = c(1, 1))),
     with_empty_cell = over(function() layout(matrix(c(1, 0), 1), widths = c(3, 1))),
-    spans_respect = over(function() layout(matrix(c(1, 1), 1), respect = TRUE))
+    spans_respect = over(function() layout(matrix(c(1, 1), 1), respect = TRUE)),
+    middle_of_grid = over(
+      function() layout(matrix(c(0, 1, 0), 1), widths = c(1, 2, 1)),
+      before = grid
+    )
   )
   for (name in names(pages)) {
     draw <- pages[[name]]
@@ -1265,11 +1276,9 @@ test_that("a sized Base R layout() of one panel over several cells keeps the plo
       drawn_by_maidr(draw, c(7, 5)), drawn_by_r(draw, c(7, 5)),
       label = name
     )
-  }
-  for (name in c("spans_rows", "spans_grid")) {
     testthat::expect_equal(
-      drawn_plot_boxes(render_sized(pages[[name]], c(7, 5))),
-      native_plot_boxes(pages[[name]], c(7, 5)),
+      drawn_plot_boxes(render_sized(draw, c(7, 5), device = c(10, 8))),
+      native_plot_boxes(draw, c(7, 5)),
       tolerance = 1e-3,
       label = name
     )
