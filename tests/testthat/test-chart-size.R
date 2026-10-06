@@ -975,6 +975,20 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
       par(fig = c(0.6, 0.95, 0.5, 0.9), new = TRUE, mar = c(2, 2, 1, 1))
       plot(5:1)
     },
+    # Set up between two plots of the page, the cell is drawn over the
+    # first.
+    one_cell_over_page = function() {
+      plot(1:5, main = "Page")
+      layout(matrix(1), widths = lcm(8), heights = lcm(8))
+      par(new = TRUE)
+      plot(5:1, main = "Cell")
+    },
+    one_cell_respect_over_page = function() {
+      plot(1:5, main = "Page")
+      layout(matrix(1), widths = 2, heights = 1, respect = TRUE)
+      par(new = TRUE)
+      plot(5:1, main = "Cell")
+    },
     matrix_by_name = function() {
       layout(widths = c(3, 1), mat = matrix(1:2, 1))
       for (i in 1:2) plot(1:5)
@@ -1055,6 +1069,13 @@ test_that("a picture of a Base R layout() page of one cell draws its plots in th
       par(fig = c(0.6, 0.95, 0.5, 0.9), new = TRUE, mar = c(2, 2, 1, 1))
       plot(5:1)
       abline(h = 3)
+    },
+    over_page = function() {
+      plot(1:5, main = "Page")
+      layout(matrix(1), widths = 2, heights = 1, respect = TRUE)
+      par(new = TRUE)
+      plot(5:1, main = "Cell")
+      lines(1:5)
     }
   )
   for (name in names(pages)) {

@@ -1177,23 +1177,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
         # drew them. Plots on the pages before are not among the groups
         # (`last_page_calls()`).
         page_func <- function() {
-          # A layout() of one cell still places its plot: `lcm()` sizes or
-          # `respect` leave the cell less than the page. It is set up once,
-          # before the page's first plot, as R set it up, and the plots R
-          # drew in its cell are drawn in it (`is_figure_region()`).
-          laid_out <- identical(panel_config$type, "layout") &&
-            any(vapply(
-              private$.plot_groups,
-              function(group) isTRUE(group$high_call_index > panel_config$layout_index),
-              logical(1)
-            ))
-          if (laid_out) {
-            do.call(graphics::layout, c(list(panel_config$matrix), panel_config$sizes))
-          }
+          # A layout() of one cell still places its plots: `lcm()` sizes or
+          # `respect` leave the cell less than the page. Each plot R drew in
+          # its cell is drawn in it on the chart's page (`send_to_layout_cell()`).
           private$replay_page(
             rep(1L, length(private$.plot_groups)),
             private$plot_numbers(),
-            if (laid_out) panel_config
+            if (length(panel_config$cell_fig) == 4L) panel_config
           )
         }
 
@@ -1568,7 +1558,8 @@ start_skipped_plots <- function(at, upto, slot) {
 #' to it out of turn with `par(mfg = )`, in that panel of the grid
 #' (`mfg_of_panel()`). A plot R drew in a region `par(fig = )` or
 #' `screen()` set, outside any grid, is drawn in that region
-#' (`is_figure_region()`).
+#' (`is_figure_region()`), and one it drew in the cell of a `layout()` of
+#' one cell, in that cell on the drawing's page (`send_to_layout_cell()`).
 #'
 #' @param high The recorded call, with the `cell` and `fig` R put its plot
 #'   in (`end_base_r_call()`)
@@ -1587,8 +1578,37 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
   } else {
     if (is_figure_region(high, panel_config, graphics::par("fig"))) {
       graphics::par(fig = high$fig)
+    } else if (in_layout_cell(high$fig, panel_config)) {
+      send_to_layout_cell(panel_config)
     }
     start_replayed_plot(slot <= figure, start = FALSE)
+  }
+  invisible(NULL)
+}
+
+#' Send a drawing to the cell of a page's `layout()` of one cell
+#'
+#' The region the layout gives its cell on the drawing's page
+#' (`grid_panel_regions()`), given with `par(fig = )`. Set up with
+#' `layout()` after the page's first plot, as R set it up before a plot
+#' drawn in its cell over the page after `par(new = TRUE)`, the cell was
+#' drawn as the whole page: gridGraphics, which echoes the drawing as grobs
+#' (`base_r_drawing_grob()`), does not set up again a `layout()` drawn on
+#' the page. A cell larger than the page is set up as R set it up, and R
+#' stops as it does, with "figure region too large".
+#'
+#' @param panel_config The page's `layout()` of one cell
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+send_to_layout_cell <- function(panel_config) {
+  omi <- graphics::par("omi")
+  inches <- graphics::par("din") - c(omi[[2]] + omi[[4]], omi[[1]] + omi[[3]])
+  cell <- grid_panel_regions(panel_config, inches)[[1]]
+  if (length(cell) == 4L && all(cell > -1e-6 & cell < 1 + 1e-6)) {
+    graphics::par(fig = pmin(pmax(cell, 0), 1))
+  } else {
+    do.call(graphics::layout, c(list(panel_config$matrix), panel_config$sizes))
   }
   invisible(NULL)
 }

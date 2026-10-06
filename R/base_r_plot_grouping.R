@@ -445,16 +445,24 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   # `par(mfrow = c(1, 1), new = TRUE)` is to draw a legend for a grid over
   # the whole page, lays out only the plot drawn over the page after it,
   # which R started no page for: the plots before it keep their panels.
+  # Where they were in no grid of several panels, it is the page's: a
+  # `layout()` of one cell sized with `lcm()` or `respect` puts the plot
+  # drawn over the page after it in its cell (`layout_cell_region()`).
   if (length(grouped$groups) > 0) {
     plot_indices <- vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
     last_plot_index <- max(plot_indices)
+    in_grid <- vapply(
+      grouped$groups,
+      function(g) length(g$high_call$cell) == 4L && isTRUE(prod(g$high_call$cell[3:4]) > 1),
+      logical(1)
+    )
     over_page <- function(call) {
       after <- which(plot_indices > call$storage_index)
       next_plot <- if (length(after) > 0) grouped$groups[[min(after)]]$high_call
       # Whether it sets a grid of one is read last: a layout() call's
       # arguments are matched against layout() to find its matrix.
       isTRUE(call$storage_index > min(plot_indices)) && isFALSE(next_plot$opens_page) &&
-        sets_grid_of_one(call)
+        any(in_grid[plot_indices < call$storage_index]) && sets_grid_of_one(call)
     }
     layout_calls <- Filter(
       function(call) isTRUE(call$storage_index < last_plot_index) && !over_page(call),
@@ -524,7 +532,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     config <- NULL
   }
   if (identical(config$type, "layout") && length(config$matrix) == 1L) {
-    config$cell_fig <- layout_cell_region(grouped$groups, config, layout_calls)
+    config$cell_fig <- layout_cell_region(grouped$groups, config)
   }
 
   config %||% grid_of_cells(grouped$groups)
@@ -917,42 +925,32 @@ layout_matrix <- function(args) {
 #' `lcm()` sizes or `respect` leave the one cell of such a layout less than
 #' the page, and R reports the region of each plot it draws there
 #' (`par("fig")`) as a share of the page the author drew on, with the cell
-#' of a grid of one, as it reports a region `par(fig = )` gave a plot. The
-#' cell is the region of the first plot R started after the `layout()`
-#' call, which R put there; the layout set up again puts the plots drawn in
-#' it in its cell on the chart's page (`is_figure_region()`). A
-#' `par(fig = )` recorded between the two gave that plot a region of its
-#' own, and R draws in the layout no more after it.
+#' of a grid of one, as it reports a region `par(fig = )` or `screen()`
+#' gave a plot. The cell is the region the layout gives it on a page of the
+#' size R drew the page's plots on (`grid_panel_regions()`); the plots R
+#' drew there are drawn in its cell on the chart's page
+#' (`send_to_layout_cell()`). Taken to be the region of the first plot R
+#' started after the call, it was that of a plot `split.screen()` or
+#' `par(fig = )` placed elsewhere, which was then drawn in the cell.
 #'
 #' @param groups Plot groups from group_device_calls()
 #' @param config The page's `layout()` of one cell, from
 #'   [detect_panel_configuration()]
-#' @param layout_calls The recorded layout calls
 #' @return The region, as `par("fig")` gives it, or NULL where the call
-#'   sizes no cell or no plot is known to be in it
+#'   sizes no cell or the size of the page is not known
 #' @keywords internal
 #' @noRd
-layout_cell_region <- function(groups, config, layout_calls) {
+layout_cell_region <- function(groups, config) {
   if (length(config$sizes) == 0L) {
     return(NULL)
   }
-  first <- Find(
-    function(group) {
-      isTRUE(group$high_call_index > config$layout_index) && isTRUE(group$high_call$new_plot)
-    },
-    groups
-  )
-  fig <- first$high_call$fig
-  given <- Find(
-    function(call) {
-      identical(call$function_name, "par") &&
-        isTRUE(call$storage_index > config$layout_index) &&
-        isTRUE(call$storage_index < first$high_call_index) &&
-        "fig" %in% names(par_setting_arguments(call$args))
-    },
-    layout_calls
-  )
-  if (length(fig) == 4L && is.null(given)) fig
+  for (group in groups) {
+    inches <- page_inches(group$high_call)
+    if (!is.null(inches)) {
+      return(grid_panel_regions(config, inches)[[1]])
+    }
+  }
+  NULL
 }
 
 #' Whether R drew in the cell of a page's `layout()` of one cell
