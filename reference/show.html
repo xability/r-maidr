@@ -32,7 +32,7 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-05">
+<meta name="DC.date" content="2026-10-06">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -246,10 +246,12 @@ for its title, date range and date labels. A smaller size asked for is
 enlarged, with a message naming the size the chart is drawn at. A side
 larger than 50 in is refused, as <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> refuses one: the
 size is in inches, not the pixels <code><a href="maidr_output.html">maidr_output()</a></code> takes.</p>
-<p>A Base R chart's margins and text take the same room at every size, so
-a chart can be too small for them – R itself stops with "figure margins
-too large" at such a size. maidr draws the chart with the margins and
-text size its <code><a href="base-r-wrappers.html">par()</a></code> calls set, so it fits where R draws it with them.
+<p>A Base R chart's margins and text take the same room at every size, as
+do the cells a <code><a href="base-r-wrappers.html">layout()</a></code> call sizes with <code><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">lcm()</a></code>, so a chart can be too
+small for them – R itself stops with "figure margins too large", or for
+those cells "figure region too large", at such a size. maidr draws the
+chart with the margins and text size its <code><a href="base-r-wrappers.html">par()</a></code> calls set, so it fits
+where R draws it with them.
 Asked for a size too small, maidr stops too, with an error naming the
 size, rather than show an empty chart: draw it larger. With no size
 asked for, a chart too small for 7 x 5 in, such as a <code>par(mfrow)</code> grid

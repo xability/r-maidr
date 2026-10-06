@@ -293,7 +293,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-04">
+<meta name="DC.date" content="2026-10-06">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -475,7 +475,7 @@
 <span></span>
 <span><span class="co"># Shiny: the chart's size; maidr_output()'s width and height size the output</span></span>
 <span><span class="va">output</span><span class="op">$</span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/render_maidr.html">render_maidr</a></span><span class="op">(</span><span class="va">p</span>, fig_width <span class="op">=</span> <span class="fl">10</span>, fig_height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<p>In R Markdown and Quarto the chunk’s <code>fig.width</code> and <code>fig.height</code> set it. Nothing else does: not the device a Base R chart was drawn on, nor the window or Shiny output a chart is shown in, which shrinks a wider chart to fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for less (in a document, by the chunk’s own options), maidr says in a message the size it used. A Base R chart too small for its margins and text at the size you ask for is an error naming the size. With no size asked for, one too small for 7 x 5 in, such as a <code>par(mfrow)</code> grid of five rows, is drawn larger, at 7 x 7 in or the smallest larger size that leaves each of its plots room to be seen, and a message names the size.</p>
+<p>In R Markdown and Quarto the chunk’s <code>fig.width</code> and <code>fig.height</code> set it. Nothing else does: not the device a Base R chart was drawn on, nor the window or Shiny output a chart is shown in, which shrinks a wider chart to fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for less (in a document, by the chunk’s own options), maidr says in a message the size it used. A Base R chart too small for its margins and text, or for the cells a <code><a href="reference/base-r-wrappers.html">layout()</a></code> sizes with <code><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">lcm()</a></code>, at the size you ask for is an error naming the size. With no size asked for, one too small for 7 x 5 in, such as a <code>par(mfrow)</code> grid of five rows, is drawn larger, at 7 x 7 in or the smallest larger size that leaves each of its plots room to be seen, and a message names the size.</p>
 </div>
 <div class="section level3">
 <h3 id="r-markdown-and-quarto">R Markdown and Quarto<a class="anchor" aria-label="anchor" href="#r-markdown-and-quarto"></a>

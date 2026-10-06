@@ -63,7 +63,7 @@ page of the canvas&#x27;s size, the drawing is the one R draws at that size.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-05">
+<meta name="DC.date" content="2026-10-06">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -133,7 +133,7 @@ page of the canvas's size, the drawing is the one R draws at that size.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">base_r_drawing_grob</span><span class="op">(</span><span class="va">draw</span>, <span class="va">size</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">base_r_drawing_grob</span><span class="op">(</span><span class="va">draw</span>, <span class="va">size</span>, cells_in_cm <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -146,6 +146,11 @@ page of the canvas's size, the drawing is the one R draws at that size.</p>
 
 <dt id="arg-size">size<a class="anchor" aria-label="anchor" href="#arg-size"></a></dt>
 <dd><p>The chart's canvas, from <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code></p></dd>
+
+
+<dt id="arg-cells-in-cm">cells_in_cm<a class="anchor" aria-label="anchor" href="#arg-cells-in-cm"></a></dt>
+<dd><p>Whether the chart's own <code><a href="base-r-wrappers.html">layout()</a></code> call sizes cells
+with <code><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">lcm()</a></code>, which the error then names when they do not fit</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -167,14 +172,16 @@ drawing, and maidr exported that without a word.</p>
 a chart's margins and text the same room in inches on any page, so a
 page too small for them – 6 x 1.5 in for a <code><a href="base-r-wrappers.html">barplot()</a></code>, 4 x 3 in for a
 2 x 2 <code>par(mfrow)</code> – leaves the plot none and R stops with "figure
-margins too large". The device the author drew on may have had the room,
-and maidr draws the chart again at a size of its own. An empty chart in
-its place would not say so, and a picture is drawn at the same size, so
-neither is made. A drawing is taken to have failed for its size when it
-fits the largest page a chart is drawn on, <a href="MAIDR_MAX_CHART_SIZE.html">MAIDR_MAX_CHART_SIZE</a> on each
-side; any other failure is raised as R raised it, for the caller to
-handle as before. A size no one asked for is the orchestrator's to
-enlarge (<code><a href="base_r_page_that_fits.html">base_r_page_that_fits()</a></code>).</p>
+margins too large". The cells a <code><a href="base-r-wrappers.html">layout()</a></code> call sizes with <code><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">lcm()</a></code> keep
+their size on any page too, and R stops with "figure region too large"
+on a page smaller than they are. The device the author drew on may have
+had the room, and maidr draws the chart again at a size of its own. An
+empty chart in its place would not say so, and a picture is drawn at the
+same size, so neither is made. A drawing is taken to have failed for its
+size when it fits the largest page a chart is drawn on,
+<a href="MAIDR_MAX_CHART_SIZE.html">MAIDR_MAX_CHART_SIZE</a> on each side; any other failure is raised as R
+raised it, for the caller to handle as before. A size no one asked for is
+the orchestrator's to enlarge (<code><a href="base_r_page_that_fits.html">base_r_page_that_fits()</a></code>).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

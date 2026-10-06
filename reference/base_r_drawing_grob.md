@@ -18,7 +18,7 @@ drawing is the one R draws at that size.
 ## Usage
 
 ``` r
-base_r_drawing_grob(draw, size)
+base_r_drawing_grob(draw, size, cells_in_cm = FALSE)
 ```
 
 ## Arguments
@@ -31,6 +31,13 @@ base_r_drawing_grob(draw, size)
 
   The chart's canvas, from
   [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+- cells_in_cm:
+
+  Whether the chart's own
+  [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) call
+  sizes cells with [`lcm()`](https://rdrr.io/r/graphics/layout.html),
+  which the error then names when they do not fit
 
 ## Value
 
@@ -54,11 +61,15 @@ gives a chart's margins and text the same room in inches on any page, so
 a page too small for them – 6 x 1.5 in for a
 [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md), 4 x 3 in
 for a 2 x 2 `par(mfrow)` – leaves the plot none and R stops with "figure
-margins too large". The device the author drew on may have had the room,
-and maidr draws the chart again at a size of its own. An empty chart in
-its place would not say so, and a picture is drawn at the same size, so
-neither is made. A drawing is taken to have failed for its size when it
-fits the largest page a chart is drawn on,
+margins too large". The cells a
+[`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) call sizes
+with [`lcm()`](https://rdrr.io/r/graphics/layout.html) keep their size
+on any page too, and R stops with "figure region too large" on a page
+smaller than they are. The device the author drew on may have had the
+room, and maidr draws the chart again at a size of its own. An empty
+chart in its place would not say so, and a picture is drawn at the same
+size, so neither is made. A drawing is taken to have failed for its size
+when it fits the largest page a chart is drawn on,
 [MAIDR_MAX_CHART_SIZE](https://r.maidr.ai/reference/MAIDR_MAX_CHART_SIZE.md)
 on each side; any other failure is raised as R raised it, for the caller
 to handle as before. A size no one asked for is the orchestrator's to

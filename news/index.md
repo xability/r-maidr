@@ -485,6 +485,77 @@
   a short y axis where R shows 10 and 14. The labels R leaves out are
   now left out too, measured as R measures them at the chart’s size
   ([\#355](https://github.com/xability/r-maidr/issues/355)).
+- A Base R [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  page is drawn with the `widths`, `heights` and `respect` its call
+  sets. maidr set the page up again from the matrix alone, so every
+  column was as wide and every row as tall as the others: the first plot
+  of `layout(matrix(1:2, 1), widths = c(3, 1))` took half the width,
+  where R gives it three quarters, and the plot of a single cell, as in
+  `layout(matrix(1), widths = lcm(5), heights = lcm(5))`, filled the
+  page. Each plot is now drawn where R draws it – with
+  [`lcm()`](https://rdrr.io/r/graphics/layout.html) sizes, a `respect`
+  matrix, cells that span several rows or columns, empty cells, and in
+  the one cell of each layout set up over a page of plots, a grid’s
+  among them, to draw a plot or a legend’s
+  [`plot.new()`](https://rdrr.io/r/graphics/frame.html) panel over them,
+  or in the one panel of such a layout over several cells given
+  `widths`, `heights` or `respect` – and shows the tick labels R shows
+  at its size. A size asked for now stops when R cannot draw the page at
+  it, and a size no one asked for is enlarged until every plot, the
+  smallest included, has room. When it is the cells the call sized with
+  [`lcm()`](https://rdrr.io/r/graphics/layout.html) that do not fit on
+  the page, the error and the message name them. The matrix is the
+  argument R takes for it, written by name after the sizes, as in
+  `layout(widths = c(3, 1), mat = m)`, or without a name after a size
+  written with one, as in `layout(widths = c(3, 1), m)`. maidr took the
+  widths for the matrix: it warned that it could not draw the page, drew
+  none of it, and read the plots in a grid of the wrong shape, one of
+  them missing. A size left out with an empty argument, as in
+  `layout(m, , c(1, 3))`, which leaves out the widths, no longer loses
+  the page either: maidr drew only the first plot, over the whole page,
+  and read every plot as one. A
+  [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) maidr
+  did not record, made through
+  [`graphics::layout()`](https://rdrr.io/r/graphics/layout.html) or
+  before an earlier [`show()`](https://r.maidr.ai/reference/show.md) or
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) on the
+  device, keeps the widths and heights R gave its cells too, read from
+  where R drew its plots, where every edge of its cells is an edge of
+  one and its cells fill the page, where maidr drew its columns all as
+  wide, and its rows all as tall, as each other. Its plots are read in
+  the grid of those cells too, as a recorded
+  [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md)’s are,
+  so a reader moves through other subplots than before: maidr read the
+  plots of `graphics::layout(matrix(c(2, 1), 1), widths = c(1, 3))`, or
+  of a scatter plot with marginal plots laid out with `widths` and
+  `heights`, as one subplot of several layers, and a plot spanning a row
+  of cells over rows of other heights as a subplot in the first of them
+  only. Each plot is now a subplot of the cell R drew it in, in each
+  cell it spans, and a cell no plot was drawn in is an empty subplot.
+  Such a layout’s cells keep the share of the page R gave them on the
+  device the plots were drawn on, which is their size on a page of any
+  size where `widths` and `heights` set it, but not where
+  [`lcm()`](https://rdrr.io/r/graphics/layout.html) did, and R does not
+  say which. A size no one asked for is enlarged until those shares
+  leave every plot room, as for a recorded
+  [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md), and the
+  message says it is the shares: an `lcm(4)` column drawn on a 10 x 8 in
+  device is then drawn at 9 x 5 in, where R draws it 4 cm wide at 7 x 5
+  in. At a size asked for that they leave a plot no room at, the cells
+  are drawn the same size, as before, rather than the chart stopping,
+  both where R draws the page, as for that `lcm(4)` column at 7 x 5 in,
+  and where R stops, as for relative `widths` of 5 : 1 there. The one
+  cell of such a layout is read as R reports it, a region of the page as
+  `par(fig = )` gives one, so a cell sized with
+  [`lcm()`](https://rdrr.io/r/graphics/layout.html) keeps its share of
+  the author’s page: drawn smaller than that page, the chart can stop
+  where R draws it. A grid set up without maidr after a recorded
+  [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) of its
+  shape, as `withr::with_par(list(mfrow = c(1, 2)), ...)` after
+  `layout(matrix(1:2, 1), widths = c(1, 3))`, is not given the recorded
+  call’s sizes: maidr reads the regions R drew the page’s plots in,
+  which are the recorded call’s cells only where R drew them in that
+  layout ([\#361](https://github.com/xability/r-maidr/issues/361)).
 - [`save_html()`](https://r.maidr.ai/reference/save_html.md) of a
   lattice chart exports that chart even while a Base R call is recorded
   on the current device. The Base R adapter claimed any object once the

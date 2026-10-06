@@ -175,21 +175,25 @@ side larger than 50 in is refused, as
 refuses one: the size is in inches, not the pixels
 [`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md) takes.
 
-A Base R chart's margins and text take the same room at every size, so a
-chart can be too small for them – R itself stops with "figure margins
-too large" at such a size. maidr draws the chart with the margins and
-text size its [`par()`](https://r.maidr.ai/reference/base-r-wrappers.md)
-calls set, so it fits where R draws it with them. Asked for a size too
-small, maidr stops too, with an error naming the size, rather than show
-an empty chart: draw it larger. With no size asked for, a chart too
-small for 7 x 5 in, such as a `par(mfrow)` grid of five rows or more, is
-drawn on the 7 x 7 in page maidr laid every Base R chart out on before
-it drew one at its size. Where that is too small too, it is drawn on the
-smallest larger page that leaves each of its plots a sixth of an inch,
-12 px, each way, each side grown in whole inches only as far as it
-needs: 7 x 9 in for six rows, 12 x 5 in for twelve columns. A message
-names the size it is drawn at. The picture of a Base R chart maidr
-cannot read is held to its size in the same way.
+A Base R chart's margins and text take the same room at every size, as
+do the cells a
+[`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) call sizes
+with [`lcm()`](https://rdrr.io/r/graphics/layout.html), so a chart can
+be too small for them – R itself stops with "figure margins too large",
+or for those cells "figure region too large", at such a size. maidr
+draws the chart with the margins and text size its
+[`par()`](https://r.maidr.ai/reference/base-r-wrappers.md) calls set, so
+it fits where R draws it with them. Asked for a size too small, maidr
+stops too, with an error naming the size, rather than show an empty
+chart: draw it larger. With no size asked for, a chart too small for 7 x
+5 in, such as a `par(mfrow)` grid of five rows or more, is drawn on the
+7 x 7 in page maidr laid every Base R chart out on before it drew one at
+its size. Where that is too small too, it is drawn on the smallest
+larger page that leaves each of its plots a sixth of an inch, 12 px,
+each way, each side grown in whole inches only as far as it needs: 7 x 9
+in for six rows, 12 x 5 in for twelve columns. A message names the size
+it is drawn at. The picture of a Base R chart maidr cannot read is held
+to its size in the same way.
 
 ## Examples
 
