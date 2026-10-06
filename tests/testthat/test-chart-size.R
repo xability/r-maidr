@@ -1131,6 +1131,34 @@ test_that("a Base R layout() of one cell holds only the plots R drew in it", {
   }
 })
 
+test_that("a plot in a Base R layout()'s one cell is drawn there after par(mfg = )", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # R reports the cell of a layout() of one cell as that of a grid of one,
+  # so the plot drawn in it over a grid shares a panel of the grid with the
+  # plot before it. After par(mfg = ) had sent R to a later panel, it was
+  # sent back to the first panel, and drawn there rather than in the cell.
+  draw <- function() {
+    par(mfrow = c(2, 2))
+    plot(1:3, main = "First")
+    par(mfg = c(2, 2))
+    plot(3:1, main = "Last")
+    layout(matrix(1), widths = lcm(8), heights = lcm(8))
+    par(new = TRUE)
+    plot(1:5, main = "Cell")
+  }
+  for (size in list(c(7, 5), c(6, 6))) {
+    label <- sprintf("at %g x %g in", size[1], size[2])
+    testthat::expect_equal(
+      drawn_plot_boxes(render_sized(draw, size, device = c(12, 12))),
+      native_plot_boxes(draw, size),
+      tolerance = 1e-3,
+      label = label
+    )
+    testthat::expect_identical(drawn_by_maidr(draw, size), drawn_by_r(draw, size), label = label)
+  }
+})
+
 test_that("a sized Base R layout() of one panel over several cells keeps the plot before it", {
   testthat::skip_on_cran()
   skip_if_no_render()

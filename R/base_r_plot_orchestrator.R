@@ -1571,7 +1571,10 @@ start_skipped_plots <- function(at, upto, slot) {
 #' (`mfg_of_panel()`). A plot R drew in a region `par(fig = )` or
 #' `screen()` set, outside any grid, is drawn in that region
 #' (`is_figure_region()`), and one it drew in the cell of a `layout()` of
-#' one cell, in that cell on the drawing's page (`send_to_layout_cell()`).
+#' one cell, in that cell on the drawing's page (`send_to_layout_cell()`),
+#' wherever the panel of the grid under it is: after `par(mfg = )` sent R
+#' back to an earlier panel of the grid, such a plot was sent to that panel
+#' again and drawn in it, not in the cell.
 #'
 #' @param high The recorded call, with the `cell` and `fig` R put its plot
 #'   in (`end_base_r_call()`) and where it was made (`storage_index`)
@@ -1583,15 +1586,16 @@ start_skipped_plots <- function(at, upto, slot) {
 #' @keywords internal
 #' @noRd
 place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
-  jumps <- figure > 0L && slot != figure && slot != figure + 1L &&
+  in_cell <- in_layout_cell(high$fig, high$storage_index, panel_config)
+  jumps <- !in_cell && figure > 0L && slot != figure && slot != figure + 1L &&
     is_multipanel_config(panel_config)
   if (jumps) {
     graphics::par(mfg = mfg_of_panel(slot, panel_config))
   } else {
-    if (is_figure_region(high, panel_config, graphics::par("fig"))) {
-      graphics::par(fig = high$fig)
-    } else if (in_layout_cell(high$fig, high$storage_index, panel_config)) {
+    if (in_cell) {
       send_to_layout_cell(panel_config)
+    } else if (is_figure_region(high, panel_config, graphics::par("fig"))) {
+      graphics::par(fig = high$fig)
     }
     start_replayed_plot(slot <= figure, start = FALSE)
   }
