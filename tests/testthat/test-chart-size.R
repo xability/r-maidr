@@ -1268,7 +1268,11 @@ test_that("a sized Base R layout() of one panel over several cells draws in its 
     middle_of_grid = over(
       function() layout(matrix(c(0, 1, 0), 1), widths = c(1, 2, 1)),
       before = grid
-    )
+    ),
+    # Read in the next panel of a grid of the cells R drew in, the plot
+    # over the middle of the page was started on a page of its own, which
+    # lost the plot before it.
+    middle_of_page = over(function() layout(matrix(c(0, 1, 0), 1), widths = c(1, 2, 1)))
   )
   for (name in names(pages)) {
     draw <- pages[[name]]

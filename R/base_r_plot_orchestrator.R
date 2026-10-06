@@ -1592,12 +1592,17 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
   if (jumps) {
     graphics::par(mfg = mfg_of_panel(slot, panel_config))
   } else {
+    stays <- slot <= figure
     if (!is.null(cell)) {
       send_to_layout_cell(cell$layout)
+      # Over the page the drawing is on, unless R started a page for it: a
+      # grid R did not record, read from the cells R drew in, can put it in
+      # the next panel, which would start a page.
+      stays <- figure > 0L && !isTRUE(high$opens_page)
     } else if (is_figure_region(high, panel_config, graphics::par("fig"))) {
       graphics::par(fig = high$fig)
     }
-    start_replayed_plot(slot <= figure, start = FALSE)
+    start_replayed_plot(stays, start = FALSE)
   }
   invisible(NULL)
 }
