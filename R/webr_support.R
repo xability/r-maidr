@@ -117,7 +117,7 @@ maidr_webr_show_js <- function(html) {
     "var f = document.createElement('iframe');",
     "f.id = 'maidr-iframe-webr-' + window.__maidrWebRFrames;",
     "f.title = 'MAIDR chart';",
-    "f.setAttribute('allow', 'bluetooth; serial');",
+    "f.setAttribute('allow', 'bluetooth; serial; hid');",
     "f.setAttribute('role', 'img');",
     "f.tabIndex = 0;",
     "f.style.cssText = 'width:100%%;height:450px;border:none;display:block;",

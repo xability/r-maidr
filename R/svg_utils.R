@@ -2045,7 +2045,7 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px",
   srcdoc <- escape_for_attribute(standalone_html)
 
   iframe_html <- sprintf(
-    '<iframe id="maidr-iframe-%s" srcdoc="%s" allow="bluetooth; serial" style="width: %s; height: %s; border: none; display: block; margin: 0 auto; outline: none;" role="img" tabindex="0"></iframe>',
+    '<iframe id="maidr-iframe-%s" srcdoc="%s" allow="bluetooth; serial; hid" style="width: %s; height: %s; border: none; display: block; margin: 0 auto; outline: none;" role="img" tabindex="0"></iframe>',
     plot_id,
     srcdoc,
     width,

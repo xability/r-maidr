@@ -136,7 +136,7 @@ const html = await (await webR.evalR(".maidr_html")).toString();
 
 const frame = document.createElement("iframe");
 frame.srcdoc = html;
-frame.allow = "bluetooth; serial";
+frame.allow = "bluetooth; serial; hid";
 document.getElementById("maidr-output").append(frame);
 ```
 
