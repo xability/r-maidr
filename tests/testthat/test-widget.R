@@ -256,7 +256,7 @@ test_that("widget iframe carries its content in srcdoc, not a data URL", {
   testthat::expect_false(grepl("data:text/html", iframe_content, fixed = TRUE))
 })
 
-test_that("widget iframe delegates bluetooth and serial", {
+test_that("widget iframe delegates bluetooth, serial and hid", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_bar()
@@ -269,7 +269,7 @@ test_that("widget iframe delegates bluetooth and serial", {
   # the device.
   testthat::expect_match(
     widget$x$iframe_content,
-    'allow="bluetooth; serial"',
+    'allow="bluetooth; serial; hid"',
     fixed = TRUE
   )
 })
