@@ -383,12 +383,18 @@
   the device, keeps the widths and heights R gave its cells too, read from
   where R drew its plots, where every edge of its cells is an edge of one
   and its cells fill the page, where maidr drew its columns all as wide,
-  and its rows all as tall, as each other. Such a layout's cells sized
-  with `lcm()` keep the share of the page R gave them on the device the
-  plots were drawn on; where those shares leave a plot no room for its
-  margins at the chart's size, as an `lcm(4)` column drawn on a 10 x 8 in
-  device does at 7 x 5 in, the cells are drawn the same size, as before,
-  rather than the chart stopping. The one cell of such a layout is read as
+  and its rows all as tall, as each other. Such a layout's cells keep the
+  share of the page R gave them on the device the plots were drawn on,
+  which is their size on a page of any size where `widths` and `heights`
+  set it, but not where `lcm()` did, and R does not say which. A size no
+  one asked for is enlarged until those shares leave every plot room, as
+  for a recorded `layout()`, and the message says it is the shares: an
+  `lcm(4)` column drawn on a 10 x 8 in device is then drawn at 9 x 5 in,
+  where R draws it 4 cm wide at 7 x 5 in. At a size asked for that they
+  leave a plot no room at, the cells are drawn the same size, as before,
+  rather than the chart stopping, both where R draws the page, as for that
+  `lcm(4)` column at 7 x 5 in, and where R stops, as for relative `widths`
+  of 5 : 1 there. The one cell of such a layout is read as
   R reports it, a region of the page as `par(fig = )` gives one, so a cell
   sized with `lcm()` keeps its share of the author's page: drawn smaller
   than that page, the chart can stop where R draws it. A grid set up

@@ -1082,11 +1082,11 @@ test_that("a layout() maidr did not record keeps R's shares where they leave its
   testthat::skip_on_cran()
   skip_if_no_render()
   # Read from the regions R drew in, its columns are the shares of the page
-  # R gave them. A column lcm() sized keeps its size in cm instead, and an
-  # lcm(4) column drawn on a 10 x 8 in device took its share of a 7 x 5 in
-  # chart, too narrow for its plot's margins: the chart stopped, where R
-  # draws it, and a size no one asked for was enlarged. Its cells are then
-  # drawn the same size, as they were before maidr read the shares.
+  # R gave them. A column lcm() sized keeps its size in cm instead, and R
+  # does not say which: an lcm(4) column drawn on a 10 x 8 in device took
+  # its share of a 7 x 5 in chart, too narrow for its plot's margins, and
+  # the chart stopped where R draws it. At a size asked for its cells are
+  # then drawn the same size, as they were before maidr read the shares.
   plots <- function() {
     plot(1:3, main = "One")
     plot(3:1, main = "Two")
@@ -1104,10 +1104,6 @@ test_that("a layout() maidr did not record keeps R's shares where they leave its
     native_plot_boxes(same_size, c(7, 5)),
     tolerance = 1e-3
   )
-  testthat::expect_no_message(
-    render_sized(centimetres, NULL, device = c(10, 8)),
-    class = "maidr_chart_size_message"
-  )
   # At the size R drew it at, and wherever the shares leave room, they are
   # R's cells.
   testthat::expect_equal(
@@ -1123,6 +1119,44 @@ test_that("a layout() maidr did not record keeps R's shares where they leave its
     drawn_plot_boxes(render_sized(shares, c(7, 5), device = c(10, 8))),
     native_plot_boxes(shares, c(7, 5)),
     tolerance = 1e-3
+  )
+
+  # A size no one asked for is enlarged until the shares leave every plot
+  # room, as R's cells are for a layout() maidr recorded, saying why. Drawn
+  # the same size, the narrow column of widths 5 : 1, which R does not draw
+  # at 7 x 5 in, took half the page; and so did the picture of such a page.
+  narrow <- function() {
+    graphics::layout(matrix(1:2, 1), widths = c(5, 1))
+    plots()
+  }
+  enlarged <- paste(
+    "drawn at 9 x 5 in rather than 7 x 5 in, where the shares of the page R",
+    "gave its layout() cells leave a plot no room"
+  )
+  drawn <- with_messages(render_sized(narrow, NULL, device = c(10, 8)))
+  testthat::expect_length(drawn$said, 1L)
+  testthat::expect_match(drawn$said, enlarged, fixed = TRUE)
+  testthat::expect_equal(
+    drawn_plot_boxes(drawn$value),
+    native_plot_boxes(narrow, c(9, 5)),
+    tolerance = 1e-3
+  )
+  grDevices::pdf(NULL, width = 10, height = 8)
+  device <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(device), add = TRUE)
+  maidr:::clear_device_storage(device)
+  on.exit(maidr:::clear_device_storage(device), add = TRUE)
+  graphics::layout(matrix(1:2, 1), widths = c(5, 1))
+  # maidr does not read symbols(), so the chart is a picture.
+  symbols(1:3, 1:3, circles = 1:3, main = "One")
+  symbols(3:1, 1:3, circles = 1:3, main = "Two")
+  file <- withr::local_tempfile(fileext = ".html")
+  saved <- suppressWarnings(with_messages(save_html(file = file)))
+  testthat::expect_length(saved$said, 1L)
+  testthat::expect_match(saved$said, enlarged, fixed = TRUE)
+  testthat::expect_equal(
+    embedded_png_size(paste(readLines(file, warn = FALSE), collapse = "\n")),
+    c(9, 5) * 150
   )
 })
 

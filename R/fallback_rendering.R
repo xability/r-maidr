@@ -136,8 +136,13 @@ create_fallback_image <- function(plot = NULL, format = "png",
 #' @param strict `TRUE` to stop at a call that cannot be drawn again, as
 #'   the measure of the size the picture needs does (`picture_size()`);
 #'   `FALSE` draws the others, with a warning naming a plot left out
+#' @param asked Whether the size the picture is drawn at was asked for: at
+#'   one no one asked for, a `layout()` maidr did not record keeps the
+#'   shares of the page R gave its cells however small the page, and the
+#'   picture is drawn larger where they leave a plot no room
+#'   (`layout_sizes_on_page()`)
 #' @keywords internal
-replay_base_r_plot <- function(device_id, strict = FALSE) {
+replay_base_r_plot <- function(device_id, strict = FALSE, asked = TRUE) {
   # Every recorded call on the page R's device shows, with every layout
   # call, in the order it was made (`last_page_calls()`). The grouped view
   # keeps the HIGH and LOW calls and drops the LAYOUT ones, so a
@@ -154,7 +159,7 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
   # (`grid_of_cells()`), is set up first, as R had it.
   config <- tryCatch(detect_panel_configuration(device_id), error = function(e) NULL)
   if (isTRUE(config$derived) && identical(config$type, "layout")) {
-    do.call(graphics::layout, c(list(config$matrix), layout_sizes_on_page(config)))
+    do.call(graphics::layout, c(list(config$matrix), layout_sizes_on_page(config, asked)))
   } else if (isTRUE(config$derived)) {
     graphics::par(mfrow = c(config$nrows, config$ncols))
   }

@@ -30,6 +30,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .canvas = NULL,
     .size_asked = TRUE,
     .cells_in_cm = FALSE,
+    .least_page = NULL,
 
     # A drawing as a grob on the chart's canvas (`base_r_drawing_grob()`),
     # the canvas enlarged first where the drawing is too small for one no one
@@ -56,8 +57,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
       canvas <- private$.canvas
       private$.canvas <- base_r_page_that_fits(draw, canvas)
+      least <- private$.least_page
       no_room <- if (isTRUE(e$cells)) {
         "its layout() cells sized with lcm() do not fit"
+      } else if (length(least) == 2L && any(canvas <= least)) {
+        "the shares of the page R gave its layout() cells leave a plot no room"
       } else {
         "its margins and text leave the plot no room"
       }
@@ -410,8 +414,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
       private$.plot_groups <- grouped$groups
       private$.layout_calls <- grouped$layout_calls
       # Whether the author's own layout() call sizes cells with lcm(), which
-      # a drawing too small for them then names (`base_r_too_small()`).
-      private$.cells_in_cm <- layout_sizes_in_cm(detect_panel_configuration(device_id))
+      # a drawing too small for them then names (`base_r_too_small()`); and
+      # the smallest page on which the shares R gave the cells of a layout()
+      # maidr did not record leave its plots room (`layout_sizes_on_page()`),
+      # which a drawing enlarged for them names.
+      panel_config <- detect_panel_configuration(device_id)
+      private$.cells_in_cm <- layout_sizes_in_cm(panel_config)
+      private$.least_page <- panel_config$least_page
 
       # Settled before anything is drawn: the recorded calls are drawn again
       # at this size (see `get_gtable()`), which enlarges it only for a
@@ -1134,7 +1143,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
           } else if (panel_config$type == "mfcol") {
             graphics::par(mfcol = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "layout" && !is.null(panel_config$matrix)) {
-            sizes <- layout_sizes_on_page(panel_config)
+            sizes <- layout_sizes_on_page(panel_config, private$.size_asked)
             do.call(graphics::layout, c(list(panel_config$matrix), sizes))
           }
 
@@ -1223,7 +1232,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' @return A named numeric vector, `width` and `height`, in inches
     picture_size = function() {
       # The drawing the picture is (`replay_base_r_plot()`).
-      draw <- function() replay_base_r_plot(private$.device_id, strict = TRUE)
+      draw <- function() {
+        replay_base_r_plot(private$.device_id, strict = TRUE, asked = private$.size_asked)
+      }
       canvas <- private$.canvas
       failure <- tryCatch(
         {

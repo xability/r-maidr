@@ -1067,20 +1067,26 @@ in_layout_cell <- function(fig, panel_config) {
 #' keeps its size in centimetres instead, and R does not say which set it.
 #' On a page smaller than the author's that one keeps more of the page than
 #' its share: an `lcm(4)` column R drew on a 10 x 8 in device keeps 4 cm at
-#' 7 x 5 in, where its share leaves its plot no room for its margins, and
-#' the chart stopped where R draws it. On a page where the shares leave a
-#' plot no room (`least_page`), the cells are set up the same size, as they
-#' were before maidr read the shares.
+#' 7 x 5 in, where its share leaves its plot no room for its margins, and R
+#' draws the chart, where relative `widths` of 5 : 1 leave the narrow plot
+#' no room and R stops. At a size no one asked for the shares are kept, and
+#' a page they leave a plot no room on is enlarged until they leave it some
+#' ([base_r_page_that_fits()]), as R's cells are for a `layout()` maidr
+#' recorded. At a size asked for, on a page where the shares leave a plot
+#' no room (`least_page`), the cells are set up the same size, as they were
+#' before maidr read the shares, so that the chart is drawn rather than
+#' stopped by a guess at which of the two set them.
 #'
 #' @param config The page's `layout()`, from [detect_panel_configuration()],
 #'   on the device the page is drawn on
+#' @param asked Whether the size the page is drawn at was asked for
 #' @return The `widths`, `heights` and `respect` to give `layout()`, as a
 #'   list; or NULL for cells of the same size
 #' @keywords internal
 #' @noRd
-layout_sizes_on_page <- function(config) {
+layout_sizes_on_page <- function(config, asked = TRUE) {
   least <- config$least_page
-  if (length(least) == 2L && any(graphics::par("din") <= least)) {
+  if (asked && length(least) == 2L && any(graphics::par("din") <= least)) {
     return(NULL)
   }
   config$sizes
