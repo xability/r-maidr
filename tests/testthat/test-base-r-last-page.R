@@ -539,6 +539,33 @@ test_that("a layout() no recorded call set up keeps the widths and heights R gav
   })
   expect_read_as_r_draws(spans, function() eval(spans), list("Left", "TR", "Left", "BR"))
 
+  # Its plots are read in the grid of those cells, as the recorded call's
+  # are: in cells of other sizes, maidr read them as one subplot of several
+  # layers, and a panel spanning two cells was a subplot in one of them.
+  reversed <- quote({
+    graphics::layout(matrix(c(2, 1), 1), widths = c(1, 3))
+    plot(1:5, main = "First")
+    plot(5:1, main = "Second")
+  })
+  expect_read_as_r_draws(reversed, function() eval(reversed), list("Second", "First"))
+  margins <- quote({
+    graphics::layout(matrix(c(2, 0, 1, 3), 2, byrow = TRUE), widths = c(3, 2), heights = c(2, 3))
+    plot(1:10, main = "Scatter")
+    barplot(c(a = 1, b = 2), main = "Above")
+    barplot(c(a = 2, b = 1), horiz = TRUE, main = "Beside")
+  })
+  expect_read_as_r_draws(
+    margins, function() eval(margins),
+    list("Above", character(0), "Scatter", "Beside")
+  )
+  top <- quote({
+    graphics::layout(matrix(c(1, 1, 2, 3), 2, byrow = TRUE), heights = c(2, 1))
+    plot(1:5, main = "Top")
+    plot(5:1, main = "BL")
+    plot(1:3, main = "BR")
+  })
+  expect_read_as_r_draws(top, function() eval(top), list("Top", "Top", "BL", "BR"))
+
   # Recorded, and cleared with the chart an earlier save_html() saved: the
   # next page is laid out by the same call.
   second_page <- quote({
