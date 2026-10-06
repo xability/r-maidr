@@ -1619,6 +1619,51 @@ test_that("a Base R layout() call that leaves an argument empty is evaluated onc
   testthat::expect_identical(get(".Random.seed", envir = globalenv()), seed)
 })
 
+test_that("a Base R layout() call with every argument written is evaluated once, by R", {
+  skip_if_no_render()
+  # maidr reads such a call from the values R was given, never from the
+  # call as it was written: a matrix or a size that is not the same each
+  # time is drawn as R drew it, and saving the chart leaves the session's
+  # random numbers where R left them.
+  evaluated <- c(mat = 0, widths = 0)
+  first_then_other <- function(argument, first, other) {
+    evaluated[[argument]] <<- evaluated[[argument]] + 1
+    if (evaluated[[argument]] == 1) first else other
+  }
+  draw <- function() {
+    evaluated[] <<- 0
+    layout(
+      first_then_other("mat", matrix(2:1, 1), matrix(1:2, 1)),
+      widths = first_then_other("widths", c(1, 3), c(3, 1)),
+      heights = 1,
+      respect = FALSE
+    )
+    for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
+  }
+  as_r_drew_it <- layout_page(matrix(2:1, 1), widths = c(1, 3))
+  drawn <- render_sized(draw, c(7, 5))
+  testthat::expect_identical(evaluated, c(mat = 1, widths = 1))
+  testthat::expect_equal(
+    drawn_plot_boxes(drawn),
+    native_plot_boxes(as_r_drew_it, c(7, 5)),
+    tolerance = 1e-3
+  )
+  testthat::expect_identical(
+    size_free_schema(drawn),
+    size_free_schema(render_sized(as_r_drew_it, c(7, 5)))
+  )
+
+  withr::local_seed(42)
+  seed <- NULL
+  shuffled <- function() {
+    layout(matrix(sample(2), 1), widths = c(3, 1), heights = 1)
+    for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
+    seed <<- get(".Random.seed", envir = globalenv())
+  }
+  render_sized(shuffled, c(7, 5))
+  testthat::expect_identical(get(".Random.seed", envir = globalenv()), seed)
+})
+
 test_that("a Base R layout() page is held to its size by the room R gives its plots", {
   testthat::skip_on_cran()
   skip_if_no_render()
