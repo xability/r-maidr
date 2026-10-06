@@ -385,10 +385,19 @@
   the device, keeps the widths and heights R gave its cells too, read from
   where R drew its plots, where every edge of its cells is an edge of one
   and its cells fill the page, where maidr drew its columns all as wide,
-  and its rows all as tall, as each other. Such a layout's cells keep the
-  share of the page R gave them on the device the plots were drawn on,
-  which is their size on a page of any size where `widths` and `heights`
-  set it, but not where `lcm()` did, and R does not say which. A size no
+  and its rows all as tall, as each other. Its plots are read in the grid
+  of those cells too, as a recorded `layout()`'s are, so a reader moves
+  through other subplots than before: maidr read the plots of
+  `graphics::layout(matrix(c(2, 1), 1), widths = c(1, 3))`, or of a
+  scatter plot with marginal plots laid out with `widths` and `heights`,
+  as one subplot of several layers, and a plot spanning a row of cells
+  over rows of other heights as a subplot in the first of them only. Each
+  plot is now a subplot of the cell R drew it in, in each cell it spans,
+  and a cell no plot was drawn in is an empty subplot. Such a layout's
+  cells keep the share of the page R gave them on the device the plots
+  were drawn on, which is their size on a page of any size where
+  `widths` and `heights` set it, but not where `lcm()` did, and R does
+  not say which. A size no
   one asked for is enlarged until those shares leave every plot room, as
   for a recorded `layout()`, and the message says it is the shares: an
   `lcm(4)` column drawn on a 10 x 8 in device is then drawn at 9 x 5 in,
