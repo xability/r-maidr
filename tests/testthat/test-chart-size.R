@@ -1182,7 +1182,10 @@ test_that("a sized Base R layout() of one panel over several cells keeps the plo
   )
   for (name in names(pages)) {
     draw <- pages[[name]]
-    testthat::expect_identical(drawn_by_maidr(draw, c(7, 5)), drawn_by_r(draw, c(7, 5)), label = name)
+    testthat::expect_identical(
+      drawn_by_maidr(draw, c(7, 5)), drawn_by_r(draw, c(7, 5)),
+      label = name
+    )
   }
   for (name in c("spans_rows", "spans_grid")) {
     testthat::expect_equal(
