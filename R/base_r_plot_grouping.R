@@ -469,12 +469,12 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
       # arguments are matched against layout() to find its matrix.
       isTRUE(call$storage_index > min(plot_indices)) && isFALSE(next_plot$opens_page) &&
         sets_grid_of_one(call) &&
-        (any(in_grid[plot_indices < call$storage_index]) || !sizes_cells(call))
+        (any(in_grid[plot_indices < call$storage_index]) || !sizes_one_cell(call))
     }
     governing <- Filter(function(call) isTRUE(call$storage_index < last_plot_index), layout_calls)
     over <- vapply(governing, over_page, logical(1))
     layout_calls <- governing[!over]
-    cell_call <- Find(sizes_cells, governing[over], right = TRUE)
+    cell_call <- Find(sizes_one_cell, governing[over], right = TRUE)
 
     if (length(layout_calls) == 0) {
       return(with_cell_beside(grid_of_cells(grouped$groups), cell_call, grouped))
@@ -654,15 +654,27 @@ sets_grid_of_one <- function(call) {
   is.numeric(mat) && length(unique(mat[mat > 0])) == 1L
 }
 
-#' Whether a recorded layout call sizes the cells of the grid it sets up
+#' Whether a recorded layout call sets up one cell that it sizes
+#'
+#' `lcm()` sizes or `respect` can leave the one cell of a `layout()` less
+#' than the page, and R reports its region as a share of the page the
+#' author drew on (`layout_cell_region()`). A `layout()` of one panel over
+#' several cells, as `layout(matrix(c(1, 0), 1), widths = c(3, 1))`, is
+#' not one: taken for one, set up over a plot, it was read as the page's
+#' grid, and the plot drawn before it was left out of the chart.
 #'
 #' @param call A recorded LAYOUT call
-#' @return Logical: a `layout()` call given `widths`, `heights` or `respect`
+#' @return Logical: a `layout()` call of a matrix of one cell, given
+#'   `widths`, `heights` or `respect`
 #' @keywords internal
 #' @noRd
-sizes_cells <- function(call) {
-  identical(call$function_name, "layout") &&
-    any(c("widths", "heights", "respect") %in% names(layout_arguments(call$args)))
+sizes_one_cell <- function(call) {
+  if (!identical(call$function_name, "layout")) {
+    return(FALSE)
+  }
+  args <- layout_arguments(call$args)
+  length(layout_matrix(args)) == 1L &&
+    any(c("widths", "heights", "respect") %in% names(args))
 }
 
 #' The grid R drew a page's plots in, from the cells it put them in

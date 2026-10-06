@@ -1131,6 +1131,41 @@ test_that("a Base R layout() of one cell holds only the plots R drew in it", {
   }
 })
 
+test_that("a sized Base R layout() of one panel over several cells keeps the plot before it", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # Only a layout() of one cell has a cell the plots drawn over the page are
+  # drawn in. One of a panel over several cells, given widths, heights or
+  # respect and set up over a plot, was read as the page's grid: the plot
+  # drawn before it was left out of the chart, its data and its text.
+  over <- function(set_up) {
+    function() {
+      plot(1:5, main = "Full")
+      set_up()
+      par(new = TRUE)
+      plot(5:1, main = "Over", col = 2)
+    }
+  }
+  pages <- list(
+    spans_rows = over(function() layout(matrix(c(1, 1)), heights = c(2, 1))),
+    spans_grid = over(function() layout(matrix(1, 2, 2), widths = c(1, 1))),
+    with_empty_cell = over(function() layout(matrix(c(1, 0), 1), widths = c(3, 1))),
+    spans_respect = over(function() layout(matrix(c(1, 1), 1), respect = TRUE))
+  )
+  for (name in names(pages)) {
+    draw <- pages[[name]]
+    testthat::expect_identical(drawn_by_maidr(draw, c(7, 5)), drawn_by_r(draw, c(7, 5)), label = name)
+  }
+  for (name in c("spans_rows", "spans_grid")) {
+    testthat::expect_equal(
+      drawn_plot_boxes(render_sized(pages[[name]], c(7, 5))),
+      native_plot_boxes(pages[[name]], c(7, 5)),
+      tolerance = 1e-3,
+      label = name
+    )
+  }
+})
+
 test_that("a layout() maidr did not record keeps R's shares where they leave its plots room", {
   testthat::skip_on_cran()
   skip_if_no_render()
