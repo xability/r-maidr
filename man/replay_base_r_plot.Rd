@@ -4,7 +4,7 @@
 \alias{replay_base_r_plot}
 \title{Replay Base R Plot from Device Storage}
 \usage{
-replay_base_r_plot(device_id, strict = FALSE)
+replay_base_r_plot(device_id, strict = FALSE, asked = TRUE)
 }
 \arguments{
 \item{device_id}{The device ID to get calls from}
@@ -12,6 +12,12 @@ replay_base_r_plot(device_id, strict = FALSE)
 \item{strict}{\code{TRUE} to stop at a call that cannot be drawn again, as
 the measure of the size the picture needs does (\code{picture_size()});
 \code{FALSE} draws the others, with a warning naming a plot left out}
+
+\item{asked}{Whether the size the picture is drawn at was asked for: at
+one no one asked for, a \code{layout()} maidr did not record keeps the
+shares of the page R gave its cells however small the page, and the
+picture is drawn larger where they leave a plot no room
+(\code{layout_sizes_on_page()})}
 }
 \description{
 Re-executes the recorded Base R plot calls to render the plot.

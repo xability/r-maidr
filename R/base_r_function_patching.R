@@ -1037,6 +1037,14 @@ create_function_wrapper <- function(function_name, original_function) {
       args_list <- muffle_promise_restart(
         tryCatch(list(...), error = function(e) NULL)
       )
+      # `layout(m, , c(1, 3))` leaves an argument empty, which `list(...)`
+      # cannot take. `layout()` has evaluated every other one, so their
+      # values are read as it was given them; see given_argument_values().
+      if (is.null(args_list) && identical(FNAME, "layout")) {
+        args_list <- muffle_promise_restart(
+          tryCatch(given_argument_values(FNAME, ORIG, ...), error = function(e) NULL)
+        )
+      }
       call_env <- NULL
       if (is.null(args_list)) {
         args_list <- as.list(this_call)[-1L]

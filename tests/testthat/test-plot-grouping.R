@@ -401,6 +401,97 @@ test_that("detect_panel_configuration reads the list par() is given back", {
   setup_clean_grouping()
 })
 
+test_that("detect_panel_configuration reads no layout call before the one that governs", {
+  setup_clean_grouping()
+
+  # A save reads the configuration about once for each plot on the device,
+  # and matching every recorded layout() call against layout() each time
+  # made saving a device of many layout() pages take twice as long.
+  device_id <- grDevices::dev.cur()
+  for (i in 1:20) {
+    maidr:::log_plot_call_to_device("layout", NULL, list(matrix(1:2, 1), c(i, 1)), device_id)
+    maidr:::log_plot_call_to_device("barplot", NULL, list(1:3), device_id)
+    maidr:::log_plot_call_to_device("barplot", NULL, list(3:1), device_id)
+  }
+  # A par() call that sets no grid leaves the layout() before it in place.
+  maidr:::log_plot_call_to_device("par", NULL, list(mar = c(2, 2, 1, 1)), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:4), device_id)
+
+  layout_arguments <- maidr:::layout_arguments
+  read <- 0
+  testthat::local_mocked_bindings(
+    layout_arguments = function(args) {
+      read <<- read + 1
+      layout_arguments(args)
+    },
+    .package = "maidr"
+  )
+  config <- maidr:::detect_panel_configuration(device_id)
+
+  testthat::expect_identical(read, 1)
+  testthat::expect_identical(config$sizes, list(widths = c(20, 1)))
+  testthat::expect_identical(config$layout_index, 58L)
+
+  setup_clean_grouping()
+})
+
+test_that("a layout() call's matrix is read wherever it was written", {
+  # Written by name after the sizes, the matrix is not the first argument:
+  # read as the first, `layout(heights = lcm(5), mat = matrix(1))` was not
+  # a layout of one panel, and the 2 x 2 page below was given the size of
+  # text of a grid of two rows and one column, where R gives it 0.83.
+  one <- list(function_name = "layout", args = list(heights = lcm(5), mat = matrix(1)))
+  testthat::expect_true(maidr:::sets_grid_of_one(one))
+  two <- list(function_name = "layout", args = list(widths = 1, mat = matrix(1:2, 1)))
+  testthat::expect_false(maidr:::sets_grid_of_one(two))
+
+  four <- list(
+    function_name = "layout",
+    args = list(widths = c(1, 1), heights = c(1, 1), mat = matrix(1:4, 2)),
+    storage_index = 1L
+  )
+  settings <- maidr:::par_margin_settings(list(four), 2L)
+  testthat::expect_identical(settings$cex, 0.83)
+})
+
+test_that("a layout() read from the regions R drew in keeps the sizes of its cells", {
+  drawn <- function(row, col, fig, dims) list(cell = c(row, col, dims), fig = fig)
+
+  # Every edge of the grid is an edge of a region: the columns are as wide
+  # as R made them.
+  wide <- maidr:::layout_of_regions(
+    list(drawn(1, 1, c(0, 0.75, 0, 1), 1:2), drawn(1, 2, c(0.75, 1, 0, 1), 1:2)),
+    c(1L, 2L)
+  )
+  testthat::expect_identical(wide$matrix, matrix(1:2, 1))
+  testthat::expect_equal(wide$sizes, list(widths = c(0.75, 0.25), heights = 1))
+
+  # Cells of the same size and no panel spanning two are the grid of
+  # par(mfrow = ); cells that do not fill the page, as with `respect`, are
+  # not read as a layout.
+  testthat::expect_null(maidr:::layout_of_regions(
+    list(drawn(1, 1, c(0, 0.5, 0, 1), 1:2), drawn(1, 2, c(0.5, 1, 0, 1), 1:2)),
+    c(1L, 2L)
+  ))
+  testthat::expect_null(maidr:::layout_of_regions(
+    list(drawn(1, 1, c(0, 0.5, 0.15, 0.85), 1:2), drawn(1, 2, c(0.5, 1, 0.15, 0.85), 1:2)),
+    c(1L, 2L)
+  ))
+
+  # An edge no region starts or ends at, inside a panel that spans it, is
+  # where a grid of columns of the same size has it.
+  spans <- maidr:::layout_of_regions(
+    list(
+      drawn(1, 1, c(0, 1, 0.5, 1), 2:3),
+      drawn(2, 1, c(0, 1 / 3, 0, 0.5), 2:3),
+      drawn(2, 2, c(1 / 3, 1, 0, 0.5), 2:3)
+    ),
+    c(2L, 3L)
+  )
+  testthat::expect_identical(spans$matrix, matrix(c(1L, 2L, 1L, 3L, 1L, 3L), 2))
+  testthat::expect_null(spans$sizes)
+})
+
 # ==============================================================================
 # Integration Tests
 # ==============================================================================

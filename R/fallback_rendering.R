@@ -136,8 +136,13 @@ create_fallback_image <- function(plot = NULL, format = "png",
 #' @param strict `TRUE` to stop at a call that cannot be drawn again, as
 #'   the measure of the size the picture needs does (`picture_size()`);
 #'   `FALSE` draws the others, with a warning naming a plot left out
+#' @param asked Whether the size the picture is drawn at was asked for: at
+#'   one no one asked for, a `layout()` maidr did not record keeps the
+#'   shares of the page R gave its cells however small the page, and the
+#'   picture is drawn larger where they leave a plot no room
+#'   (`layout_sizes_on_page()`)
 #' @keywords internal
-replay_base_r_plot <- function(device_id, strict = FALSE) {
+replay_base_r_plot <- function(device_id, strict = FALSE, asked = TRUE) {
   # Every recorded call on the page R's device shows, with every layout
   # call, in the order it was made (`last_page_calls()`). The grouped view
   # keeps the HIGH and LOW calls and drops the LAYOUT ones, so a
@@ -154,7 +159,7 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
   # (`grid_of_cells()`), is set up first, as R had it.
   config <- tryCatch(detect_panel_configuration(device_id), error = function(e) NULL)
   if (isTRUE(config$derived) && identical(config$type, "layout")) {
-    graphics::layout(config$matrix)
+    do.call(graphics::layout, c(list(config$matrix), layout_sizes_on_page(config, asked)))
   } else if (isTRUE(config$derived)) {
     graphics::par(mfrow = c(config$nrows, config$ncols))
   }
@@ -201,6 +206,9 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
   clipped <- clipped_away_calls(all_calls)
   for (i in seq_along(all_calls)) {
     call_entry <- all_calls[[i]]
+    # Where it was made, as the page's configuration reads it
+    # (`in_layout_cell()`).
+    call_entry$storage_index <- i
     if (identical(call_entry$function_name, "split.screen")) {
       # Where it started the page, the page is started here, before the
       # graphics parameters set for the screens after it: R works out the
@@ -217,13 +225,17 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
     starts <- starts_base_r_plot(call_entry) && isTRUE(call_entry$new_plot) &&
       is.numeric(call_entry$plot)
     low <- identical(call_entry$class_level, "LOW") && !starts_base_r_plot(call_entry)
+    # Drawn in another region than the drawing's, other than the cell of a
+    # layout() of one cell, which the layout drawn again puts elsewhere on
+    # the picture's page (`layout_cell_region()`).
     sent_back <- low && is.null(grid) && length(call_entry$drawn_fig) == 4L &&
-      !same_region(call_entry$drawn_fig, graphics::par("fig"))
+      !same_region(call_entry$drawn_fig, graphics::par("fig")) &&
+      !in_layout_cell(call_entry$drawn_fig, i, config)
     sent_to <- if (low && !is.null(grid)) sent_back_panel(call_entry, grid)
     if (starts) {
-      place_picture_plot(call_entry, plots, grid)
+      place_picture_plot(call_entry, plots, config)
     } else if (low && length(on) == 1L && isTRUE(on > plots)) {
-      place_picture_plot(call_entry, plots, grid)
+      place_picture_plot(call_entry, plots, config)
       graphics::plot.new()
       plots <- on
       unrecorded_plot <- TRUE
@@ -377,14 +389,16 @@ sent_back_panel <- function(call, grid) {
 #' the margins R gave the plot (`set_drawing_pars()`).
 #'
 #' @param call The recorded call, with the `cell` and `fig` R put the plot
-#'   in
+#'   in and where it was made (`storage_index`)
 #' @param plots The plots the drawing has started on its page, as R
 #'   numbered them
-#' @param grid The page's grid, or NULL for a page of one panel
+#' @param config The page's configuration, from
+#'   [detect_panel_configuration()], or NULL
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
-place_picture_plot <- function(call, plots, grid) {
+place_picture_plot <- function(call, plots, config) {
+  grid <- if (is_multipanel_config(config)) config
   pars <- call$pars
   margins <- call$margins
   csi <- margins$csi
@@ -421,7 +435,7 @@ place_picture_plot <- function(call, plots, grid) {
   cell <- as.integer(call$cell)
   in_drawing_grid <- length(cell) == 4L && !anyNA(cell) &&
     identical(as.integer(graphics::par("mfg")[3:4]), cell[3:4])
-  if (is_figure_region(call, grid, graphics::par("fig"))) {
+  if (is_figure_region(call, config, graphics::par("fig"))) {
     graphics::par(fig = call$fig, new = plots > 0L)
   } else if (!in_drawing_grid) {
     return(invisible(NULL))

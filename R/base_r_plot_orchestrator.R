@@ -29,16 +29,18 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .fallback_panels = integer(0),
     .canvas = NULL,
     .size_asked = TRUE,
+    .cells_in_cm = FALSE,
+    .least_page = NULL,
 
     # A drawing as a grob on the chart's canvas (`base_r_drawing_grob()`),
     # the canvas enlarged first where the drawing is too small for one no one
     # asked for (`enlarge_canvas()`).
     drawing_grob = function(draw) {
       tryCatch(
-        base_r_drawing_grob(draw, private$.canvas),
+        base_r_drawing_grob(draw, private$.canvas, private$.cells_in_cm),
         maidr_chart_draw_error = function(e) {
           private$enlarge_canvas(draw, e)
-          base_r_drawing_grob(draw, private$.canvas)
+          base_r_drawing_grob(draw, private$.canvas, private$.cells_in_cm)
         }
       )
     },
@@ -55,14 +57,21 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
       canvas <- private$.canvas
       private$.canvas <- base_r_page_that_fits(draw, canvas)
+      least <- private$.least_page
+      no_room <- if (isTRUE(e$cells)) {
+        "its layout() cells sized with lcm() do not fit"
+      } else if (length(least) == 2L && any(canvas <= least)) {
+        "the shares of the page R gave its layout() cells leave a plot no room"
+      } else {
+        "its margins and text leave the plot no room"
+      }
       # Classed as the candlestick's is (`chart_canvas_size()`), so that a
       # knitted chart says it too (`knit_chart_content()`).
       rlang::inform(
         paste0(
           "maidr: this Base R chart is drawn at ", format_inches(private$.canvas),
-          " rather than ", format_inches(canvas), ", where its margins and ",
-          "text leave the plot no room. Give it a size of its own to draw ",
-          "it at another."
+          " rather than ", format_inches(canvas), ", where ", no_room, ". ",
+          "Give it a size of its own to draw it at another."
         ),
         class = "maidr_chart_size_message"
       )
@@ -127,7 +136,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
     # Draw the plot groups of the page R shows again, each in the panel R
     # drew it in (`slots`, NA for a group not drawn, of the grid
-    # `panel_config` describes, NULL for a page of one panel) and numbered as
+    # `panel_config` describes: on a page of one panel NULL, or the
+    # `layout()` of one cell the page was drawn in) and numbered as
     # R numbered it (`numbers`, from `plot_numbers()`): the plots R started
     # between two groups are started again, a panel `plot.new()` or
     # `frame()` passed over with `plot.new()`, and a plot drawn in the panel
@@ -247,7 +257,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       at$margins <- private$set_recorded_margins(call$storage_index, at$margins, call)
       on <- max(call$end_plot, 1L)
       if (on > at$plots) {
-        slot <- if (is.null(panel_config)) {
+        slot <- if (!is_multipanel_config(panel_config)) {
           1L
         } else {
           panel_of_cell(call$cell, panel_config) %||%
@@ -403,6 +413,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups
       private$.layout_calls <- grouped$layout_calls
+      # Whether the author's own layout() call sizes cells with lcm(), which
+      # a drawing too small for them then names (`base_r_too_small()`); and
+      # the smallest page on which the shares R gave the cells of a layout()
+      # maidr did not record leave its plots room (`layout_sizes_on_page()`),
+      # which a drawing enlarged for them names.
+      panel_config <- detect_panel_configuration(device_id)
+      private$.cells_in_cm <- layout_sizes_in_cm(panel_config)
+      private$.least_page <- panel_config$least_page
 
       # Settled before anything is drawn: the recorded calls are drawn again
       # at this size (see `get_gtable()`), which enlarges it only for a
@@ -1125,7 +1143,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
           } else if (panel_config$type == "mfcol") {
             graphics::par(mfcol = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "layout" && !is.null(panel_config$matrix)) {
-            graphics::layout(panel_config$matrix)
+            sizes <- layout_sizes_on_page(panel_config, private$.size_asked)
+            do.call(graphics::layout, c(list(panel_config$matrix), sizes))
           }
 
           # Debug logging
@@ -1168,7 +1187,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
         # drew them. Plots on the pages before are not among the groups
         # (`last_page_calls()`).
         page_func <- function() {
-          private$replay_page(rep(1L, length(private$.plot_groups)), private$plot_numbers())
+          # A layout() of one cell still places its plots: `lcm()` sizes or
+          # `respect` leave the cell less than the page. Each plot R drew in
+          # a cell is drawn in it on the chart's page (`send_to_layout_cell()`).
+          private$replay_page(
+            rep(1L, length(private$.plot_groups)),
+            private$plot_numbers(),
+            if (length(panel_config$cells) > 0L) panel_config
+          )
         }
 
         # The drawing settles the canvas, enlarging it or stopping as
@@ -1206,7 +1232,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' @return A named numeric vector, `width` and `height`, in inches
     picture_size = function() {
       # The drawing the picture is (`replay_base_r_plot()`).
-      draw <- function() replay_base_r_plot(private$.device_id, strict = TRUE)
+      draw <- function() {
+        replay_base_r_plot(private$.device_id, strict = TRUE, asked = private$.size_asked)
+      }
       canvas <- private$.canvas
       failure <- tryCatch(
         {
@@ -1222,7 +1250,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       )
       largest <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
       if (!is.null(failure) && base_r_draws_at(draw, largest)) {
-        private$enlarge_canvas(draw, base_r_too_small(failure, canvas))
+        private$enlarge_canvas(draw, base_r_too_small(failure, canvas, private$.cells_in_cm))
       }
       private$.canvas
     },
@@ -1542,26 +1570,67 @@ start_skipped_plots <- function(at, upto, slot) {
 #' to it out of turn with `par(mfg = )`, in that panel of the grid
 #' (`mfg_of_panel()`). A plot R drew in a region `par(fig = )` or
 #' `screen()` set, outside any grid, is drawn in that region
-#' (`is_figure_region()`).
+#' (`is_figure_region()`), and one it drew in the cell of a `layout()` of
+#' one cell, in that cell on the drawing's page (`send_to_layout_cell()`),
+#' wherever the panel of the grid under it is: after `par(mfg = )` sent R
+#' back to an earlier panel of the grid, such a plot was sent to that panel
+#' again and drawn in it, not in the cell.
 #'
 #' @param high The recorded call, with the `cell` and `fig` R put its plot
-#'   in (`end_base_r_call()`)
+#'   in (`end_base_r_call()`) and where it was made (`storage_index`)
 #' @param slot,figure The panel R drew the plot in, and the one the drawing
 #'   is in, each 0 for none
-#' @param panel_config The page's grid, or NULL for a page of one panel
+#' @param panel_config The page's grid, or for a page of one panel NULL or
+#'   the `layout()` of one cell it was drawn in
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
 place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
-  jumps <- figure > 0L && slot != figure && slot != figure + 1L &&
+  cell <- drawn_layout_cell(high$fig, high$storage_index, panel_config)
+  jumps <- is.null(cell) && figure > 0L && slot != figure && slot != figure + 1L &&
     is_multipanel_config(panel_config)
   if (jumps) {
     graphics::par(mfg = mfg_of_panel(slot, panel_config))
   } else {
-    if (is_figure_region(high, panel_config, graphics::par("fig"))) {
+    stays <- slot <= figure
+    if (!is.null(cell)) {
+      send_to_layout_cell(cell$layout)
+      # Over the page the drawing is on, unless R started a page for it: a
+      # grid R did not record, read from the cells R drew in, can put it in
+      # the next panel, which would start a page.
+      stays <- figure > 0L && !isTRUE(high$opens_page)
+    } else if (is_figure_region(high, panel_config, graphics::par("fig"))) {
       graphics::par(fig = high$fig)
     }
-    start_replayed_plot(slot <= figure, start = FALSE)
+    start_replayed_plot(stays, start = FALSE)
+  }
+  invisible(NULL)
+}
+
+#' Send a drawing to the cell of a page's `layout()` of one cell
+#'
+#' The region the layout gives its cell on the drawing's page
+#' (`grid_panel_regions()`), given with `par(fig = )`. Set up with
+#' `layout()` after the page's first plot, as R set it up before a plot
+#' drawn in its cell over the page after `par(new = TRUE)`, the cell was
+#' drawn as the whole page: gridGraphics, which echoes the drawing as grobs
+#' (`base_r_drawing_grob()`), does not set up again a `layout()` drawn on
+#' the page. A cell larger than the page is set up as R set it up, and R
+#' stops as it does, with "figure region too large".
+#'
+#' @param one_cell The `layout()` of one cell, as [detect_panel_configuration()]
+#'   keeps it with the page's cells (`with_layout_cells()`)
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+send_to_layout_cell <- function(one_cell) {
+  omi <- graphics::par("omi")
+  inches <- graphics::par("din") - c(omi[[2]] + omi[[4]], omi[[1]] + omi[[3]])
+  cell <- grid_panel_regions(one_cell, inches)[[1]]
+  if (length(cell) == 4L && all(cell > -1e-6 & cell < 1 + 1e-6)) {
+    graphics::par(fig = pmin(pmax(cell, 0), 1))
+  } else {
+    do.call(graphics::layout, c(list(one_cell$matrix), one_cell$sizes))
   }
   invisible(NULL)
 }
@@ -1594,10 +1663,15 @@ mfg_of_panel <- function(slot, panel_config) {
 #' region that is not the whole page -- or is the whole page, on a page laid
 #' out as a grid of several panels, or where the drawing is in another
 #' region, as on a page of regions or screens: a legend for them all is
-#' drawn over the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`.
+#' drawn over the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`. R
+#' reports the cell of a `layout()` of one cell the same way, a share of the
+#' page the author drew on, which the layout set up again gives a share of
+#' the chart's: a plot R drew there is drawn in the cell
+#' (`layout_cell_region()`).
 #'
-#' @param high The recorded call
-#' @param panel_config The page's grid, or NULL for a page of one panel
+#' @param high The recorded call, with where it was made (`storage_index`)
+#' @param panel_config The page's grid, or for a page of one panel NULL or
+#'   the `layout()` of one cell it was drawn in
 #' @param drawing_fig The region of the page the drawing is in, before the
 #'   plot is drawn
 #' @return Logical
@@ -1607,7 +1681,7 @@ is_figure_region <- function(high, panel_config = NULL, drawing_fig = c(0, 1, 0,
   page <- c(0, 1, 0, 1)
   apart <- function(fig) isTRUE(max(abs(fig - page)) > 1e-6)
   length(high$cell) == 4L && identical(as.integer(high$cell[3:4]), c(1L, 1L)) &&
-    length(high$fig) == 4L &&
+    length(high$fig) == 4L && !in_layout_cell(high$fig, high$storage_index, panel_config) &&
     (apart(high$fig) || is_multipanel_config(panel_config) || apart(drawing_fig))
 }
 
@@ -1663,20 +1737,24 @@ start_replayed_plot <- function(stays, start = TRUE) {
 #' a chart's margins and text the same room in inches on any page, so a
 #' page too small for them -- 6 x 1.5 in for a `barplot()`, 4 x 3 in for a
 #' 2 x 2 `par(mfrow)` -- leaves the plot none and R stops with "figure
-#' margins too large". The device the author drew on may have had the room,
-#' and maidr draws the chart again at a size of its own. An empty chart in
-#' its place would not say so, and a picture is drawn at the same size, so
-#' neither is made. A drawing is taken to have failed for its size when it
-#' fits the largest page a chart is drawn on, [MAIDR_MAX_CHART_SIZE] on each
-#' side; any other failure is raised as R raised it, for the caller to
-#' handle as before. A size no one asked for is the orchestrator's to
-#' enlarge ([base_r_page_that_fits()]).
+#' margins too large". The cells a `layout()` call sizes with `lcm()` keep
+#' their size on any page too, and R stops with "figure region too large"
+#' on a page smaller than they are. The device the author drew on may have
+#' had the room, and maidr draws the chart again at a size of its own. An
+#' empty chart in its place would not say so, and a picture is drawn at the
+#' same size, so neither is made. A drawing is taken to have failed for its
+#' size when it fits the largest page a chart is drawn on,
+#' [MAIDR_MAX_CHART_SIZE] on each side; any other failure is raised as R
+#' raised it, for the caller to handle as before. A size no one asked for is
+#' the orchestrator's to enlarge ([base_r_page_that_fits()]).
 #'
 #' @param draw A function of no arguments that draws the chart
 #' @param size The chart's canvas, from [chart_canvas_size()]
+#' @param cells_in_cm Whether the chart's own `layout()` call sizes cells
+#'   with `lcm()`, which the error then names when they do not fit
 #' @return A gTree
 #' @keywords internal
-base_r_drawing_grob <- function(draw, size) {
+base_r_drawing_grob <- function(draw, size, cells_in_cm = FALSE) {
   # Restored as ggplotify restores them. On a page too small for the
   # margins R reports a negative plot size ("pin") that it then refuses to
   # be given back, and that refusal would hide why the drawing failed.
@@ -1698,7 +1776,7 @@ base_r_drawing_grob <- function(draw, size) {
     if (!base_r_draws_at(draw, largest)) {
       stop(e)
     }
-    stop(base_r_too_small(e, size))
+    stop(base_r_too_small(e, size, cells_in_cm))
   }
 
   recording <- tryCatch(
@@ -1746,23 +1824,61 @@ base_r_recorded_drawing <- function(draw, size) {
 
 #' The error a Base R chart too small to draw at a size stops with
 #'
+#' The cells a chart's own `layout()` call sized with `lcm()` are named when
+#' they do not fit. A `filled.contour()` sizes its key with `lcm()` too, from
+#' its margins and text, but its author wrote no `layout()`: its error is
+#' about the margins and text, as any other chart's is.
+#'
 #' @param e R's error drawing it at that size
 #' @param size The size, a named numeric vector, `width` and `height`, in
 #'   inches
+#' @param cells_in_cm Whether the chart's own `layout()` call sizes cells
+#'   with `lcm()`, from `layout_sizes_in_cm()`
 #' @return A condition of class `maidr_chart_draw_error`, naming the size and
-#'   R's reason
+#'   R's reason, which it keeps as `reason`, and whether it named the cells,
+#'   as `cells`
 #' @keywords internal
 #' @noRd
-base_r_too_small <- function(e, size) {
+base_r_too_small <- function(e, size, cells_in_cm = FALSE) {
+  reason <- conditionMessage(e)
+  cells <- cells_in_cm && base_r_cells_too_large(reason)
+  taken <- if (cells) {
+    paste(
+      "layout() cells sized with lcm() take the same room at every size, and",
+      "at this size they do not fit on the page"
+    )
+  } else {
+    paste(
+      "margins and text take the same room at every size, and at this size",
+      "they leave the plot none"
+    )
+  }
   errorCondition(
     paste0(
       "maidr could not draw this chart at ", format_inches(size), ": ",
-      conditionMessage(e), ". A Base R chart's margins and text take the ",
-      "same room at every size, and at this size they leave the plot none: ",
-      "give the chart a larger size."
+      reason, ". A Base R chart's ", taken, ": give the chart a larger size."
     ),
-    class = "maidr_chart_draw_error"
+    class = "maidr_chart_draw_error",
+    reason = reason,
+    cells = cells
   )
+}
+
+#' Whether R stopped drawing a Base R chart because its cells of a fixed size
+#' do not fit on the page
+#'
+#' R says "figure region too large" when the cells a `layout()` call sizes in
+#' centimetres, with `lcm()`, are larger than the page -- a `filled.contour()`
+#' sizes its key so -- and "figure margins too large" when the margins and
+#' text leave a plot no room.
+#'
+#' @param reason R's error message
+#' @return Logical
+#' @keywords internal
+#' @noRd
+base_r_cells_too_large <- function(reason) {
+  too_large <- "figure region too large"
+  isTRUE(reason %in% c(too_large, gettext(too_large, domain = "graphics")))
 }
 
 #' A Base R drawing with the graphical parameters ggplotify draws it with

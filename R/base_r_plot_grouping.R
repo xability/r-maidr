@@ -72,6 +72,9 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
         groups <- append(groups, list(current_group))
       }
 
+      # Where it was made tells which layout set up the cell R drew it in
+      # (`in_layout_cell()`).
+      call$storage_index <- i
       current_group <- list(
         high_call = call,
         high_call_index = i,
@@ -442,31 +445,47 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   # set up for plots yet to be drawn.
   #
   # A grid of one set up between two plots of the page, as
-  # `par(mfrow = c(1, 1), new = TRUE)` is to draw a legend for a grid over
-  # the whole page, lays out only the plot drawn over the page after it,
-  # which R started no page for: the plots before it keep their panels.
+  # `par(mfrow = c(1, 1), new = TRUE)` or `layout(1)` is to draw a legend
+  # for a grid over the whole page, lays out only the plot drawn over the
+  # page after it, which R started no page for: the plots before it keep
+  # their panels, or the cell of a `layout()` of one cell. A `layout()` of
+  # one cell sized with `lcm()` or `respect` is the page's where the plots
+  # before it were in no grid of several panels; after a grid of several
+  # panels the grid is. Either way the plots R drew in its cell are drawn
+  # in it (`with_layout_cells()`).
   if (length(grouped$groups) > 0) {
     plot_indices <- vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
     last_plot_index <- max(plot_indices)
+    in_grid <- vapply(
+      grouped$groups,
+      function(g) length(g$high_call$cell) == 4L && isTRUE(prod(g$high_call$cell[3:4]) > 1),
+      logical(1)
+    )
     over_page <- function(call) {
       after <- which(plot_indices > call$storage_index)
       next_plot <- if (length(after) > 0) grouped$groups[[min(after)]]$high_call
-      isTRUE(call$storage_index > min(plot_indices)) && sets_grid_of_one(call) &&
-        isFALSE(next_plot$opens_page)
+      # Whether it sets a grid of one is read last: a layout() call's
+      # arguments are matched against layout() to find its matrix.
+      isTRUE(call$storage_index > min(plot_indices)) && isFALSE(next_plot$opens_page) &&
+        sets_grid_of_one(call) &&
+        (any(in_grid[plot_indices < call$storage_index]) || !sizes_one_cell(call))
     }
-    layout_calls <- Filter(
-      function(call) isTRUE(call$storage_index < last_plot_index) && !over_page(call),
-      layout_calls
-    )
+    governing <- Filter(function(call) isTRUE(call$storage_index < last_plot_index), layout_calls)
+    over <- vapply(governing, over_page, logical(1))
+    layout_calls <- governing[!over]
 
     if (length(layout_calls) == 0) {
-      return(grid_of_cells(grouped$groups))
+      return(with_layout_cells(grid_of_cells(grouped$groups), grouped))
     }
   }
 
-  # Among the layout calls that do govern drawn plots, the last one wins.
+  # Among the layout calls that do govern drawn plots, the last one that
+  # sets a grid wins. They are read from the last back, and no further than
+  # that one: a save comes here about once for each plot the device holds,
+  # and reading every layout() call each time made saving a device of many
+  # layout() pages take twice as long.
   config <- NULL
-  for (call in layout_calls) {
+  for (call in rev(layout_calls)) {
     args <- call$args
     if (call$function_name == "par") {
       args <- par_setting_arguments(args)
@@ -492,23 +511,10 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
         layout_index = call$storage_index
       )
     } else if (call$function_name == "layout" && length(args) > 0) {
-      # layout() takes a vector as a one-column matrix: `layout(1)` puts
-      # the device back to a single panel.
-      mat <- args[[1]]
-      if (is.numeric(mat) && !is.matrix(mat)) {
-        mat <- as.matrix(mat)
-      }
-      if (is.matrix(mat)) {
-        config <- list(
-          type = "layout",
-          nrows = nrow(mat),
-          ncols = ncol(mat),
-          # 0 marks empty cells in a layout() matrix, not a panel
-          total_panels = length(unique(as.vector(mat[mat > 0]))),
-          matrix = mat,
-          layout_index = call$storage_index
-        )
-      }
+      config <- layout_call_config(call)
+    }
+    if (!is.null(config)) {
+      break
     }
   }
 
@@ -516,7 +522,170 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     config <- NULL
   }
 
-  config %||% grid_of_cells(grouped$groups)
+  with_layout_cells(config %||% grid_of_cells(grouped$groups), grouped)
+}
+
+#' The grid a recorded `layout()` call sets up
+#'
+#' @param call A recorded LAYOUT call to `layout()`
+#' @return A `layout` panel configuration with its `matrix`, and the room
+#'   the call gave the matrix's columns and rows and which of them keep
+#'   their shape (`sizes`), to set the grid up again with; or NULL where
+#'   the call names no matrix
+#' @keywords internal
+#' @noRd
+layout_call_config <- function(call) {
+  args <- layout_arguments(call$args)
+  mat <- layout_matrix(args)
+  if (!is.matrix(mat)) {
+    return(NULL)
+  }
+  list(
+    type = "layout",
+    nrows = nrow(mat),
+    ncols = ncol(mat),
+    # 0 marks empty cells in a layout() matrix, not a panel
+    total_panels = length(unique(as.vector(mat[mat > 0]))),
+    matrix = mat,
+    sizes = args[intersect(names(args), c("widths", "heights", "respect"))],
+    layout_index = call$storage_index
+  )
+}
+
+#' A page's configuration, with the cells of the `layout()`s of one panel R
+#' drew in on it
+#'
+#' A `layout()` of one cell sized with `lcm()` or `respect` can leave the
+#' cell less than the page, and R reports the region of what it draws there
+#' as a share of the page the author drew on (`layout_cell_region()`). Set
+#' up over a page of plots, to draw over them, it lays out only what is
+#' drawn after it: the plots before it keep their panels, or the page. Each
+#' such layout R drew in is kept, as one of the page's `cells`, and what R
+#' drew there is drawn in its cell on the chart's page
+#' (`send_to_layout_cell()`). Only the last set up over a grid was kept,
+#' and none that only a panel `plot.new()` started was drawn in, as a
+#' legend's: two cells set up one after the other over a page stopped the
+#' chart at 7 x 5 in from a 12 x 10 in device, where R draws both, and a
+#' legend's panel was drawn at its share of the author's page. The one
+#' panel of a sized `layout()` over several cells is kept so too, as
+#' `layout(matrix(c(0, 1, 0), 1), widths = c(1, 2, 1))` set up over a grid
+#' to draw a plot over its middle, unless it is the page's own grid.
+#'
+#' A page R drew in no grid, but in the cell of a `layout()` of one cell,
+#' is a page of that cell; one R drew in no grid but in the one panel of a
+#' `layout()` over several cells, a page of one panel with that cell. A
+#' legend's `plot.new()` panel, started in a panel at the right of a single
+#' plot with `layout(matrix(c(0, 1), 1), widths = c(3, 1))`, was so drawn
+#' over the whole page, over the plot: such a page kept no cell.
+#'
+#' @param config The page's configuration, or NULL
+#' @param grouped The plot groups and layout calls, from group_device_calls()
+#' @return `config`, with `cells` where R drew in any: a list of cells, each
+#'   with the `layout()` that set it up (`layout`), its region (`fig`) and
+#'   the positions in the recording the calls drawn in it lie between
+#'   (`calls`)
+#' @keywords internal
+#' @noRd
+with_layout_cells <- function(config, grouped) {
+  cells <- Filter(function(cell) {
+    !is_multipanel_config(config) || !identical(cell$layout$layout_index, config$layout_index)
+  }, layout_cells(grouped))
+  if (length(cells) == 0L) {
+    return(config)
+  }
+  if (is.null(config)) {
+    one_cell <- Filter(function(cell) length(cell$layout$matrix) == 1L, cells)
+    config <- if (length(one_cell) > 0L) {
+      one_cell[[length(one_cell)]]$layout
+    } else {
+      list(type = "single", nrows = 1L, ncols = 1L, total_panels = 1L)
+    }
+  }
+  config$cells <- cells
+  config
+}
+
+#' The cells of the `layout()`s of one panel R drew in on a page
+#'
+#' A cell holds what R drew after its `layout()` call, up to the next call
+#' that set up another grid or another region of the page: `layout()`,
+#' `split.screen()`, or `par()` given `mfrow`, `mfcol` or `fig`. A plot
+#' drawn before the layout was set up, or after another call set up the
+#' page again, is not in its cell, even where R drew it in a region of the
+#' same size: a panel of the grid the cell is set up over, as in
+#' `par(mfrow = c(1, 2)); plot(a); plot(b); layout(matrix(c(1, 0), 1),
+#' widths = c(1, 1)); par(new = TRUE); plot(c)`, or the whole page, where
+#' the cell is all of the author's page. Read as the cell's by its region
+#' alone, such a plot was taken out of its panel and drawn in the cell,
+#' over the plot R drew there.
+#'
+#' @param grouped The plot groups and layout calls, from group_device_calls()
+#' @return A list of cells, as `with_layout_cells()` keeps them, in the
+#'   order their layouts were set up
+#' @keywords internal
+#' @noRd
+layout_cells <- function(grouped) {
+  # The plots of the page: those recorded calls started, and those no
+  # recorded call started that a low-level call was drawn on, where R said
+  # which cell it drew them in. A layout() call is read only where one of
+  # them was drawn after it.
+  drawn <- unlist(
+    lapply(grouped$groups, function(g) {
+      c(
+        list(g$high_call), g$before_calls, g$after_calls,
+        Filter(function(call) isTRUE(call$overlay), g$low_calls)
+      )
+    }),
+    recursive = FALSE
+  )
+  drawn <- Filter(function(call) length(call$cell) == 4L, drawn)
+  at <- vapply(drawn, function(call) as.numeric(call$storage_index %||% NA), numeric(1))
+  calls <- grouped$layout_calls
+  sets_up <- which(vapply(calls, sets_up_page, logical(1)))
+  cells <- list()
+  for (k in seq_along(calls)) {
+    call <- calls[[k]]
+    if (!identical(call$function_name, "layout")) {
+      next
+    }
+    end <- sets_up[sets_up > k][1]
+    until <- if (is.na(end)) Inf else calls[[end]]$storage_index
+    inside <- drawn[!is.na(at) & at > call$storage_index & at < until]
+    # Read in this order: a page of many layout() pages holds as many calls,
+    # and the cell's region is worked out on a device of its own.
+    if (length(inside) == 0L || !sizes_one_panel(call)) {
+      next
+    }
+    layout <- layout_call_config(call)
+    fig <- layout_cell_region(grouped$groups, layout)
+    if (length(fig) != 4L) {
+      next
+    }
+    drawn_in <- vapply(inside, function(plot) {
+      length(plot$fig) == 4L && !anyNA(plot$fig) && same_region(plot$fig, fig)
+    }, logical(1))
+    if (any(drawn_in)) {
+      cells <- c(cells, list(list(
+        layout = layout, fig = fig, calls = c(call$storage_index, until)
+      )))
+    }
+  }
+  cells
+}
+
+#' Whether a recorded layout call sets up the grid or region R draws in next
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical: `layout()`, `split.screen()`, or `par()` given `mfrow`,
+#'   `mfcol` or `fig`
+#' @keywords internal
+#' @noRd
+sets_up_page <- function(call) {
+  if (call$function_name %in% c("layout", "split.screen")) {
+    return(TRUE)
+  }
+  identical(call$function_name, "par") &&
+    any(c("mfrow", "mfcol", "fig") %in% names(par_setting_arguments(call$args)))
 }
 
 #' Whether a recorded layout call sets up a grid of one panel
@@ -533,8 +702,51 @@ sets_grid_of_one <- function(call) {
     grid <- args[["mfrow"]] %||% args[["mfcol"]]
     return(is.numeric(grid) && length(grid) == 2L && all(grid == 1))
   }
-  mat <- if (identical(call$function_name, "layout") && length(args) > 0) args[[1]]
+  mat <- if (identical(call$function_name, "layout")) layout_matrix(layout_arguments(args))
   is.numeric(mat) && length(unique(mat[mat > 0])) == 1L
+}
+
+#' Whether a recorded layout call sets up one cell that it sizes
+#'
+#' `lcm()` sizes or `respect` can leave the one cell of a `layout()` less
+#' than the page, and R reports its region as a share of the page the
+#' author drew on (`layout_cell_region()`). A `layout()` of one panel over
+#' several cells, as `layout(matrix(c(1, 0), 1), widths = c(3, 1))`, is
+#' not one: taken for one, set up over a plot, it was read as the page's
+#' grid, and the plot drawn before it was left out of the chart.
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical: a `layout()` call of a matrix of one cell, given
+#'   `widths`, `heights` or `respect`
+#' @keywords internal
+#' @noRd
+sizes_one_cell <- function(call) {
+  if (!identical(call$function_name, "layout")) {
+    return(FALSE)
+  }
+  args <- layout_arguments(call$args)
+  length(layout_matrix(args)) == 1L &&
+    any(c("widths", "heights", "respect") %in% names(args))
+}
+
+#' Whether a recorded layout call sets up one panel that it sizes
+#'
+#' A `layout()` of one cell (`sizes_one_cell()`), or of one panel over
+#' several cells, given `widths`, `heights` or `respect`: R draws what is
+#' drawn after it in that panel, which the sizes place on the page.
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical
+#' @keywords internal
+#' @noRd
+sizes_one_panel <- function(call) {
+  if (!identical(call$function_name, "layout")) {
+    return(FALSE)
+  }
+  args <- layout_arguments(call$args)
+  mat <- layout_matrix(args)
+  is.numeric(mat) && length(unique(mat[mat > 0])) == 1L &&
+    any(c("widths", "heights", "respect") %in% names(args))
 }
 
 #' The grid R drew a page's plots in, from the cells it put them in
@@ -547,10 +759,11 @@ sets_grid_of_one <- function(call) {
 #' page's plots were read as one, and drawn over each other at full size.
 #' Its plots are read in the panels of an `mfrow` grid of that shape, and
 #' each drawn in its cell, where R drew it. Where R drew a plot across
-#' several cells, as a `layout()` panel that spans them, the grid is that
-#' `layout()` (`layout_of_regions()`), with a panel too for each plot no
-#' recorded call started that a low-level call was drawn on, as a legend's
-#' `plot.new()` is. A plot that laid out a grid of its own (`laid_out`, see
+#' several cells, as a `layout()` panel that spans them, or in cells of
+#' other widths or heights, as a `layout()` given them makes them, the
+#' grid is that `layout()` (`layout_of_regions()`), with a panel too for
+#' each plot no recorded call started that a low-level call was drawn on,
+#' as a legend's `plot.new()` is. A plot that laid out a grid of its own (`laid_out`, see
 #' `end_base_r_call()`) or that a region of the page was given, by
 #' `par(fig = )` or `screen()`, in a cell of a grid of one, is not one of
 #' them.
@@ -604,43 +817,57 @@ grid_of_cells <- function(groups) {
 #' covers as many cells of the grid as the panel spans. The panels are
 #' numbered in the order R drew in them, as it numbers a `layout()`'s
 #' panels; a cell no plot was drawn in is empty. A plot drawn over another
-#' after `par(new = TRUE)` is in its panel.
+#' after `par(new = TRUE)` is in its panel. The columns and rows are as wide
+#' and as tall as R made them, as `widths` and `heights` make them, where
+#' every edge of the grid is an edge of a region (`grid_edges()`): drawn in
+#' cells of the same size, the plots of `layout(matrix(1:2, 1), widths =
+#' c(3, 1))` each took half the page, where R gives the first three
+#' quarters. They are the shares of the page R gave them, which are their
+#' sizes on a page of any size where `widths` and `heights` set them so,
+#' but not where `lcm()` did (`layout_sizes_on_page()`).
 #'
 #' @param highs The recorded calls drawn on the page's plots, in the order
-#'   R drew them, each with the `cell` and `fig` of its plot
+#'   R drew them, each with the `cell`, `fig` and `margins` of its plot
 #' @param dims The grid's rows and columns
-#' @return A `layout` panel configuration with its `matrix`, or NULL where
-#'   each plot is in one cell, or where a region is not cells of a grid of
-#'   equal rows and columns, as one of a `layout()` with `widths` or
-#'   `heights` is not
+#' @return A `layout` panel configuration with its `matrix`, and the
+#'   `sizes` of its columns and rows where they are not all the same, with
+#'   the smallest page they leave each plot room on, `least_page`
+#'   (`least_page_for_regions()`); or
+#'   NULL where each plot is in one cell of a grid of equal columns and
+#'   rows, which is the grid of `par(mfrow = )`, or where a region is not
+#'   cells of a grid that fills the page
 #' @keywords internal
 #' @noRd
 layout_of_regions <- function(highs, dims) {
   nrows <- dims[[1]]
   ncols <- dims[[2]]
+  figs <- lapply(highs, function(high) high$fig)
+  if (!all(vapply(figs, function(fig) length(fig) == 4L && !anyNA(fig), logical(1)))) {
+    return(NULL)
+  }
+  # Left to right, and top to bottom.
+  across <- grid_edges(unlist(lapply(figs, function(fig) fig[1:2])), ncols)
+  down <- rev(grid_edges(unlist(lapply(figs, function(fig) fig[3:4])), nrows))
+  if (length(across) == 0L || length(down) == 0L) {
+    return(NULL)
+  }
+  edge <- function(at, edges) {
+    i <- which(abs(edges - at) < 1e-6)
+    if (length(i) == 1L) i else NA_integer_
+  }
   mat <- matrix(0L, nrows, ncols)
   spans <- FALSE
-  near <- function(a, b) isTRUE(abs(a - b) < 1e-6)
   for (high in highs) {
     fig <- high$fig
-    if (length(fig) != 4L || anyNA(fig)) {
+    cols <- c(edge(fig[[1]], across), edge(fig[[2]], across))
+    rows <- c(edge(fig[[4]], down), edge(fig[[3]], down))
+    placed <- !anyNA(c(cols, rows)) && cols[[2]] > cols[[1]] && rows[[2]] > rows[[1]] &&
+      identical(as.integer(c(rows[[1]], cols[[1]])), as.integer(high$cell[1:2]))
+    if (!placed) {
       return(NULL)
     }
-    row <- high$cell[[1]]
-    col <- high$cell[[2]]
-    across <- (fig[[2]] - fig[[1]]) * ncols
-    down <- (fig[[4]] - fig[[3]]) * nrows
-    aligned <- round(across) >= 1 && round(down) >= 1 &&
-      near(across, round(across)) && near(down, round(down)) &&
-      near(fig[[1]], (col - 1) / ncols) && near(fig[[4]], 1 - (row - 1) / nrows)
-    if (!aligned) {
-      return(NULL)
-    }
-    rows <- row + seq_len(round(down)) - 1L
-    cols <- col + seq_len(round(across)) - 1L
-    if (max(rows) > nrows || max(cols) > ncols) {
-      return(NULL)
-    }
+    rows <- seq(rows[[1]], rows[[2]] - 1L)
+    cols <- seq(cols[[1]], cols[[2]] - 1L)
     spans <- spans || length(rows) > 1L || length(cols) > 1L
     taken <- mat[rows, cols]
     if (all(taken == 0L)) {
@@ -649,27 +876,97 @@ layout_of_regions <- function(highs, dims) {
       return(NULL)
     }
   }
-  if (!spans) {
+  sizes <- list(widths = diff(across), heights = -diff(down))
+  sized <- !all(vapply(sizes, function(size) max(abs(size - size[[1]])) < 1e-6, logical(1)))
+  if (!spans && !sized) {
     return(NULL)
   }
-  list(
+  config <- list(
     type = "layout",
     nrows = nrows,
     ncols = ncols,
     total_panels = max(mat),
     matrix = mat
   )
+  if (sized) {
+    config$sizes <- sizes
+    config$least_page <- least_page_for_regions(highs)
+  }
+  config
+}
+
+#' The smallest page on which the regions R gave plots leave them room
+#'
+#' A plot takes the room its margins take, in inches, whatever its region;
+#' its region, as a share of the page, is as large as that on a page of at
+#' least this size, with the outer margins around it.
+#'
+#' @param highs The recorded calls drawn on the page's plots, each with the
+#'   `fig` and `margins` of its plot (`end_base_r_call()`)
+#' @return The width and height, in inches; or NULL where no plot's margins
+#'   were recorded
+#' @keywords internal
+#' @noRd
+least_page_for_regions <- function(highs) {
+  least <- NULL
+  for (high in highs) {
+    mai <- high$margins$mai
+    omi <- high$margins$omi
+    fig <- high$fig
+    if (length(mai) == 4L && length(omi) == 4L && length(fig) == 4L) {
+      share <- c(fig[[2]] - fig[[1]], fig[[4]] - fig[[3]])
+      need <- c(mai[[2]] + mai[[4]], mai[[1]] + mai[[3]]) / share +
+        c(omi[[2]] + omi[[4]], omi[[1]] + omi[[3]])
+      least <- pmax(least %||% need, need)
+    }
+  }
+  least
+}
+
+#' The edges of a grid's columns, or rows, from the regions R drew in
+#'
+#' @param at Where the regions start and end, across the page or up it, as
+#'   shares of it
+#' @param n The grid's columns, or rows
+#' @return The grid's `n + 1` edges, from 0 to 1: the regions' own, where
+#'   there are as many and they span the page, as those of a `layout()`
+#'   that sizes its columns or rows with `widths` or `heights` do; those of
+#'   a grid of columns or rows of the same size where the regions have fewer,
+#'   as where a panel spans the edge between two; and none where they do not
+#'   span the page, as those of a `layout()` with `respect`, or that sizes
+#'   them all with `lcm()`, need not
+#' @keywords internal
+#' @noRd
+grid_edges <- function(at, n) {
+  at <- sort(at)
+  at <- at[c(TRUE, diff(at) > 1e-6)]
+  if (length(at) != n + 1L) {
+    return(seq(0, 1, length.out = n + 1L))
+  }
+  if (abs(at[[1]]) > 1e-6 || abs(at[[n + 1L]] - 1) > 1e-6) {
+    return(numeric(0))
+  }
+  at
 }
 
 #' Whether R drew a plot of the page in a grid
 #'
 #' A grid the recorded layout calls set up is the page's only where R drew
-#' a plot of the page in one of its cells (`plot_in_grid()`). A function
-#' that lays out a page of its own, as `heatmap()` does with `layout()`,
-#' draws in a grid it sets up itself, unrecorded: after
+#' a plot of the page in one of its cells (`plot_in_grid()`), in the region
+#' of the page the grid gives that cell's panel (`grid_panel_regions()`). A
+#' function that lays out a page of its own, as `heatmap()` does with
+#' `layout()`, draws in a grid it sets up itself, unrecorded: after
 #' `par(mfrow = c(1, 2)); plot(x); heatmap(m)` R's page is the heatmap
-#' alone, not a panel of two. Plots recorded without their cell, by code
-#' that records calls itself, are taken to be in the grid.
+#' alone, not a panel of two. A grid of the same shape that the author set
+#' up without maidr, with `graphics::layout()`, `graphics::par()` or
+#' `withr::with_par()`, after a `layout()` maidr recorded, has cells of
+#' other sizes, or of the same size where the recorded call sized them:
+#' after `layout(matrix(1:2, 1), widths = c(1, 3))` and a page of plots,
+#' R draws those of `withr::with_par(list(mfrow = c(1, 2)), ...)` in two
+#' halves of the page, which the recorded call set up again made a quarter
+#' and three. Plots recorded without their cell, by code that records calls
+#' itself, are taken to be in the grid, and those recorded without their
+#' region in its panel's.
 #'
 #' @param groups Plot groups from group_device_calls()
 #' @param config The grid, from the layout call that set it up
@@ -682,8 +979,99 @@ grid_holds_a_plot <- function(groups, config) {
     groups
   )
   highs <- Filter(function(high) !is.null(high$cell), lapply(after, function(g) g$high_call))
-  length(highs) == 0L ||
-    any(vapply(highs, plot_in_grid, logical(1), config = config))
+  if (length(highs) == 0L) {
+    return(TRUE)
+  }
+  # The plots of a page are on a page of one size: the regions are worked
+  # out once.
+  regions <- NULL
+  for (high in Filter(function(high) plot_in_grid(high, config), highs)) {
+    inches <- page_inches(high)
+    regions <- regions %||% if (!is.null(inches)) grid_panel_regions(config, inches)
+    panel <- panel_of_cell(high$cell, config)
+    if (is.null(regions) || is.null(panel) || same_region(high$fig, regions[[panel]])) {
+      return(TRUE)
+    }
+  }
+  FALSE
+}
+
+#' The size of the page R drew a plot on
+#'
+#' R reports the region of the page it put a plot in both as a share of
+#' the page inside its outer margins (`par("fig")`) and in inches
+#' (`par("fin")`).
+#'
+#' @param high The recorded call, with the `fig` and `fin` of its plot
+#'   (`end_base_r_call()`)
+#' @return The width and height of the page inside its outer margins, in
+#'   inches; or NULL where they were not recorded
+#' @keywords internal
+#' @noRd
+page_inches <- function(high) {
+  fig <- high$fig
+  fin <- high$fin
+  if (length(fig) != 4L || length(fin) != 2L || anyNA(c(fig, fin))) {
+    return(NULL)
+  }
+  share <- c(fig[[2]] - fig[[1]], fig[[4]] - fig[[3]])
+  if (any(share <= 0)) {
+    return(NULL)
+  }
+  fin / share
+}
+
+#' The regions of a page a grid gives its panels
+#'
+#' Set up as R set it up, on a page of the size R drew on: the cells of a
+#' `layout()` whose `widths` or `heights` are in centimetres (`lcm()`), or
+#' that keeps their shape (`respect`), are a share of the page that depends
+#' on its size. R reports the region of the panel it is sent to with
+#' `par(mfg = )` (`mfg_of_panel()`), without starting a plot there.
+#'
+#' @param config The grid, from [detect_panel_configuration()]
+#' @param inches The width and height of the page inside its outer margins,
+#'   in inches, from `page_inches()`
+#' @return A list of regions, as `par("fig")` gives them, one for each of
+#'   the grid's panels, in its order; or NULL where R cannot set the grid up
+#'   on such a page
+#' @keywords internal
+#' @noRd
+grid_panel_regions <- function(config, inches) {
+  current <- grDevices::dev.cur()
+  opened <- tryCatch(
+    {
+      grDevices::pdf(NULL, width = inches[[1]], height = inches[[2]])
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+  if (!opened) {
+    return(NULL)
+  }
+  on.exit(
+    {
+      grDevices::dev.off()
+      if (current > 1L) grDevices::dev.set(current)
+    },
+    add = TRUE
+  )
+  tryCatch(
+    {
+      if (identical(config$type, "layout")) {
+        do.call(graphics::layout, c(list(config$matrix), config$sizes))
+      } else if (identical(config$type, "mfcol")) {
+        graphics::par(mfcol = c(config$nrows, config$ncols))
+      } else {
+        graphics::par(mfrow = c(config$nrows, config$ncols))
+      }
+      lapply(seq_len(config$total_panels), function(panel) {
+        graphics::par(mfg = mfg_of_panel(panel, config))
+        graphics::par("fig")
+      })
+    },
+    error = function(e) NULL
+  )
 }
 
 #' Whether R drew a recorded plot in a cell of a grid
@@ -709,6 +1097,182 @@ plot_in_grid <- function(high, config) {
     return(FALSE)
   }
   !isTRUE(high$opens_page) || identical(panel_of_cell(cell, config), 1L)
+}
+
+#' A recorded `layout()` call's arguments, each named as R matched it
+#'
+#' The recording names an argument written without its name only when it is
+#' not the first of `layout()`'s own, `mat` (see [match_recorded_args()]): the
+#' matrix of `layout(widths = c(3, 1), m)` keeps no name, and its widths come
+#' first. Matched here against `layout()` itself, the matrix is `mat` and the
+#' sizes `widths`, `heights` and `respect`, however each was written.
+#'
+#' A call that leaves an argument empty, as `layout(m, , c(1, 3))` leaves its
+#' widths, is recorded with each of its values already named and the empty
+#' one left out (see `given_argument_values()`).
+#'
+#' @param args The recorded arguments
+#' @return `args` named by the arguments of `layout()` R matched them to, or
+#'   as recorded when they cannot be matched
+#' @keywords internal
+#' @noRd
+layout_arguments <- function(args) {
+  matched <- matched_arg_formals("layout", graphics::layout, args)
+  if (!is.null(matched)) {
+    names(args) <- matched
+  }
+  args
+}
+
+#' The matrix a recorded `layout()` call lays the page out by
+#'
+#' The argument R matched to `mat`, wherever it was written, as a matrix:
+#' `layout()` takes a vector as a one-column matrix, so `layout(1)` puts the
+#' device back to a single panel. Read as the first argument, the matrix of
+#' `layout(widths = c(3, 1), mat = m)` was its widths.
+#'
+#' @param args The call's arguments, named as `layout_arguments()` names them
+#' @return A numeric matrix, or NULL
+#' @keywords internal
+#' @noRd
+layout_matrix <- function(args) {
+  if (length(args) == 0L) {
+    return(NULL)
+  }
+  mat <- args[["mat"]] %||% args[[1]]
+  if (is.numeric(mat) && !is.matrix(mat)) {
+    mat <- as.matrix(mat)
+  }
+  if (is.numeric(mat) && is.matrix(mat)) mat
+}
+
+#' The region of the page R gave the cell of a `layout()` of one cell
+#'
+#' `lcm()` sizes or `respect` leave the one cell of such a layout less than
+#' the page, and R reports the region of each plot it draws there
+#' (`par("fig")`) as a share of the page the author drew on, with the cell
+#' of a grid of one, as it reports a region `par(fig = )` or `screen()`
+#' gave a plot. The cell is the region the layout gives it on a page of the
+#' size R drew the page's plots on (`grid_panel_regions()`); the plots R
+#' drew there are drawn in its cell on the chart's page
+#' (`send_to_layout_cell()`). Taken to be the region of the first plot R
+#' started after the call, it was that of a plot `split.screen()` or
+#' `par(fig = )` placed elsewhere, which was then drawn in the cell.
+#'
+#' @param groups Plot groups from group_device_calls()
+#' @param config The page's `layout()` of one cell, from
+#'   [detect_panel_configuration()]
+#' @return The region, as `par("fig")` gives it, or NULL where the call
+#'   sizes no cell or the size of the page is not known
+#' @keywords internal
+#' @noRd
+layout_cell_region <- function(groups, config) {
+  if (length(config$sizes) == 0L) {
+    return(NULL)
+  }
+  for (group in groups) {
+    inches <- page_inches(group$high_call)
+    if (!is.null(inches)) {
+      return(grid_panel_regions(config, inches)[[1]])
+    }
+  }
+  NULL
+}
+
+#' The cell of a page's `layout()` of one cell R drew in
+#'
+#' Where the layout set the cell up, after it and before a call set the
+#' page up again, in the cell's region (`layout_cells()`).
+#'
+#' @param fig The region R reported for it (`par("fig")`)
+#' @param at Its position in the recording (`storage_index`)
+#' @param panel_config The page's configuration, or NULL
+#' @return The cell, as `with_layout_cells()` keeps it, or NULL
+#' @keywords internal
+#' @noRd
+drawn_layout_cell <- function(fig, at, panel_config) {
+  if (length(fig) != 4L || anyNA(fig)) {
+    return(NULL)
+  }
+  for (cell in panel_config$cells) {
+    if (isTRUE(at > cell$calls[[1]] && at < cell$calls[[2]]) && same_region(fig, cell$fig)) {
+      return(cell)
+    }
+  }
+  NULL
+}
+
+#' Whether R drew in the cell of a page's `layout()` of one cell
+#'
+#' @param fig The region R reported for it (`par("fig")`)
+#' @param at Its position in the recording (`storage_index`)
+#' @param panel_config The page's configuration, or NULL
+#' @return Logical
+#' @keywords internal
+#' @noRd
+in_layout_cell <- function(fig, at, panel_config) {
+  !is.null(drawn_layout_cell(fig, at, panel_config))
+}
+
+#' The widths and heights a page's `layout()` is set up with on a page
+#'
+#' Those of the call that set it up; or, for a `layout()` maidr did not
+#' record, the shares of the page R gave its columns and rows
+#' (`layout_of_regions()`). R keeps those shares on a page of any size
+#' where `widths` and `heights` set them, but a column or row `lcm()` set
+#' keeps its size in centimetres instead, and R does not say which set it.
+#' On a page smaller than the author's that one keeps more of the page than
+#' its share: an `lcm(4)` column R drew on a 10 x 8 in device keeps 4 cm at
+#' 7 x 5 in, where its share leaves its plot no room for its margins, and R
+#' draws the chart, where relative `widths` of 5 : 1 leave the narrow plot
+#' no room and R stops. At a size no one asked for the shares are kept, and
+#' a page they leave a plot no room on is enlarged until they leave it some
+#' ([base_r_page_that_fits()]), as R's cells are for a `layout()` maidr
+#' recorded. At a size asked for, on a page where the shares leave a plot
+#' no room (`least_page`), the cells are set up the same size, as they were
+#' before maidr read the shares, so that the chart is drawn rather than
+#' stopped by a guess at which of the two set them.
+#'
+#' @param config The page's `layout()`, from [detect_panel_configuration()],
+#'   on the device the page is drawn on
+#' @param asked Whether the size the page is drawn at was asked for
+#' @return The `widths`, `heights` and `respect` to give `layout()`, as a
+#'   list; or NULL for cells of the same size
+#' @keywords internal
+#' @noRd
+layout_sizes_on_page <- function(config, asked = TRUE) {
+  least <- config$least_page
+  if (asked && length(least) == 2L && any(graphics::par("din") <= least)) {
+    return(NULL)
+  }
+  config$sizes
+}
+
+#' Whether a page's `layout()` call sizes any of its cells with `lcm()`
+#'
+#' `lcm()` gives a size as text, "5 cm", and `layout()` takes each of its
+#' sizes that says "cm" as centimetres. The call is the page's grid's, or
+#' that of a `layout()` of one cell R drew in on its page
+#' (`with_layout_cells()`).
+#'
+#' @param panel_config The page's configuration, from
+#'   [detect_panel_configuration()], or NULL
+#' @return Logical
+#' @keywords internal
+#' @noRd
+layout_sizes_in_cm <- function(panel_config) {
+  for (cell in panel_config$cells) {
+    if (layout_sizes_in_cm(cell$layout)) {
+      return(TRUE)
+    }
+  }
+  if (!identical(panel_config$type, "layout")) {
+    return(FALSE)
+  }
+  sizes <- panel_config$sizes[intersect(names(panel_config$sizes), c("widths", "heights"))]
+  any(vapply(sizes, function(size) {
+    is.character(size) && any(grepl("cm", size, fixed = TRUE))
+  }, logical(1)))
 }
 
 #' The settings a recorded `par()` call made
@@ -886,8 +1450,7 @@ par_margin_settings <- function(layout_calls, before) {
       break
     }
     if (call$function_name == "layout") {
-      mat <- if (length(call$args) > 0) call$args[[1]]
-      settings <- set_up_grid(settings, if (is.numeric(mat)) dim(as.matrix(mat)))
+      settings <- set_up_grid(settings, dim(layout_matrix(layout_arguments(call$args))))
     }
     if (call$function_name != "par") {
       next

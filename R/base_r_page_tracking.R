@@ -247,10 +247,11 @@ display_list_entry_name <- function(entry) {
 #'
 #' Called by `plot.new()` once the plot is started; see the top of this
 #' file. The cell (`par("mfg")`: its row and column, and the grid's rows
-#' and columns), the region of the page (`par("fig")`) and the margins R
-#' gave the plot, in inches (`par("mai")` and `par("omi")`), with the
-#' height of a line of margin text (`par("csi")`) and whether `par(plt = )`
-#' gave the plot a region of its figure in place of the margins, are kept
+#' and columns), the region of the page (`par("fig")`) and its size in
+#' inches (`par("fin")`), which say how large the page R drew on was, and
+#' the margins R gave the plot, in inches (`par("mai")` and `par("omi")`),
+#' with the height of a line of margin text (`par("csi")`) and whether
+#' `par(plt = )` gave the plot a region of its figure in place of the margins, are kept
 #' with the plot's place, and with that of each recorded call this plot is
 #' the first of on its page. They are those R drew the plot with, which its `mar` and `cex`
 #' do not always say: R works them out again from those only as it starts
@@ -279,6 +280,7 @@ note_base_r_plot_started <- function() {
         placed <- graphics::par(c("mfg", "fig", "mai", "omi", "csi", "plt", "fin"))
         at$cell <- as.integer(placed$mfg)
         at$fig <- placed$fig
+        at$fin <- placed$fin
         at$margins <- placed[c("mai", "omi", "csi")]
         # A region `par(plt = )` gave the plot, where R leaves the margins
         # as they were and does not draw it within them.
@@ -532,8 +534,9 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #' @param depth The number of the wrapper's frame, as `begin_base_r_call()`
 #'   was given it
 #' @return A list: `page`, `figure`, `plot`, `cell` and `fig`, where R put
-#'   that plot, and `margins`, its margins and outer margins in inches, `mai`
-#'   and `omi`, the height of a line of margin text, `csi`, and whether
+#'   that plot, and `fin`, the size of its region in inches, and
+#'   `margins`, its margins and outer margins in inches, `mai` and `omi`,
+#'   the height of a line of margin text, `csi`, and whether
 #'   `par(plt = )` set its region, `region_set` (`note_base_r_plot_started()`),
 #'   where the margins are those R had as the call started; `new_plot`,
 #'   whether the call
@@ -587,6 +590,7 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     plot = first$plot,
     cell = first$cell,
     fig = first$fig,
+    fin = first$fin,
     margins = if (kept) first$margins,
     new_plot = started,
     spans_pages = started && isTRUE(call$start$page < at$page),

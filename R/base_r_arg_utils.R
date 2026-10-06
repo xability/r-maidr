@@ -171,6 +171,47 @@ matched_arg_formals <- function(function_name, target, args) {
   arg_names
 }
 
+#' The values a call that leaves an argument empty was given
+#'
+#' `layout(m, , c(1, 3))` leaves its widths to their default with an empty
+#' argument, which `list(...)` cannot take. Recorded as written instead, the
+#' call was evaluated again each time its page was read, after R had drawn
+#' it: a matrix written as `matrix(sample(2), 2)` gave R, maidr's data and
+#' maidr's drawing different pages, a warning the call gave was given again,
+#' and saving the chart moved the session's random numbers.
+#'
+#' A function that has evaluated every argument it was given, as `layout()`
+#' has once it returns, holds each as a value, which is read here without
+#' evaluating anything again. Each is named by the argument R matched it to
+#' with the empty one still in its place, which is what makes `c(1, 3)` the
+#' heights, and the empty one is left out, as R leaves it to its default.
+#'
+#' @param function_name Name of the recorded function
+#' @param definition The original (unwrapped) function that was called
+#' @param ... The arguments the call was given
+#' @return The values, each named by the argument R matched it to, or NULL
+#'   when the call cannot be matched
+#' @keywords internal
+#' @noRd
+given_argument_values <- function(function_name, definition, ...) {
+  written <- as.list(substitute(list(...)))[-1L]
+  matched <- matched_arg_formals(function_name, definition, written)
+  if (is.null(matched)) {
+    return(NULL)
+  }
+  empty <- vapply(
+    seq_along(written),
+    function(i) identical(written[[i]], quote(expr = )),
+    logical(1)
+  )
+  values <- vector("list", length(written))
+  for (i in which(!empty)) {
+    values[i] <- list(...elt(i))
+  }
+  names(values) <- matched
+  values[!empty]
+}
+
 #' Resolve the definition R dispatched a recorded call to
 #'
 #' `hist` is the motivating case from #98: the generic is `hist(x, ...)`, so

@@ -120,6 +120,42 @@ untitled_method_blocks <- function(path) {
   starts[nzchar(first_words) & !grepl("^@", first_words)]
 }
 
+# A link, `[helper()]`, to a function whose block says `@noRd`: it has no
+# page to link to, roxygen2 warns "Could not resolve link to topic", and
+# `tools/document.R` fails on the warning. Read across every source, since
+# the link and the helper are often in different files. Returns
+# "file:line name" for each.
+links_to_unpaged_helpers <- function(paths) {
+  unpaged <- character(0)
+  links <- character(0)
+  for (path in paths) {
+    lines <- readLines(path, warn = FALSE)
+    is_roxygen <- is_roxygen_line(lines)
+    for (start in block_starts(is_roxygen)) {
+      end <- start
+      while (end < length(lines) && is_roxygen[end + 1L]) {
+        end <- end + 1L
+      }
+      object <- regmatches(
+        lines[end + 1L],
+        regexec("^\\s*([A-Za-z0-9._]+)\\s*(<-|=)", lines[end + 1L])
+      )[[1]]
+      if (length(object) > 0L && any(grepl("@noRd", lines[start:end], fixed = TRUE))) {
+        unpaged <- c(unpaged, object[[2]])
+      }
+    }
+    for (i in which(is_roxygen)) {
+      # A name in a code span, `helper()`, is not a link.
+      text <- gsub("`[^`]*`", "", lines[i])
+      named <- regmatches(text, gregexpr("\\[[A-Za-z0-9._]+\\(\\)\\](?![[(])", text, perl = TRUE))
+      for (link in named[[1]]) {
+        links <- c(links, paste0(basename(path), ":", i, " ", gsub("[][()]", "", link)))
+      }
+    }
+  }
+  links[sub("^\\S+ ", "", links) %in% unpaged]
+}
+
 report <- function(paths, finder) {
   reported <- character(0)
   for (path in paths) {
@@ -155,6 +191,12 @@ test_that("every R6 method block opens with a tag", {
   testthat::expect_equal(
     report(r_sources(), untitled_method_blocks), character(0)
   )
+})
+
+test_that("no roxygen link names a helper that has no page", {
+  skip_without_sources()
+
+  testthat::expect_equal(links_to_unpaged_helpers(r_sources()), character(0))
 })
 
 # The detectors, each against a temporary file rather than a real source, so
@@ -254,4 +296,23 @@ test_that("a method block opening with prose is reported", {
   on.exit(unlink(path), add = TRUE)
 
   testthat::expect_identical(untitled_method_blocks(path), 1L)
+})
+
+test_that("a link to a helper with no page is reported, and a code span is not", {
+  path <- write_case(c(
+    "#' A helper with no page",
+    "#' @noRd",
+    "unpaged <- function(x) x",
+    "",
+    "#' A helper with a page",
+    "#' @param x Read as [unpaged()] reads it, or as `unpaged()` does",
+    "#' @keywords internal",
+    "paged <- function(x) x"
+  ))
+  on.exit(unlink(path), add = TRUE)
+
+  testthat::expect_identical(
+    links_to_unpaged_helpers(path),
+    paste0(basename(path), ":6 unpaged")
+  )
 })
