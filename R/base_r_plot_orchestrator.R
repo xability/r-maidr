@@ -1189,11 +1189,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
         page_func <- function() {
           # A layout() of one cell still places its plots: `lcm()` sizes or
           # `respect` leave the cell less than the page. Each plot R drew in
-          # its cell is drawn in it on the chart's page (`send_to_layout_cell()`).
+          # a cell is drawn in it on the chart's page (`send_to_layout_cell()`).
           private$replay_page(
             rep(1L, length(private$.plot_groups)),
             private$plot_numbers(),
-            if (length(panel_config$cell_fig) == 4L) panel_config
+            if (length(panel_config$cells) > 0L) panel_config
           )
         }
 
@@ -1586,14 +1586,14 @@ start_skipped_plots <- function(at, upto, slot) {
 #' @keywords internal
 #' @noRd
 place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
-  in_cell <- in_layout_cell(high$fig, high$storage_index, panel_config)
-  jumps <- !in_cell && figure > 0L && slot != figure && slot != figure + 1L &&
+  cell <- drawn_layout_cell(high$fig, high$storage_index, panel_config)
+  jumps <- is.null(cell) && figure > 0L && slot != figure && slot != figure + 1L &&
     is_multipanel_config(panel_config)
   if (jumps) {
     graphics::par(mfg = mfg_of_panel(slot, panel_config))
   } else {
-    if (in_cell) {
-      send_to_layout_cell(panel_config)
+    if (!is.null(cell)) {
+      send_to_layout_cell(cell$layout)
     } else if (is_figure_region(high, panel_config, graphics::par("fig"))) {
       graphics::par(fig = high$fig)
     }
@@ -1613,13 +1613,12 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
 #' the page. A cell larger than the page is set up as R set it up, and R
 #' stops as it does, with "figure region too large".
 #'
-#' @param panel_config The page's `layout()` of one cell, or its grid with
-#'   such a layout kept beside it (`cell_layout`, see `with_cell_beside()`)
+#' @param one_cell The `layout()` of one cell, as [detect_panel_configuration()]
+#'   keeps it with the page's cells (`with_layout_cells()`)
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
-send_to_layout_cell <- function(panel_config) {
-  one_cell <- panel_config$cell_layout %||% panel_config
+send_to_layout_cell <- function(one_cell) {
   omi <- graphics::par("omi")
   inches <- graphics::par("din") - c(omi[[2]] + omi[[4]], omi[[1]] + omi[[3]])
   cell <- grid_panel_regions(one_cell, inches)[[1]]

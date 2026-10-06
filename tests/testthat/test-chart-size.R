@@ -1131,6 +1131,85 @@ test_that("a Base R layout() of one cell holds only the plots R drew in it", {
   }
 })
 
+test_that("each Base R layout() of one cell set up over a page holds what R drew in it", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # Two cells set up one after the other over a page, and a panel plot.new()
+  # started in a cell, as for a legend: only the last cell set up over a
+  # grid was kept, and none that only a plot.new() panel was drawn in, so
+  # the other was drawn at its share of the author's page. From a 12 x 10
+  # in device the chart stopped with "figure margins too large" at 7 x 5 in,
+  # where R draws it, and a legend's panel was drawn smaller than R's.
+  # The region each plot is started in, as par("fig") gives it: R's on the
+  # last page it draws, and those of the last drawing maidr makes.
+  regions <- function(code) {
+    figs <- list()
+    hooks <- list(before = getHook("before.plot.new"), after = getHook("plot.new"))
+    setHook("before.plot.new", function() if (graphics::par("page")) figs <<- list())
+    setHook("plot.new", function() figs[[length(figs) + 1L]] <<- graphics::par("fig"))
+    on.exit(
+      {
+        setHook("before.plot.new", hooks$before, "replace")
+        setHook("plot.new", hooks$after, "replace")
+      },
+      add = TRUE
+    )
+    code
+    figs
+  }
+  native_regions <- function(draw, size) {
+    grDevices::pdf(NULL, width = size[1], height = size[2])
+    on.exit(grDevices::dev.off(), add = TRUE)
+    regions(draw())
+  }
+  plots <- function() plot(1:10, main = "Page")
+  grid <- function() {
+    par(mfrow = c(1, 2))
+    plot(1:3, main = "Left")
+    plot(3:1, main = "Right")
+  }
+  two_cells <- function(before) {
+    function() {
+      before()
+      layout(matrix(1), widths = lcm(6), heights = lcm(5))
+      par(new = TRUE)
+      plot(1:5, main = "First")
+      layout(matrix(1), widths = lcm(4), heights = lcm(4))
+      par(new = TRUE, mar = c(1, 1, 1, 1))
+      plot(5:1, main = "Second")
+    }
+  }
+  panel <- function(before) {
+    function() {
+      before()
+      layout(matrix(1), widths = lcm(8), heights = lcm(6))
+      par(new = TRUE, mar = c(0, 0, 0, 0))
+      plot.new()
+      legend("center", c("one", "two"), pch = 1:2, horiz = TRUE)
+    }
+  }
+  pages <- list(
+    two_cells_over_page = list(c(12, 10), two_cells(plots)),
+    two_cells_over_grid = list(c(12, 10), two_cells(grid)),
+    panel_over_page = list(c(20, 16), panel(plots)),
+    panel_over_grid = list(c(10, 8), panel(grid))
+  )
+  for (name in names(pages)) {
+    device <- pages[[name]][[1]]
+    draw <- pages[[name]][[2]]
+    for (size in list(c(7, 5), c(6, 6))) {
+      native <- native_regions(draw, size)
+      drawn <- regions(render_sized(draw, size, device = device))
+      testthat::expect_equal(
+        utils::tail(drawn, length(native)),
+        native,
+        tolerance = 1e-6,
+        label = sprintf("%s at %g x %g in", name, size[1], size[2])
+      )
+    }
+  }
+})
+
 test_that("a plot in a Base R layout()'s one cell is drawn there after par(mfg = )", {
   testthat::skip_on_cran()
   skip_if_no_render()
