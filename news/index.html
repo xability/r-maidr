@@ -126,6 +126,10 @@
 <h4 id="base-r-development-version">Base R<a class="anchor" aria-label="anchor" href="#base-r-development-version"></a></h4>
 <ul><li>A <code><a href="https://rdrr.io/pkg/wordcloud/man/wordcloud.html" class="external-link">wordcloud::wordcloud()</a></code> chart highlights the word being read: as the arrow keys move, the word announced is recoloured in the reader’s highlight colour. Each term is matched to the text R drew it as by its label, so the layout’s random order does not matter. A cloud with a term <code><a href="../reference/base-r-wrappers.html">wordcloud()</a></code> could not fit on the page is read without a highlight rather than with highlights on the wrong words (<a href="https://github.com/xability/r-maidr/issues/356" class="external-link">#356</a>).</li>
 </ul></div>
+<div class="section level4">
+<h4 id="monarch-tactile-display-development-version">Monarch tactile display<a class="anchor" aria-label="anchor" href="#monarch-tactile-display-development-version"></a></h4>
+<ul><li>A chart’s frame now delegates WebHID as well as Web Bluetooth and Web Serial (<code>allow="bluetooth; serial; hid"</code>), so a Monarch in its Braille Terminal can draw an R chart inside a cross-origin frame, as a Dot Pad already could. Drawing on a Monarch also needs a maidr build that supports it.</li>
+</ul></div>
 </div>
 <div class="section level3">
 <h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>

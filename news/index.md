@@ -334,6 +334,14 @@
   highlights on the wrong words
   ([\#356](https://github.com/xability/r-maidr/issues/356)).
 
+#### Monarch tactile display
+
+- A chart’s frame now delegates WebHID as well as Web Bluetooth and Web
+  Serial (`allow="bluetooth; serial; hid"`), so a Monarch in its Braille
+  Terminal can draw an R chart inside a cross-origin frame, as a Dot Pad
+  already could. Drawing on a Monarch also needs a maidr build that
+  supports it.
+
 ### Performance
 
 - The SVG export, the maidr-data payload and the ggplot2 heatmap grid

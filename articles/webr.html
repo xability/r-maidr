@@ -61,7 +61,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-01">
+<meta name="DC.date" content="2026-10-06">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -242,7 +242,7 @@ which works over every channel:</p>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="kw">const</span> frame <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">createElement</span>(<span class="st">"iframe"</span>)<span class="op">;</span></span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>frame<span class="op">.</span><span class="at">srcdoc</span> <span class="op">=</span> html<span class="op">;</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>frame<span class="op">.</span><span class="at">allow</span> <span class="op">=</span> <span class="st">"bluetooth; serial"</span><span class="op">;</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>frame<span class="op">.</span><span class="at">allow</span> <span class="op">=</span> <span class="st">"bluetooth; serial; hid"</span><span class="op">;</span></span>
 <span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="bu">document</span><span class="op">.</span><span class="fu">getElementById</span>(<span class="st">"maidr-output"</span>)<span class="op">.</span><span class="fu">append</span>(frame)<span class="op">;</span></span></code></pre></div>
 <p>The document is a complete page with maidr.js in it, about 1.8 MB, so
 it does not depend on a CDN and works offline.</p>
