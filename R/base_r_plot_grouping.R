@@ -442,12 +442,13 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   # set up for plots yet to be drawn.
   #
   # A grid of one set up between two plots of the page, as
-  # `par(mfrow = c(1, 1), new = TRUE)` is to draw a legend for a grid over
-  # the whole page, lays out only the plot drawn over the page after it,
-  # which R started no page for: the plots before it keep their panels.
-  # Where they were in no grid of several panels, it is the page's: a
-  # `layout()` of one cell sized with `lcm()` or `respect` puts the plot
-  # drawn over the page after it in its cell (`layout_cell_region()`).
+  # `par(mfrow = c(1, 1), new = TRUE)` or `layout(1)` is to draw a legend
+  # for a grid over the whole page, lays out only the plot drawn over the
+  # page after it, which R started no page for: the plots before it keep
+  # their panels, or the cell of a `layout()` of one cell. A `layout()` of
+  # one cell sized with `lcm()` or `respect` is the page's where the plots
+  # before it were in no grid of several panels: it puts the plot drawn
+  # over the page after it in its cell (`layout_cell_region()`).
   if (length(grouped$groups) > 0) {
     plot_indices <- vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
     last_plot_index <- max(plot_indices)
@@ -462,7 +463,8 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
       # Whether it sets a grid of one is read last: a layout() call's
       # arguments are matched against layout() to find its matrix.
       isTRUE(call$storage_index > min(plot_indices)) && isFALSE(next_plot$opens_page) &&
-        any(in_grid[plot_indices < call$storage_index]) && sets_grid_of_one(call)
+        sets_grid_of_one(call) &&
+        (any(in_grid[plot_indices < call$storage_index]) || !sizes_cells(call))
     }
     layout_calls <- Filter(
       function(call) isTRUE(call$storage_index < last_plot_index) && !over_page(call),
@@ -554,6 +556,17 @@ sets_grid_of_one <- function(call) {
   }
   mat <- if (identical(call$function_name, "layout")) layout_matrix(layout_arguments(args))
   is.numeric(mat) && length(unique(mat[mat > 0])) == 1L
+}
+
+#' Whether a recorded layout call sizes the cells of the grid it sets up
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical: a `layout()` call given `widths`, `heights` or `respect`
+#' @keywords internal
+#' @noRd
+sizes_cells <- function(call) {
+  identical(call$function_name, "layout") &&
+    any(c("widths", "heights", "respect") %in% names(layout_arguments(call$args)))
 }
 
 #' The grid R drew a page's plots in, from the cells it put them in

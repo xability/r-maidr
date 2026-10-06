@@ -990,6 +990,22 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
       par(new = TRUE)
       plot(5:1, main = "Cell")
     },
+    # A grid of one set up after the cell's plot, as one is to draw a legend
+    # over the whole page, lays out only the plot drawn over the page after
+    # it: the cell's plot was drawn at its share of the author's page.
+    one_cell_under_page = function() {
+      layout(matrix(1), widths = lcm(8), heights = lcm(8))
+      plot(1:5, main = "Cell")
+      layout(1)
+      par(new = TRUE)
+      plot(5:1, main = "Page")
+    },
+    one_cell_respect_under_page = function() {
+      layout(matrix(1), widths = 2, heights = 1, respect = TRUE)
+      plot(1:5, main = "Cell")
+      par(mfrow = c(1, 1), new = TRUE)
+      plot(5:1, main = "Page")
+    },
     matrix_by_name = function() {
       layout(widths = c(3, 1), mat = matrix(1:2, 1))
       for (i in 1:2) plot(1:5)
@@ -1125,6 +1141,13 @@ test_that("a picture of a Base R layout() page of one cell draws its plots in th
       par(new = TRUE)
       plot(5:1, main = "Cell")
       lines(1:5)
+    },
+    under_page = function() {
+      layout(matrix(1), widths = lcm(10), heights = lcm(8))
+      plot(1:5, main = "Cell")
+      layout(1)
+      par(new = TRUE)
+      plot(5:1, main = "Page")
     }
   )
   for (name in names(pages)) {
