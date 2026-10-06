@@ -572,7 +572,11 @@ layout_call_config <- function(call) {
 #' to draw a plot over its middle, unless it is the page's own grid.
 #'
 #' A page R drew in no grid, but in the cell of a `layout()` of one cell,
-#' is a page of that cell.
+#' is a page of that cell; one R drew in no grid but in the one panel of a
+#' `layout()` over several cells, a page of one panel with that cell. A
+#' legend's `plot.new()` panel, started in a panel at the right of a single
+#' plot with `layout(matrix(c(0, 1), 1), widths = c(3, 1))`, was so drawn
+#' over the whole page, over the plot: such a page kept no cell.
 #'
 #' @param config The page's configuration, or NULL
 #' @param grouped The plot groups and layout calls, from group_device_calls()
@@ -586,12 +590,16 @@ with_layout_cells <- function(config, grouped) {
   cells <- Filter(function(cell) {
     !is_multipanel_config(config) || !identical(cell$layout$layout_index, config$layout_index)
   }, layout_cells(grouped))
+  if (length(cells) == 0L) {
+    return(config)
+  }
   if (is.null(config)) {
     one_cell <- Filter(function(cell) length(cell$layout$matrix) == 1L, cells)
-    config <- if (length(one_cell) > 0L) one_cell[[length(one_cell)]]$layout
-  }
-  if (length(cells) == 0L || is.null(config)) {
-    return(config)
+    config <- if (length(one_cell) > 0L) {
+      one_cell[[length(one_cell)]]$layout
+    } else {
+      list(type = "single", nrows = 1L, ncols = 1L, total_panels = 1L)
+    }
   }
   config$cells <- cells
   config

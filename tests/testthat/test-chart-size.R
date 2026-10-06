@@ -190,6 +190,34 @@ native_plot_boxes <- function(draw, size) {
   boxes
 }
 
+#' The region of the page each plot of the last page is started in, as
+#' `par("fig")` gives it at each `plot.new()`, so a panel `plot.new()`
+#' started, as a legend's, counts: of a drawing evaluated in `code`, on the
+#' last page R draws
+started_regions <- function(code) {
+  figs <- list()
+  hooks <- list(before = getHook("before.plot.new"), after = getHook("plot.new"))
+  setHook("before.plot.new", function() if (graphics::par("page")) figs <<- list())
+  setHook("plot.new", function() figs[[length(figs) + 1L]] <<- graphics::par("fig"))
+  on.exit(
+    {
+      setHook("before.plot.new", hooks$before, "replace")
+      setHook("plot.new", hooks$after, "replace")
+    },
+    add = TRUE
+  )
+  code
+  figs
+}
+
+#' The regions R starts the plots of a Base R chart's last page in, as
+#' `started_regions()` gives a drawing's, as R lays them out at a size
+native_started_regions <- function(draw, size) {
+  grDevices::pdf(NULL, width = size[1], height = size[2])
+  on.exit(grDevices::dev.off(), add = TRUE)
+  started_regions(draw())
+}
+
 #' The box around each plot in a chart's SVG, as `native_plot_boxes()` gives
 #' R's
 drawn_plot_boxes <- function(markup) {
@@ -1140,28 +1168,6 @@ test_that("each Base R layout() of one cell set up over a page holds what R drew
   # the other was drawn at its share of the author's page. From a 12 x 10
   # in device the chart stopped with "figure margins too large" at 7 x 5 in,
   # where R draws it, and a legend's panel was drawn smaller than R's.
-  # The region each plot is started in, as par("fig") gives it: R's on the
-  # last page it draws, and those of the last drawing maidr makes.
-  regions <- function(code) {
-    figs <- list()
-    hooks <- list(before = getHook("before.plot.new"), after = getHook("plot.new"))
-    setHook("before.plot.new", function() if (graphics::par("page")) figs <<- list())
-    setHook("plot.new", function() figs[[length(figs) + 1L]] <<- graphics::par("fig"))
-    on.exit(
-      {
-        setHook("before.plot.new", hooks$before, "replace")
-        setHook("plot.new", hooks$after, "replace")
-      },
-      add = TRUE
-    )
-    code
-    figs
-  }
-  native_regions <- function(draw, size) {
-    grDevices::pdf(NULL, width = size[1], height = size[2])
-    on.exit(grDevices::dev.off(), add = TRUE)
-    regions(draw())
-  }
   plots <- function() plot(1:10, main = "Page")
   grid <- function() {
     par(mfrow = c(1, 2))
@@ -1198,8 +1204,10 @@ test_that("each Base R layout() of one cell set up over a page holds what R drew
     device <- pages[[name]][[1]]
     draw <- pages[[name]][[2]]
     for (size in list(c(7, 5), c(6, 6))) {
-      native <- native_regions(draw, size)
-      drawn <- regions(render_sized(draw, size, device = device))
+      # R's on the last page it draws, and those of the last drawing maidr
+      # makes.
+      native <- native_started_regions(draw, size)
+      drawn <- started_regions(render_sized(draw, size, device = device))
       testthat::expect_equal(
         utils::tail(drawn, length(native)),
         native,
@@ -1285,6 +1293,74 @@ test_that("a sized Base R layout() of one panel over several cells draws in its 
       native_plot_boxes(draw, c(7, 5)),
       tolerance = 1e-3,
       label = name
+    )
+  }
+})
+
+test_that("a legend's panel in a sized Base R layout() of one panel is started there", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # A layout() of one panel over several cells, given widths or heights and
+  # set up over a single plot to draw a legend beside it on a panel
+  # plot.new() started: R starts the panel in its strip at the right or the
+  # bottom of the page. The page, of no grid, kept only the cell of a
+  # layout() of one cell, so the panel was started over the whole page and
+  # the legend drawn over the plot's points. Over a grid it was kept.
+  legend_panel <- function(set_up, before = function() plot(1:5, main = "Points")) {
+    function() {
+      before()
+      set_up()
+      par(new = TRUE, mar = c(0, 0, 0, 0))
+      plot.new()
+      legend("center", legend = c("one", "two"), lty = 1:2, bty = "n")
+    }
+  }
+  grid <- function() {
+    par(mfrow = c(1, 2))
+    plot(1:3, main = "Left")
+    plot(3:1, main = "Right")
+  }
+  pages <- list(
+    right_of_page = legend_panel(function() layout(matrix(c(0, 1), 1), widths = c(3, 1))),
+    below_page = legend_panel(function() layout(matrix(c(0, 1), 2), heights = c(5, 1))),
+    right_of_page_in_cm = legend_panel(
+      function() layout(matrix(c(0, 1), 1), widths = c(1, lcm(4)))
+    ),
+    right_of_grid = legend_panel(
+      function() layout(matrix(c(0, 1), 1), widths = c(3, 1)),
+      before = grid
+    )
+  )
+  for (name in names(pages)) {
+    draw <- pages[[name]]
+    for (size in list(c(7, 5), c(6, 6))) {
+      label <- sprintf("%s at %g x %g in", name, size[1], size[2])
+      native <- native_started_regions(draw, size)
+      drawn <- started_regions(render_sized(draw, size, device = c(12, 12)))
+      testthat::expect_equal(
+        utils::tail(drawn, length(native)), native,
+        tolerance = 1e-6, label = label
+      )
+      testthat::expect_identical(drawn_by_maidr(draw, size), drawn_by_r(draw, size), label = label)
+    }
+    # The picture draws the layout() call again, and the panel in it. Over
+    # a grid of as many columns as the layout, a strict picture stops, as
+    # it did before: the chart draws, so the picture is not reached.
+    if (name == "right_of_grid") {
+      next
+    }
+    grDevices::pdf(NULL, width = 12, height = 12)
+    device <- grDevices::dev.cur()
+    maidr:::clear_device_storage(device)
+    draw()
+    grDevices::pdf(NULL, width = 7, height = 5)
+    pictured <- started_regions(maidr:::replay_base_r_plot(device, strict = TRUE))
+    grDevices::dev.off()
+    maidr:::clear_device_storage(device)
+    grDevices::dev.off(device)
+    testthat::expect_equal(
+      pictured, native_started_regions(draw, c(7, 5)),
+      tolerance = 1e-6, label = paste("picture of", name)
     )
   }
 })
