@@ -72,6 +72,9 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
         groups <- append(groups, list(current_group))
       }
 
+      # Where it was made tells which layout set up the cell R drew it in
+      # (`in_layout_cell()`).
+      call$storage_index <- i
       current_group <- list(
         high_call = call,
         high_call_index = i,
@@ -474,7 +477,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     cell_call <- Find(sizes_cells, governing[over], right = TRUE)
 
     if (length(layout_calls) == 0) {
-      return(with_cell_beside(grid_of_cells(grouped$groups), cell_call, grouped$groups))
+      return(with_cell_beside(grid_of_cells(grouped$groups), cell_call, grouped))
     }
   }
 
@@ -522,9 +525,10 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   }
   if (identical(config$type, "layout") && length(config$matrix) == 1L) {
     config$cell_fig <- layout_cell_region(grouped$groups, config)
+    config$cell_calls <- layout_cell_calls(config$layout_index, grouped$layout_calls)
   }
 
-  with_cell_beside(config %||% grid_of_cells(grouped$groups), cell_call, grouped$groups)
+  with_cell_beside(config %||% grid_of_cells(grouped$groups), cell_call, grouped)
 }
 
 #' The grid a recorded `layout()` call sets up
@@ -570,21 +574,66 @@ layout_call_config <- function(call) {
 #'
 #' @param config The page's grid, or NULL
 #' @param call The recorded `layout()` call, or NULL
-#' @param groups Plot groups from group_device_calls()
+#' @param grouped The plot groups and layout calls, from group_device_calls()
 #' @return `config`, with the cell where it is a grid of several panels
 #' @keywords internal
 #' @noRd
-with_cell_beside <- function(config, call, groups) {
+with_cell_beside <- function(config, call, grouped) {
   if (is.null(call) || !is_multipanel_config(config)) {
     return(config)
   }
   cell <- layout_call_config(call)
-  cell_fig <- if (!is.null(cell)) layout_cell_region(groups, cell)
+  cell_fig <- if (!is.null(cell)) layout_cell_region(grouped$groups, cell)
   if (length(cell_fig) == 4L) {
     config$cell_layout <- cell
     config$cell_fig <- cell_fig
+    config$cell_calls <- layout_cell_calls(cell$layout_index, grouped$layout_calls)
   }
   config
+}
+
+#' The recorded calls a `layout()` of one cell lays out
+#'
+#' Those made after it, up to the next call that sets up another grid or
+#' another region of the page: `layout()`, `split.screen()`, or `par()`
+#' given `mfrow`, `mfcol` or `fig`. A plot drawn before the layout was set
+#' up, or after another call set up the page again, is not in its cell,
+#' even where R drew it in a region of the same size: a panel of the grid
+#' the cell is set up over, as in `par(mfrow = c(1, 2)); plot(a); plot(b);
+#' layout(matrix(c(1, 0), 1), widths = c(1, 1)); par(new = TRUE); plot(c)`,
+#' or the whole page, where the cell is all of the author's page. Read as
+#' the cell's by its region alone, such a plot was taken out of its panel
+#' and drawn in the cell, over the plot R drew there.
+#'
+#' @param from The position in the recording of the `layout()` call
+#' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
+#' @return The positions in the recording the calls it lays out lie
+#'   between, as `c(from, until)`; `until` is `Inf` where no call after it
+#'   sets the page up again
+#' @keywords internal
+#' @noRd
+layout_cell_calls <- function(from, layout_calls) {
+  for (call in layout_calls) {
+    if (isTRUE(call$storage_index > from) && sets_up_page(call)) {
+      return(c(from, call$storage_index))
+    }
+  }
+  c(from, Inf)
+}
+
+#' Whether a recorded layout call sets up the grid or region R draws in next
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical: `layout()`, `split.screen()`, or `par()` given `mfrow`,
+#'   `mfcol` or `fig`
+#' @keywords internal
+#' @noRd
+sets_up_page <- function(call) {
+  if (call$function_name %in% c("layout", "split.screen")) {
+    return(TRUE)
+  }
+  identical(call$function_name, "par") &&
+    any(c("mfrow", "mfcol", "fig") %in% names(par_setting_arguments(call$args)))
 }
 
 #' Whether a recorded layout call sets up a grid of one panel
@@ -1048,14 +1097,20 @@ layout_cell_region <- function(groups, config) {
 
 #' Whether R drew in the cell of a page's `layout()` of one cell
 #'
+#' Where the layout set the cell up, after it and before a call set the
+#' page up again (`layout_cell_calls()`), in the cell's region.
+#'
 #' @param fig The region R reported for it (`par("fig")`)
+#' @param at Its position in the recording (`storage_index`)
 #' @param panel_config The page's configuration, or NULL
 #' @return Logical
 #' @keywords internal
 #' @noRd
-in_layout_cell <- function(fig, panel_config) {
+in_layout_cell <- function(fig, at, panel_config) {
   cell <- panel_config$cell_fig
-  length(cell) == 4L && length(fig) == 4L && !anyNA(fig) && same_region(fig, cell)
+  calls <- panel_config$cell_calls
+  length(cell) == 4L && length(fig) == 4L && !anyNA(fig) && same_region(fig, cell) &&
+    length(calls) == 2L && isTRUE(at > calls[[1]] && at < calls[[2]])
 }
 
 #' The widths and heights a page's `layout()` is set up with on a page

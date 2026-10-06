@@ -1574,7 +1574,7 @@ start_skipped_plots <- function(at, upto, slot) {
 #' one cell, in that cell on the drawing's page (`send_to_layout_cell()`).
 #'
 #' @param high The recorded call, with the `cell` and `fig` R put its plot
-#'   in (`end_base_r_call()`)
+#'   in (`end_base_r_call()`) and where it was made (`storage_index`)
 #' @param slot,figure The panel R drew the plot in, and the one the drawing
 #'   is in, each 0 for none
 #' @param panel_config The page's grid, or for a page of one panel NULL or
@@ -1590,7 +1590,7 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
   } else {
     if (is_figure_region(high, panel_config, graphics::par("fig"))) {
       graphics::par(fig = high$fig)
-    } else if (in_layout_cell(high$fig, panel_config)) {
+    } else if (in_layout_cell(high$fig, high$storage_index, panel_config)) {
       send_to_layout_cell(panel_config)
     }
     start_replayed_plot(slot <= figure, start = FALSE)
@@ -1661,7 +1661,7 @@ mfg_of_panel <- function(slot, panel_config) {
 #' the chart's: a plot R drew there is drawn in the cell
 #' (`layout_cell_region()`).
 #'
-#' @param high The recorded call
+#' @param high The recorded call, with where it was made (`storage_index`)
 #' @param panel_config The page's grid, or for a page of one panel NULL or
 #'   the `layout()` of one cell it was drawn in
 #' @param drawing_fig The region of the page the drawing is in, before the
@@ -1673,7 +1673,7 @@ is_figure_region <- function(high, panel_config = NULL, drawing_fig = c(0, 1, 0,
   page <- c(0, 1, 0, 1)
   apart <- function(fig) isTRUE(max(abs(fig - page)) > 1e-6)
   length(high$cell) == 4L && identical(as.integer(high$cell[3:4]), c(1L, 1L)) &&
-    length(high$fig) == 4L && !in_layout_cell(high$fig, panel_config) &&
+    length(high$fig) == 4L && !in_layout_cell(high$fig, high$storage_index, panel_config) &&
     (apart(high$fig) || is_multipanel_config(panel_config) || apart(drawing_fig))
 }
 

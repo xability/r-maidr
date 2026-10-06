@@ -206,6 +206,9 @@ replay_base_r_plot <- function(device_id, strict = FALSE, asked = TRUE) {
   clipped <- clipped_away_calls(all_calls)
   for (i in seq_along(all_calls)) {
     call_entry <- all_calls[[i]]
+    # Where it was made, as the page's configuration reads it
+    # (`in_layout_cell()`).
+    call_entry$storage_index <- i
     if (identical(call_entry$function_name, "split.screen")) {
       # Where it started the page, the page is started here, before the
       # graphics parameters set for the screens after it: R works out the
@@ -227,7 +230,7 @@ replay_base_r_plot <- function(device_id, strict = FALSE, asked = TRUE) {
     # the picture's page (`layout_cell_region()`).
     sent_back <- low && is.null(grid) && length(call_entry$drawn_fig) == 4L &&
       !same_region(call_entry$drawn_fig, graphics::par("fig")) &&
-      !in_layout_cell(call_entry$drawn_fig, config)
+      !in_layout_cell(call_entry$drawn_fig, i, config)
     sent_to <- if (low && !is.null(grid)) sent_back_panel(call_entry, grid)
     if (starts) {
       place_picture_plot(call_entry, plots, config)
@@ -386,7 +389,7 @@ sent_back_panel <- function(call, grid) {
 #' the margins R gave the plot (`set_drawing_pars()`).
 #'
 #' @param call The recorded call, with the `cell` and `fig` R put the plot
-#'   in
+#'   in and where it was made (`storage_index`)
 #' @param plots The plots the drawing has started on its page, as R
 #'   numbered them
 #' @param config The page's configuration, from

@@ -1078,6 +1078,59 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
   }
 })
 
+test_that("a Base R layout() of one cell holds only the plots R drew in it", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # R draws in the cell what it draws after the layout() call, until a call
+  # sets the page up again. Read by its region of the page alone, a plot of
+  # the grid the cell is set up over, in the panel the cell is, or a plot
+  # over the whole page, where the cell is all of the author's page, was
+  # drawn in the cell: the grid lost its first plot, the plot after it was
+  # drawn in its panel, and the page's plot was drawn the cell's size.
+  pages <- list(
+    grid_panel = list(c(10, 8), function() {
+      par(mfrow = c(1, 2))
+      plot(1:3, main = "Left")
+      plot(3:1, main = "Right")
+      layout(matrix(c(1, 0), 1), widths = c(1, 1))
+      par(new = TRUE)
+      plot(c(3, 1, 2), type = "l", col = 2, main = "Over")
+    }),
+    grid_corner = list(c(10, 8), function() {
+      par(mfrow = c(2, 2))
+      for (i in 1:4) plot(seq_len(i + 2), main = paste("Panel", i))
+      layout(matrix(c(0, 0, 1, 0), 2), widths = c(1, 1), heights = c(1, 1))
+      par(new = TRUE)
+      plot(c(3, 1, 2), type = "l", col = 2, main = "Over")
+    }),
+    page_before_cell = list(c(7, 7), function() {
+      plot(1:5, main = "Page")
+      layout(matrix(1), respect = TRUE)
+      par(new = TRUE)
+      plot(5:1, main = "Cell")
+    }),
+    page_after_cell = list(c(10, 5), function() {
+      layout(matrix(1), widths = 2, heights = 1, respect = TRUE)
+      plot(1:5, main = "Cell")
+      layout(1)
+      par(new = TRUE)
+      plot(5:1, main = "Page")
+    })
+  )
+  for (name in names(pages)) {
+    device <- pages[[name]][[1]]
+    draw <- pages[[name]][[2]]
+    for (size in list(c(7, 5), c(6, 6))) {
+      testthat::expect_equal(
+        drawn_plot_boxes(render_sized(draw, size, device = device)),
+        native_plot_boxes(draw, size),
+        tolerance = 1e-3,
+        label = sprintf("%s at %g x %g in", name, size[1], size[2])
+      )
+    }
+  }
+})
+
 test_that("a layout() maidr did not record keeps R's shares where they leave its plots room", {
   testthat::skip_on_cran()
   skip_if_no_render()
