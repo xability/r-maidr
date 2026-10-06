@@ -559,6 +559,62 @@ test_that("a layout() no recorded call set up keeps the widths and heights R gav
   )
 })
 
+test_that("a grid set up without maidr after a recorded layout() of its shape is drawn so", {
+  skip_if_no_render()
+
+  # The recorded layout() was taken for the page's grid, as the page's
+  # plots are in a grid of its shape, and set up again with its sizes:
+  # R drew them in the cells of the grid set up after it, which maidr did
+  # not record.
+  expect_read_as_r_draws <- function(page, titles) {
+    chart <- last_page_export(function() eval(page))
+    testthat::expect_identical(cell_titles(chart), titles)
+    expect_selectors_drawn(chart)
+    expect_drawn_where_r_draws(chart, page, unique(unlist(titles)))
+  }
+  halves <- quote({
+    layout(matrix(1:2, 1), widths = c(1, 3))
+    plot(1:3, main = "Before")
+    plot(3:1, main = "Before")
+    withr::with_par(list(mfrow = c(1, 2)), {
+      plot(1:5, main = "Left half")
+      plot(5:1, main = "Right half")
+    })
+  })
+  expect_read_as_r_draws(halves, list("Left half", "Right half"))
+
+  reversed <- quote({
+    layout(matrix(1:2, 1), widths = c(1, 3))
+    plot(1:3, main = "Before")
+    plot(3:1, main = "Before")
+    graphics::layout(matrix(1:2, 1), widths = c(3, 1))
+    plot(1:5, main = "Wide")
+    plot(5:1, main = "Narrow")
+  })
+  expect_read_as_r_draws(reversed, list("Wide", "Narrow"))
+
+  # Of the same size, where the recorded call set up cells of one size.
+  sized <- quote({
+    layout(matrix(1:2, 1))
+    plot(1:3, main = "Before")
+    plot(3:1, main = "Before")
+    graphics::layout(matrix(1:2, 1), widths = c(3, 1))
+    plot(1:5, main = "Wide")
+    plot(5:1, main = "Narrow")
+  })
+  expect_read_as_r_draws(sized, list("Wide", "Narrow"))
+
+  # The whole page, where the recorded call gave its plot a cell of 8 x 6
+  # cm in the middle of it.
+  whole <- quote({
+    layout(matrix(1), widths = lcm(8), heights = lcm(6))
+    plot(1:3, main = "Cell")
+    graphics::layout(1)
+    plot(1:5, main = "Whole page")
+  })
+  expect_read_as_r_draws(whole, list("Whole page"))
+})
+
 test_that("a plot drawn with add = TRUE highlights nothing of the plot it is drawn over", {
   skip_if_no_render()
 

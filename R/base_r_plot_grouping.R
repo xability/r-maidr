@@ -718,12 +718,21 @@ grid_edges <- function(at, n) {
 #' Whether R drew a plot of the page in a grid
 #'
 #' A grid the recorded layout calls set up is the page's only where R drew
-#' a plot of the page in one of its cells (`plot_in_grid()`). A function
-#' that lays out a page of its own, as `heatmap()` does with `layout()`,
-#' draws in a grid it sets up itself, unrecorded: after
+#' a plot of the page in one of its cells (`plot_in_grid()`), in the region
+#' of the page the grid gives that cell's panel (`grid_panel_regions()`). A
+#' function that lays out a page of its own, as `heatmap()` does with
+#' `layout()`, draws in a grid it sets up itself, unrecorded: after
 #' `par(mfrow = c(1, 2)); plot(x); heatmap(m)` R's page is the heatmap
-#' alone, not a panel of two. Plots recorded without their cell, by code
-#' that records calls itself, are taken to be in the grid.
+#' alone, not a panel of two. A grid of the same shape that the author set
+#' up without maidr, with `graphics::layout()`, `graphics::par()` or
+#' `withr::with_par()`, after a `layout()` maidr recorded, has cells of
+#' other sizes, or of the same size where the recorded call sized them:
+#' after `layout(matrix(1:2, 1), widths = c(1, 3))` and a page of plots,
+#' R draws those of `withr::with_par(list(mfrow = c(1, 2)), ...)` in two
+#' halves of the page, which the recorded call set up again made a quarter
+#' and three. Plots recorded without their cell, by code that records calls
+#' itself, are taken to be in the grid, and those recorded without their
+#' region in its panel's.
 #'
 #' @param groups Plot groups from group_device_calls()
 #' @param config The grid, from the layout call that set it up
@@ -736,8 +745,99 @@ grid_holds_a_plot <- function(groups, config) {
     groups
   )
   highs <- Filter(function(high) !is.null(high$cell), lapply(after, function(g) g$high_call))
-  length(highs) == 0L ||
-    any(vapply(highs, plot_in_grid, logical(1), config = config))
+  if (length(highs) == 0L) {
+    return(TRUE)
+  }
+  # The plots of a page are on a page of one size: the regions are worked
+  # out once.
+  regions <- NULL
+  for (high in Filter(function(high) plot_in_grid(high, config), highs)) {
+    inches <- page_inches(high)
+    regions <- regions %||% if (!is.null(inches)) grid_panel_regions(config, inches)
+    panel <- panel_of_cell(high$cell, config)
+    if (is.null(regions) || is.null(panel) || same_region(high$fig, regions[[panel]])) {
+      return(TRUE)
+    }
+  }
+  FALSE
+}
+
+#' The size of the page R drew a plot on
+#'
+#' R reports the region of the page it put a plot in both as a share of
+#' the page inside its outer margins (`par("fig")`) and in inches
+#' (`par("fin")`).
+#'
+#' @param high The recorded call, with the `fig` and `fin` of its plot
+#'   (`end_base_r_call()`)
+#' @return The width and height of the page inside its outer margins, in
+#'   inches; or NULL where they were not recorded
+#' @keywords internal
+#' @noRd
+page_inches <- function(high) {
+  fig <- high$fig
+  fin <- high$fin
+  if (length(fig) != 4L || length(fin) != 2L || anyNA(c(fig, fin))) {
+    return(NULL)
+  }
+  share <- c(fig[[2]] - fig[[1]], fig[[4]] - fig[[3]])
+  if (any(share <= 0)) {
+    return(NULL)
+  }
+  fin / share
+}
+
+#' The regions of a page a grid gives its panels
+#'
+#' Set up as R set it up, on a page of the size R drew on: the cells of a
+#' `layout()` whose `widths` or `heights` are in centimetres (`lcm()`), or
+#' that keeps their shape (`respect`), are a share of the page that depends
+#' on its size. R reports the region of the panel it is sent to with
+#' `par(mfg = )` (`mfg_of_panel()`), without starting a plot there.
+#'
+#' @param config The grid, from [detect_panel_configuration()]
+#' @param inches The width and height of the page inside its outer margins,
+#'   in inches, from `page_inches()`
+#' @return A list of regions, as `par("fig")` gives them, one for each of
+#'   the grid's panels, in its order; or NULL where R cannot set the grid up
+#'   on such a page
+#' @keywords internal
+#' @noRd
+grid_panel_regions <- function(config, inches) {
+  current <- grDevices::dev.cur()
+  opened <- tryCatch(
+    {
+      grDevices::pdf(NULL, width = inches[[1]], height = inches[[2]])
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+  if (!opened) {
+    return(NULL)
+  }
+  on.exit(
+    {
+      grDevices::dev.off()
+      if (current > 1L) grDevices::dev.set(current)
+    },
+    add = TRUE
+  )
+  tryCatch(
+    {
+      if (identical(config$type, "layout")) {
+        do.call(graphics::layout, c(list(config$matrix), config$sizes))
+      } else if (identical(config$type, "mfcol")) {
+        graphics::par(mfcol = c(config$nrows, config$ncols))
+      } else {
+        graphics::par(mfrow = c(config$nrows, config$ncols))
+      }
+      lapply(seq_len(config$total_panels), function(panel) {
+        graphics::par(mfg = mfg_of_panel(panel, config))
+        graphics::par("fig")
+      })
+    },
+    error = function(e) NULL
+  )
 }
 
 #' Whether R drew a recorded plot in a cell of a grid
