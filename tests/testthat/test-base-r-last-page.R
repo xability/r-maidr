@@ -559,7 +559,7 @@ test_that("a layout() no recorded call set up keeps the widths and heights R gav
   )
 })
 
-test_that("a grid set up without maidr after a recorded layout() of its shape is drawn so", {
+test_that("a grid set up without maidr after a layout() of its shape is drawn as R drew it", {
   skip_if_no_render()
 
   # The recorded layout() was taken for the page's grid, as the page's
@@ -613,6 +613,25 @@ test_that("a grid set up without maidr after a recorded layout() of its shape is
     plot(1:5, main = "Whole page")
   })
   expect_read_as_r_draws(whole, list("Whole page"))
+})
+
+test_that("a plot split.screen() places after a layout() of one cell is drawn in its screen", {
+  skip_if_no_render()
+
+  # The cell was taken to be the region of the first plot R started after
+  # the layout() call, here the screen's, and the plot was drawn in the
+  # cell, in the middle of the page, where R draws it in the right half.
+  call <- quote({
+    layout(matrix(1), widths = lcm(10), heights = lcm(8))
+    split.screen(c(1, 2))
+    screen(2)
+    plot(5:1, main = "Screen")
+    close.screen(all.screens = TRUE)
+  })
+  chart <- last_page_export(function() eval(call))
+  testthat::expect_identical(cell_titles(chart), list("Screen"))
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, call, "Screen")
 })
 
 test_that("a plot drawn with add = TRUE highlights nothing of the plot it is drawn over", {
