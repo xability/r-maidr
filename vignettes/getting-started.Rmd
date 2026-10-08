@@ -179,6 +179,13 @@ An echarts4r chart is switched to ECharts' SVG renderer, which MAIDR needs to
 highlight the mark being read. While an echarts4r chart shows its legend, the
 visual highlight is off; audio, text and braille are not affected.
 
+A fan chart drawn in echarts4r -- a median line, and each band an area of
+its width stacked on an invisible line at its lower edge -- is read as a
+percentile band once `maidr_htmlwidget(percentile_bands = )` names the
+median's series, each band's filled series and the quantiles of its edges,
+as fractions. It needs maidr.js 4.15.0 or later, which `use_cdn = TRUE`
+loads; see `?maidr_htmlwidget`.
+
 ## lattice Charts [experimental]
 
 A chart drawn by lattice's own high-level functions -- `barchart()`,

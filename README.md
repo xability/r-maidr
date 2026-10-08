@@ -100,6 +100,28 @@ An echarts4r chart is switched to ECharts' SVG renderer, which MAIDR needs to
 highlight the mark being read. While an echarts4r chart shows its legend, the
 visual highlight is off; audio, text and braille are not affected.
 
+An echarts4r fan chart -- a median line with bands drawn as stacked areas --
+is read as a percentile band once `percentile_bands` names its series and the
+quantiles of each band's edges. The option needs maidr.js 4.15.0 or later,
+which `use_cdn = TRUE` loads; with the bundled 4.14.0 it is ignored with a
+warning. See `?maidr_htmlwidget`.
+
+``` r
+fan |>
+  e_charts(week) |>                    # a category x axis
+  e_line(median, name = "Median") |>
+  e_line(lower, stack = "band", name = "lower", symbol = "none",
+         lineStyle = list(opacity = 0)) |>
+  e_area(width, stack = "band", name = "90% interval", symbol = "none") |>
+  maidr_htmlwidget(
+    use_cdn = TRUE,
+    percentile_bands = list(
+      median = "Median",
+      bands = data.frame(series = "90% interval", lower = 0.05, upper = 0.95)
+    )
+  )
+```
+
 ### lattice
 
 A lattice chart is used the way a ggplot2 object is: printing it opens the

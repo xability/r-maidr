@@ -180,3 +180,247 @@ test_that("real plotly and echarts4r widgets are accepted", {
   expect_identical(e$x$renderer, "svg")
   expect_true("maidr-echarts" %in% dependency_names(e))
 })
+
+# percentile_bands: ECharts' adapter-level `percentileBands` option
+# (xability/maidr#1369), which maidr.js reads from 4.15.0.
+
+one_fan <- function(...) {
+  list(
+    median = "Median",
+    bands = data.frame(
+      series = c("90% interval", "50% interval"),
+      lower = c(0.05, 0.25),
+      upper = c(0.95, 0.75)
+    ),
+    ...
+  )
+}
+
+with_bands_available <- function(available, code) {
+  testthat::local_mocked_bindings(
+    echarts_percentile_bands_available = function(use_cdn = FALSE) available,
+    .package = "maidr"
+  )
+  force(code)
+}
+
+test_that("a fan is normalised to the shape maidr.js reads", {
+  fans <- maidr:::validate_percentile_bands(one_fan(title = "Forecast"))
+
+  expect_length(fans, 1)
+  expect_identical(fans[[1]]$median, "Median")
+  expect_identical(fans[[1]]$title, "Forecast")
+  expect_null(fans[[1]]$name)
+  expect_identical(
+    fans[[1]]$bands,
+    list(
+      list(series = "90% interval", lower = 0.05, upper = 0.95),
+      list(series = "50% interval", lower = 0.25, upper = 0.75)
+    )
+  )
+
+  # A list of fans, and bands written as a list of lists, read the same.
+  listed <- maidr:::validate_percentile_bands(list(list(
+    median = "Median",
+    bands = list(
+      list(series = "90% interval", lower = 0.05, upper = 0.95),
+      list(series = "50% interval", lower = 0.25, upper = 0.75)
+    )
+  )))
+  expect_identical(listed[[1]]$bands, fans[[1]]$bands)
+})
+
+test_that("levels must be fractions either side of the median", {
+  bad_levels <- list(
+    c(5, 95), # percentages
+    c(0.5, 0.95), # lower not below the median
+    c(0.05, 0.5), # upper not above it
+    c(-0.1, 0.9),
+    c(0.1, 1.2),
+    c(NA, 0.9)
+  )
+  for (levels in bad_levels) {
+    expect_error(
+      maidr:::validate_percentile_bands(list(
+        median = "Median",
+        bands = list(list(series = "b", lower = levels[1], upper = levels[2]))
+      )),
+      "expected a `lower` from 0 to below 0.5"
+    )
+  }
+  # The edges themselves are allowed.
+  expect_silent(maidr:::validate_percentile_bands(list(
+    median = "Median",
+    bands = list(list(series = "b", lower = 0, upper = 1))
+  )))
+})
+
+test_that("bands must nest", {
+  expect_error(
+    maidr:::validate_percentile_bands(list(
+      median = "Median",
+      bands = data.frame(series = c("a", "b"), lower = c(0.05, 0.1), upper = c(0.8, 0.9))
+    )),
+    "do not nest"
+  )
+  expect_error(
+    maidr:::validate_percentile_bands(list(
+      median = "Median",
+      bands = data.frame(series = c("a", "b"), lower = c(0.1, 0.1), upper = c(0.9, 0.8))
+    )),
+    "do not nest"
+  )
+})
+
+test_that("a fan without a median, bands or series is refused", {
+  expect_error(maidr:::validate_percentile_bands("Median"), "must be a list of fans")
+  expect_error(maidr:::validate_percentile_bands(list()), "must be a list of fans")
+  expect_error(
+    maidr:::validate_percentile_bands(list(median = "", bands = one_fan()$bands)),
+    "must name its median series"
+  )
+  expect_error(
+    maidr:::validate_percentile_bands(list(median = "Median", bands = list())),
+    "at least one band"
+  )
+  expect_error(
+    maidr:::validate_percentile_bands(list(
+      median = "Median",
+      bands = list(list(series = NA_character_, lower = 0.1, upper = 0.9))
+    )),
+    "must name its filled series"
+  )
+  expect_error(
+    maidr:::validate_percentile_bands(list(
+      median = "Median",
+      bands = data.frame(series = "a", lower = 0.1)
+    )),
+    "lacks the column"
+  )
+  expect_error(
+    maidr:::validate_percentile_bands(list(median = "Median", band = list())),
+    "unknown element"
+  )
+  expect_error(
+    maidr:::validate_percentile_bands(one_fan(title = 3)),
+    "`title` that is not a non-empty string"
+  )
+})
+
+test_that("percentile_bands is refused for a widget other than echarts4r", {
+  expect_error(
+    maidr_htmlwidget(stub_widget("highchart"), percentile_bands = one_fan()),
+    "only for an echarts4r widget"
+  )
+})
+
+test_that("percentile_bands reaches createMaidrFromEChart as percentileBands", {
+  with_bands_available(TRUE, {
+    w <- maidr_htmlwidget(stub_widget("echarts4r"), percentile_bands = one_fan())
+  })
+
+  hook <- w$jsHooks$render[[1]]
+  expect_identical(
+    hook$data$options$percentileBands,
+    maidr:::validate_percentile_bands(one_fan())
+  )
+  expect_match(
+    hook$code,
+    "createMaidrFromEChart(instance, el, data.options || {})",
+    fixed = TRUE
+  )
+
+  # Serialised as htmlwidgets serialises a hook's data: a list of fans, each
+  # band an object, every level a number.
+  json <- as.character(htmlwidgets:::toJSON(hook$data))
+  expect_match(
+    json,
+    paste0(
+      '"percentileBands":[{"median":"Median","bands":[',
+      '{"series":"90% interval","lower":0.05,"upper":0.95},',
+      '{"series":"50% interval","lower":0.25,"upper":0.75}]}]'
+    ),
+    fixed = TRUE
+  )
+})
+
+test_that("without percentile_bands the hook carries no options", {
+  w <- maidr_htmlwidget(stub_widget("echarts4r"))
+  expect_null(w$jsHooks$render[[1]]$data$options)
+})
+
+test_that("percentile_bands is checked, then ignored with a warning, on an older maidr.js", {
+  with_bands_available(FALSE, {
+    expect_warning(
+      w <- maidr_htmlwidget(stub_widget("echarts4r"), percentile_bands = one_fan()),
+      "needs maidr.js 4.15.0 or later"
+    )
+    expect_null(w$jsHooks$render[[1]]$data$options)
+
+    # Still validated: a mistake is an error whatever the bundle.
+    expect_error(
+      maidr_htmlwidget(
+        stub_widget("echarts4r"),
+        percentile_bands = list(median = "Median", bands = list(list(series = "b", lower = 5, upper = 95)))
+      ),
+      "as fractions"
+    )
+  })
+})
+
+test_that("the option goes through from the maidr.js release that reads it", {
+  local_mocked_bindings(maidr_cdn_version = function() "4.14.0", .package = "maidr")
+  expect_false(maidr:::echarts_percentile_bands_available(use_cdn = TRUE))
+
+  local_mocked_bindings(maidr_cdn_version = function() "4.15.0", .package = "maidr")
+  expect_true(maidr:::echarts_percentile_bands_available(use_cdn = TRUE))
+
+  local_mocked_bindings(maidr_cdn_version = function() "latest", .package = "maidr")
+  expect_true(maidr:::echarts_percentile_bands_available(use_cdn = TRUE))
+
+  # The bundled copy decides when the CDN is not used.
+  expect_identical(
+    maidr:::echarts_percentile_bands_available(use_cdn = FALSE),
+    utils::compareVersion(maidr:::MAIDR_VERSION, "4.15.0") >= 0
+  )
+})
+
+test_that("a real echarts4r fan chart carries its percentile bands", {
+  skip_if_not_installed("echarts4r")
+
+  fan <- data.frame(
+    week = c("W1", "W2", "W3", "W4"),
+    median = c(10, 12, 13, 15),
+    lower = c(8, 9, 9, 10),
+    width = c(4, 6, 8, 10)
+  )
+  chart <- fan |>
+    echarts4r::e_charts(week) |>
+    echarts4r::e_line(median, name = "Median") |>
+    echarts4r::e_line(lower, stack = "band", name = "lower") |>
+    echarts4r::e_area(width, stack = "band", name = "90% interval")
+  bands <- list(
+    median = "Median",
+    bands = data.frame(series = "90% interval", lower = 0.05, upper = 0.95)
+  )
+
+  with_bands_available(TRUE, {
+    w <- maidr_htmlwidget(chart, percentile_bands = bands)
+  })
+  expect_identical(w$x$renderer, "svg")
+  expect_identical(
+    w$jsHooks$render[[1]]$data$options$percentileBands[[1]]$bands[[1]]$series,
+    "90% interval"
+  )
+
+  # A series the chart does not have is said in R, not only in the browser.
+  with_bands_available(TRUE, {
+    expect_warning(
+      maidr_htmlwidget(chart, percentile_bands = list(
+        median = "median line",
+        bands = bands$bands
+      )),
+      "\"median line\", which the chart has no series of"
+    )
+  })
+})
