@@ -294,9 +294,10 @@ copies of the Base R plotting functions, and of
 <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>. Each records the call and passes through to
 the original, and <code><a href="../reference/show.html">show()</a></code> hands anything that is not a plot
 back to <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>. In a script or a package call
-<code><a href="../reference/show.html">maidr::show()</a></code> by name, and attach vioplot, wordcloud or
-quantmod <em>before</em> maidr, or their own functions mask the wrappers
-and their charts go unrecorded. See <a href="https://r.maidr.ai/reference/base-r-wrappers.html"><code>?"base-r-wrappers"</code></a>.</li>
+<code><a href="../reference/show.html">maidr::show()</a></code> by name, and attach vioplot, wordcloud,
+quantmod or ROCR <em>before</em> maidr, or their own functions mask the
+wrappers and their charts go unrecorded – ROCR’s <code><a href="../reference/base-r-wrappers.html">plot()</a></code>
+masks maidr’s for every chart, not only its own. See <a href="https://r.maidr.ai/reference/base-r-wrappers.html"><code>?"base-r-wrappers"</code></a>.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -331,6 +332,14 @@ this document, and Shiny, where a re-rendered chart is read again.</p>
 needs to highlight the mark being read. While an echarts4r chart shows
 its legend, the visual highlight is off; audio, text and braille are not
 affected.</p>
+<p>A fan chart drawn in echarts4r – a median line, and each band an area
+of its width stacked on an invisible line at its lower edge – is read as
+a percentile band once
+<code>maidr_htmlwidget(percentile_bands = )</code> names the median’s
+series, each band’s filled series and the quantiles of its edges, as
+fractions. It needs maidr.js 4.15.0 or later, which
+<code>use_cdn = TRUE</code> loads; see
+<code><a href="../reference/maidr_htmlwidget.html">?maidr_htmlwidget</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="lattice-charts-experimental">lattice Charts [experimental]<a class="anchor" aria-label="anchor" href="#lattice-charts-experimental"></a>
@@ -696,7 +705,9 @@ via <code><a href="https://ggraph.data-imaginist.com/reference/ggraph.html" clas
 <li>Base R: correlograms [experimental], Q-Q plots [experimental], radar
 charts via <code><a href="../reference/base-r-wrappers.html">stars()</a></code> [experimental], mosaic plots
 [experimental], violin plots via <code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code>
-[experimental] and word clouds [experimental]</li>
+[experimental], word clouds [experimental] and precision-recall curves,
+a line titled Recall and Precision or ROCR’s
+<code>plot(performance(pred, "prec", "rec"))</code> [experimental]</li>
 <li>lattice, where every reading is experimental: bar charts via
 <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code> [experimental], histograms via
 <code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">histogram()</a></code> [experimental], scatter, line and step plots

@@ -41,7 +41,7 @@ drawn in the browser; nothing about it is recomputed in R.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-26">
+<meta name="DC.date" content="2026-10-08">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -104,7 +104,7 @@ drawn in the browser; nothing about it is recomputed in R.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maidr_htmlwidget</span><span class="op">(</span><span class="va">widget</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maidr_htmlwidget</span><span class="op">(</span><span class="va">widget</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span>, percentile_bands <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -122,6 +122,19 @@ which works offline and makes no network request.</p></li>
 MAIDR unless <code>maidr.cdn_version</code> pins one; see
 <code><a href="maidr-options.html">?"maidr-options"</a></code>.</p></li>
 </ul></dd>
+
+
+<dt id="arg-percentile-bands">percentile_bands<a class="anchor" aria-label="anchor" href="#arg-percentile-bands"></a></dt>
+<dd><p>echarts4r only. The fan charts the chart draws,
+each read as one percentile band layer; see "Fan charts in echarts4r"
+below. A list of fans, or a single fan, each a list with:</p><ul><li><p><code>median</code>: the name of the median's line series.</p></li>
+<li><p><code>bands</code>: a data frame with columns <code>series</code>,
+<code>lower</code> and <code>upper</code>, or a list of lists with those
+elements, one per band: the name of the band's filled series and
+the quantiles of its lower and upper edges, as fractions.</p></li>
+<li><p><code>title</code>, <code>name</code> (optional): the layer's title and
+name, in place of the ones read from the chart.</p></li>
+</ul><p><code>NULL</code> (default) declares none.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -150,6 +163,33 @@ and Shiny (<code><a href="https://rdrr.io/pkg/plotly/man/plotly-shiny.html" clas
 where the chart is read again each time the server re-renders it.</p>
 <p>Applying it twice returns the widget unchanged.</p>
     </div>
+    <div class="section level2">
+    <h2 id="fan-charts-in-echarts-r">Fan charts in echarts4r<a class="anchor" aria-label="anchor" href="#fan-charts-in-echarts-r"></a></h2>
+
+
+<p>ECharts has no series for a band: a fan chart is drawn as a median
+<code><a href="https://echarts4r.john-coene.com/reference/e_line.html" class="external-link">e_line()</a></code> and, for each band, an invisible line holding its lower edge
+with an <code><a href="https://echarts4r.john-coene.com/reference/e_area.html" class="external-link">e_area()</a></code> of its width stacked on it. Nothing in the chart says
+which quantiles those edges are, so they are stated with
+<code>percentile_bands</code>, and MAIDR then reads the median and its bands as one
+percentile band layer (experimental): each position announced with its
+median and the edges of every band, as ECharts computed them for drawing.
+Name the median's series and each band's filled series by the <code>name</code>
+(or <code>id</code>) ECharts knows it by – in echarts4r, the <code>name</code> given to
+<code><a href="https://echarts4r.john-coene.com/reference/e_line.html" class="external-link">e_line()</a></code> and <code><a href="https://echarts4r.john-coene.com/reference/e_area.html" class="external-link">e_area()</a></code>, or the column name when none was given. Each
+band's <code>lower</code> and <code>upper</code> are fractions, <code>0.05</code> rather than <code>5</code>, every
+<code>lower</code> below 0.5 and every <code>upper</code> above it, and the bands must nest.
+Draw the fan over a category x axis, a character or factor column given
+to <code><a href="https://echarts4r.john-coene.com/reference/init.html" class="external-link">e_charts()</a></code>: over a numeric x axis ECharts stacks each series on the
+x values rather than the y, so neither the picture nor the reading is a
+band. A width series stacks on a negative lower edge only under
+<code>stackStrategy = "all"</code>.</p>
+<p>The option is read by maidr.js 4.15.0 and later. The copy bundled with
+this version of the package is older, so with <code>use_cdn = FALSE</code>, or a
+<code>maidr.cdn_version</code> pinned below 4.15.0, <code>percentile_bands</code> is checked
+and then ignored with a warning, and the series read as they would be
+without it.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -166,6 +206,27 @@ where the chart is read again each time the server re-renders it.</p>
 <span class="r-in"><span>  <span class="fu"><a href="https://echarts4r.john-coene.com/reference/init.html" class="external-link">e_charts</a></span><span class="op">(</span><span class="va">wt</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://echarts4r.john-coene.com/reference/scatter.html" class="external-link">e_scatter</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">maidr_htmlwidget</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># A fan chart: a median and a 90% band drawn as a stacked area</span></span></span>
+<span class="r-in"><span><span class="va">fan</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  week <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Week"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  median <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">12</span>, <span class="fl">13</span>, <span class="fl">15</span>, <span class="fl">16</span>, <span class="fl">18</span>, <span class="fl">19</span>, <span class="fl">21</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">9</span>, <span class="fl">9</span>, <span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">11</span>, <span class="fl">11</span>, <span class="fl">12</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fan</span><span class="op">$</span><span class="va">width</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="va">fan</span><span class="op">$</span><span class="va">median</span> <span class="op">-</span> <span class="va">fan</span><span class="op">$</span><span class="va">lower</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fan</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://echarts4r.john-coene.com/reference/init.html" class="external-link">e_charts</a></span><span class="op">(</span><span class="va">week</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://echarts4r.john-coene.com/reference/e_line.html" class="external-link">e_line</a></span><span class="op">(</span><span class="va">median</span>, name <span class="op">=</span> <span class="st">"Median"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://echarts4r.john-coene.com/reference/e_line.html" class="external-link">e_line</a></span><span class="op">(</span><span class="va">lower</span>, stack <span class="op">=</span> <span class="st">"band"</span>, name <span class="op">=</span> <span class="st">"lower"</span>, symbol <span class="op">=</span> <span class="st">"none"</span>,</span></span>
+<span class="r-in"><span>         lineStyle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>opacity <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://echarts4r.john-coene.com/reference/e_area.html" class="external-link">e_area</a></span><span class="op">(</span><span class="va">width</span>, stack <span class="op">=</span> <span class="st">"band"</span>, name <span class="op">=</span> <span class="st">"90% interval"</span>, symbol <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">maidr_htmlwidget</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    use_cdn <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>    percentile_bands <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      median <span class="op">=</span> <span class="st">"Median"</span>,</span></span>
+<span class="r-in"><span>      bands <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>series <span class="op">=</span> <span class="st">"90% interval"</span>, lower <span class="op">=</span> <span class="fl">0.05</span>, upper <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

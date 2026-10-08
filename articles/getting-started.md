@@ -157,8 +157,10 @@ show()
   [`methods::show()`](https://rdrr.io/r/methods/show.html). In a script
   or a package call
   [`maidr::show()`](https://r.maidr.ai/reference/show.md) by name, and
-  attach vioplot, wordcloud or quantmod *before* maidr, or their own
-  functions mask the wrappers and their charts go unrecorded. See
+  attach vioplot, wordcloud, quantmod or ROCR *before* maidr, or their
+  own functions mask the wrappers and their charts go unrecorded –
+  ROCR’s [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  masks maidr’s for every chart, not only its own. See
   [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
 ## Interactive htmlwidgets: plotly, highcharter and echarts4r
@@ -197,6 +199,14 @@ An echarts4r chart is switched to ECharts’ SVG renderer, which MAIDR
 needs to highlight the mark being read. While an echarts4r chart shows
 its legend, the visual highlight is off; audio, text and braille are not
 affected.
+
+A fan chart drawn in echarts4r – a median line, and each band an area of
+its width stacked on an invisible line at its lower edge – is read as a
+percentile band once `maidr_htmlwidget(percentile_bands = )` names the
+median’s series, each band’s filled series and the quantiles of its
+edges, as fractions. It needs maidr.js 4.15.0 or later, which
+`use_cdn = TRUE` loads; see
+[`?maidr_htmlwidget`](https://r.maidr.ai/reference/maidr_htmlwidget.md).
 
 ## lattice Charts \[experimental\]
 
@@ -559,7 +569,9 @@ with no mark is stable. Among them:
   [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   \[experimental\], mosaic plots \[experimental\], violin plots via
   [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html)
-  \[experimental\] and word clouds \[experimental\]
+  \[experimental\], word clouds \[experimental\] and precision-recall
+  curves, a line titled Recall and Precision or ROCR’s
+  `plot(performance(pred, "prec", "rec"))` \[experimental\]
 - lattice, where every reading is experimental: bar charts via
   [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html)
   \[experimental\], histograms via

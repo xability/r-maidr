@@ -113,6 +113,30 @@ needs to highlight the mark being read. While an echarts4r chart shows
 its legend, the visual highlight is off; audio, text and braille are not
 affected.
 
+An echarts4r fan chart – a median line with bands drawn as stacked areas
+– is read as a percentile band once `percentile_bands` names its series
+and the quantiles of each band’s edges. The option needs maidr.js 4.15.0
+or later, which `use_cdn = TRUE` loads; with the bundled 4.14.0 it is
+ignored with a warning. See
+[`?maidr_htmlwidget`](https://r.maidr.ai/reference/maidr_htmlwidget.md).
+
+``` r
+
+fan |>
+  e_charts(week) |>                    # a category x axis
+  e_line(median, name = "Median") |>
+  e_line(lower, stack = "band", name = "lower", symbol = "none",
+         lineStyle = list(opacity = 0)) |>
+  e_area(width, stack = "band", name = "90% interval", symbol = "none") |>
+  maidr_htmlwidget(
+    use_cdn = TRUE,
+    percentile_bands = list(
+      median = "Median",
+      bands = data.frame(series = "90% interval", lower = 0.05, upper = 0.95)
+    )
+  )
+```
+
 ### lattice
 
 A lattice chart is used the way a ggplot2 object is: printing it opens
@@ -329,8 +353,10 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   [`methods::show()`](https://rdrr.io/r/methods/show.html). In a script
   or a package call
   [`maidr::show()`](https://r.maidr.ai/reference/show.md) by name, and
-  attach vioplot, wordcloud or quantmod *before* maidr, or their own
-  functions mask the wrappers and their charts go unrecorded. See
+  attach vioplot, wordcloud, quantmod or ROCR *before* maidr, or their
+  own functions mask the wrappers and their charts go unrecorded –
+  ROCR’s [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  masks maidr’s for every chart, not only its own. See
   [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
 ## Supported plot types
@@ -453,6 +479,7 @@ experimental ones follow in a section of their own, as they do here.
 | `qqline` | [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `radar` | [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `residual` | [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (two-way tables) |
+| `rocr_performance` | ROCR’s [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a `performance` object: a `pr_curve` layer for `performance(pred, "prec", "rec")`, a line for any other measure (attach ROCR before maidr) |
 | `spectral_density` | [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `spine` | [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `stacked_normalized_bar` | [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of proportions |

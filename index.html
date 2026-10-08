@@ -434,12 +434,27 @@
 <span><span class="fu"><a href="https://rdrr.io/pkg/plotly/man/ggplotly.html" class="external-link">ggplotly</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">mtcars</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">wt</span>, <span class="va">mpg</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="reference/maidr_htmlwidget.html">maidr_htmlwidget</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>An echarts4r chart is switched to ECharts’ SVG renderer, which MAIDR needs to highlight the mark being read. While an echarts4r chart shows its legend, the visual highlight is off; audio, text and braille are not affected.</p>
+<p>An echarts4r fan chart – a median line with bands drawn as stacked areas – is read as a percentile band once <code>percentile_bands</code> names its series and the quantiles of each band’s edges. The option needs maidr.js 4.15.0 or later, which <code>use_cdn = TRUE</code> loads; with the bundled 4.14.0 it is ignored with a warning. See <code><a href="reference/maidr_htmlwidget.html">?maidr_htmlwidget</a></code>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fan</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">e_charts</span><span class="op">(</span><span class="va">week</span><span class="op">)</span> <span class="op">|&gt;</span>                    <span class="co"># a category x axis</span></span>
+<span>  <span class="fu">e_line</span><span class="op">(</span><span class="va">median</span>, name <span class="op">=</span> <span class="st">"Median"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">e_line</span><span class="op">(</span><span class="va">lower</span>, stack <span class="op">=</span> <span class="st">"band"</span>, name <span class="op">=</span> <span class="st">"lower"</span>, symbol <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>         lineStyle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>opacity <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">e_area</span><span class="op">(</span><span class="va">width</span>, stack <span class="op">=</span> <span class="st">"band"</span>, name <span class="op">=</span> <span class="st">"90% interval"</span>, symbol <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/maidr_htmlwidget.html">maidr_htmlwidget</a></span><span class="op">(</span></span>
+<span>    use_cdn <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    percentile_bands <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      median <span class="op">=</span> <span class="st">"Median"</span>,</span>
+<span>      bands <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>series <span class="op">=</span> <span class="st">"90% interval"</span>, lower <span class="op">=</span> <span class="fl">0.05</span>, upper <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="lattice">lattice<a class="anchor" aria-label="anchor" href="#lattice"></a>
 </h3>
 <p>A lattice chart is used the way a ggplot2 object is: printing it opens the maidr viewer, and <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> take it. Every lattice chart type maidr reads is experimental; the lattice table under <a href="#experimental-plot-types">Experimental Plot Types</a> lists them.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lattice.r-forge.r-project.org/" class="external-link">lattice</a></span><span class="op">)</span></span>
 <span></span>
@@ -465,7 +480,7 @@
 <h3 id="chart-size">Chart size<a class="anchor" aria-label="anchor" href="#chart-size"></a>
 </h3>
 <p>A chart is drawn at 7 x 5 inches unless you give it a size, in inches as <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> takes one, and its SVG is 72 pixels to the inch. The size is the room the chart is laid out in; the data, titles and axis labels a reader hears are the same at every size. Only a lattice chart conditioned on one variable with no <code>layout =</code> changes for a reader: lattice arranges its panels for the shape of the page, and the order a reader moves through them follows, so give it <code>layout =</code> to keep one. A side over 50 in is refused, as <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave()</a></code> refuses one, since it is most likely pixels.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"wide.html"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span></span>
@@ -481,14 +496,14 @@
 <h3 id="r-markdown-and-quarto">R Markdown and Quarto<a class="anchor" aria-label="anchor" href="#r-markdown-and-quarto"></a>
 </h3>
 <p><code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> in a setup chunk is all a document needs. Every plot it draws, with ggplot2, lattice or Base R, becomes an accessible chart:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="in">```{r setup, include = FALSE}</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="in">library(maidr)</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="in">library(ggplot2)</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="in">```{r cars, fig.cap = "Cars by cylinder count"}</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="in">ggplot(mtcars, aes(factor(cyl))) + geom_bar()</span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="in">```</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="in">```{r setup, include = FALSE}</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="in">library(maidr)</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="in">library(ggplot2)</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="in">```{r cars, fig.cap = "Cars by cylinder count"}</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="in">ggplot(mtcars, aes(factor(cyl))) + geom_bar()</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="in">```</span></span></code></pre></div>
 <ul>
 <li>
 <strong>Charts are part of the page.</strong> In HTML output (<code>html_document</code>, bookdown, Quarto, reveal.js, ioslides, slidy, flexdashboard and Quarto dashboards) each chart is an <code>&lt;svg&gt;</code> in the page, not an iframe, and the page loads maidr.js once however many charts it has: from the document’s <code>_files</code> folder, or embedded in it when the document is <code>self_contained</code> or uses <code>embed-resources</code>. <strong>Tab</strong> moves into a chart and <strong>Shift+Tab</strong> out of it. While a chart has the focus, its keys go to the chart, not to the slide deck, book or website around it.</li>
@@ -526,7 +541,7 @@
 <li>
 <strong>Turning it off.</strong> <code><a href="reference/maidr_off.html">maidr_off()</a></code> stops interception for the session and <code><a href="reference/maidr_on.html">maidr_on()</a></code> starts it again. <code>options(maidr.ggplot2 = FALSE)</code> leaves ggplot2 printing alone, <code>options(maidr.lattice = FALSE)</code> leaves lattice printing alone, <code>options(maidr.base_r = FALSE)</code> stops recording Base R calls, and <code>options(maidr.auto_show = FALSE)</code>, in <code>.Rprofile</code> to make it permanent, turns everything off. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</li>
 <li>
-<strong>What gets masked.</strong> Attaching maidr puts its own copies of the Base R plotting functions, and of <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>, ahead of the originals; R lists them at <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>. Each records the call and passes through to the original, and <code><a href="reference/show.html">show()</a></code> hands anything that is not a plot back to <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>. In a script or a package call <code><a href="reference/show.html">maidr::show()</a></code> by name, and attach vioplot, wordcloud or quantmod <em>before</em> maidr, or their own functions mask the wrappers and their charts go unrecorded. See <a href="https://r.maidr.ai/reference/base-r-wrappers.html"><code>?"base-r-wrappers"</code></a>.</li>
+<strong>What gets masked.</strong> Attaching maidr puts its own copies of the Base R plotting functions, and of <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>, ahead of the originals; R lists them at <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>. Each records the call and passes through to the original, and <code><a href="reference/show.html">show()</a></code> hands anything that is not a plot back to <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>. In a script or a package call <code><a href="reference/show.html">maidr::show()</a></code> by name, and attach vioplot, wordcloud, quantmod or ROCR <em>before</em> maidr, or their own functions mask the wrappers and their charts go unrecorded – ROCR’s <code><a href="reference/base-r-wrappers.html">plot()</a></code> masks maidr’s for every chart, not only its own. See <a href="https://r.maidr.ai/reference/base-r-wrappers.html"><code>?"base-r-wrappers"</code></a>.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -863,6 +878,10 @@
 <code><a href="reference/base-r-wrappers.html">assocplot()</a></code> (two-way tables)</td>
 </tr>
 <tr>
+<td><code>rocr_performance</code></td>
+<td>ROCR’s <code><a href="reference/base-r-wrappers.html">plot()</a></code> of a <code>performance</code> object: a <code>pr_curve</code> layer for <code>performance(pred, "prec", "rec")</code>, a line for any other measure (attach ROCR before maidr)</td>
+</tr>
+<tr>
 <td><code>spectral_density</code></td>
 <td><code><a href="reference/base-r-wrappers.html">spectrum()</a></code></td>
 </tr>
@@ -1074,7 +1093,7 @@
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
 </h2>
 <p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline. <code><a href="reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code> folder beside the file, and the two have to be shared together: zip the folder that holds both, or copy both. An <code>.html</code> sent on its own loads no maidr.js and shows a plain, inaccessible chart. A knitted R Markdown or Quarto page loads the bundled maidr.js once for all its charts, from its <code>_files</code> folder or embedded in it when it is <code>self_contained</code> / uses <code>embed-resources</code>, so it works offline wherever it was rendered. Widgets, Shiny apps, and the few knitted outputs that keep a chart in an iframe (an HTML fragment, pagedown) auto-detect internet availability and use the CDN when online. A page holding a widget rendered online also carries its own copy of maidr.js, which its charts fall back on when the CDN cannot be reached, so a <code>self_contained</code> / <code>embed-resources</code> page works offline too. Use the <code>use_cdn</code> parameter for explicit control:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Force CDN: one self-contained file, needs internet whenever it is viewed</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -1083,20 +1102,20 @@
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>The CDN paths load the <strong>latest published maidr.js</strong>, not the copy bundled with this package, as the Python binding does. The first CDN document in an R session asks jsDelivr (then the npm registry) which version that is, within 3 seconds, and every document in the session names that version. If the lookup cannot be made it costs no error: the document names the bundled version instead, the copy <code>use_cdn = FALSE</code> would serve. Pin a version when a document has to load the same maidr.js whenever it is opened:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span>  <span class="co"># the bundled version, no lookup</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"4.9.0"</span><span class="op">)</span>    <span class="co"># a particular release</span></span></code></pre></div>
 <p>or set <code>MAIDR_CDN_VERSION</code> in the environment. <code>use_cdn = FALSE</code> never makes that lookup. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</p>
 <p>Two things still reach the network from an offline document, and only when a reader uses them. One is a language other than English. maidr.js reads charts in English on its own and fetches Korean, Japanese, Chinese, Spanish, German, French, Italian or Hindi as a small pack from beside itself. This package does not bundle the packs, which would add 0.8 MB against CRAN’s size limit, so a <code>use_cdn = FALSE</code> document points maidr.js at the packs of the bundled version on jsDelivr: a reader whose language is not English hears it when online, and English when not. Serve the packs yourself, or turn this off:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="st">"https://example.org/maidr/"</span><span class="op">)</span>  <span class="co"># your own copy</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># never fetch a pack: English only</span></span></code></pre></div>
 <p>The other is connecting a <a href="https://maidr.ai/docs/TACTILE_DISPLAY.html" class="external-link">DotPad tactile display</a>. maidr.js does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build, and imports the vendor’s copy from jsDelivr the first time a DotPad is connected. Rendering, sonification and braille work offline regardless. To keep the DotPad offline too, download the pinned SDK once and every <code>use_cdn = FALSE</code> document carries it in its <code>lib/</code> folder:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># ~14 MB, once, into a per-user cache</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># lib/dotpad-sdk-&lt;version&gt;/ beside it</span></span></code></pre></div>
 <p>A page served from elsewhere, or a knitted R Markdown or Quarto document, which does not carry the downloaded copy, names its copy by URL instead, through options or the environment variables of the same names:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/lib/"</span></span>

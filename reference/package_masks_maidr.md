@@ -25,7 +25,9 @@ package_masks_maidr(package)
 - package:
 
   Name of the package, as in
-  [WRAPPED_SUGGESTS](https://r.maidr.ai/reference/WRAPPED_SUGGESTS.md).
+  [WRAPPED_SUGGESTS](https://r.maidr.ai/reference/WRAPPED_SUGGESTS.md)
+  or
+  [PLOT_MASKING_SUGGESTS](https://r.maidr.ai/reference/PLOT_MASKING_SUGGESTS.md).
 
 ## Value
 

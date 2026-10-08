@@ -47,7 +47,7 @@ the wrappers pass straight through.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-08">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -302,6 +302,19 @@ of the package on the search path. Attach them <em>before</em> maidr:</p>
 moment the package is attached and again in that error. The other way
 round it is <code>maidr::vioplot()</code>, <code>maidr::wordcloud()</code> or
 <code>maidr::chartSeries()</code>, called explicitly.</p>
+</div>
+
+<div class="section">
+<h3 id="attach-order-for-rocr">Attach order for ROCR<a class="anchor" aria-label="anchor" href="#attach-order-for-rocr"></a></h3>
+
+
+<p>ROCR exports an S4 generic for <code>plot()</code>, so that <code>plot()</code> of a
+<code>performance</code> object draws its curve. Attached after maidr, that generic
+masks maidr's <code>plot()</code>, and no bare <code>plot()</code> call is recorded, whatever it
+draws. Attach ROCR before maidr, or call <code>maidr::plot()</code>; maidr says so
+when ROCR is attached after it. A precision-recall curve drawn as
+<code>plot(performance(pred, "prec", "rec"))</code> is then read as one, with the
+cutoff of each point.</p>
 </div>
 
 <div class="section">

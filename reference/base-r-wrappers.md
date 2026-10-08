@@ -205,6 +205,16 @@ plot was detected. maidr says so at the moment the package is attached
 and again in that error. The other way round it is `maidr::vioplot()`,
 `maidr::wordcloud()` or `maidr::chartSeries()`, called explicitly.
 
+### Attach order for ROCR
+
+ROCR exports an S4 generic for `plot()`, so that `plot()` of a
+`performance` object draws its curve. Attached after maidr, that generic
+masks maidr's `plot()`, and no bare `plot()` call is recorded, whatever
+it draws. Attach ROCR before maidr, or call `maidr::plot()`; maidr says
+so when ROCR is attached after it. A precision-recall curve drawn as
+`plot(performance(pred, "prec", "rec"))` is then read as one, with the
+cutoff of each point.
+
 ### Calling an original directly
 
 The wrappers add nothing to the drawing and return what the original
