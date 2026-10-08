@@ -183,6 +183,7 @@
   through a user study, and each may change without a deprecation
   period. ‘lattice’ is now in Suggests, as is ‘latticeExtra’, which only
   the tests use.
+
 - [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html) is emitted
   as a `bar` layer, as `dodged_bar` with `groups`, and as `stacked_bar`
   with `stack = TRUE`, the default for a table or a matrix;
@@ -217,6 +218,7 @@
   layer names the marks it reads, so each point, bar, bin, dot and
   spike, each box, each heat map cell and each line, curve and contour
   is highlighted as it is read.
+
 - The groups of a line, step or smooth layer that share no x value – the
   densities of a grouped
   [`densityplot()`](https://rdrr.io/pkg/lattice/man/histogram.html), say
@@ -228,6 +230,7 @@
   (line)”, and two curves of one kind say which curve each is: “4
   (line)” and “4 (average)”, “4 (loess)” and “4 (spline)”, or “line” and
   “average” where the groups are read together.
+
 - A conditioned chart (`y ~ x | g`) is read one panel at a time, each
   panel a subplot titled by its strip and laid out as lattice lays the
   panels out; a strip made by
@@ -240,6 +243,7 @@
   on one, and so is its image when it cannot be read. `main` is the
   chart’s title and `sub` its subtitle, and an axis is named by `xlab`
   or `ylab`, or by the variable lattice would name it after.
+
 - A chart the reading does not cover is shown as a static image rather
   than read wrongly:
   [`cloud()`](https://rdrr.io/pkg/lattice/man/cloud.html),
@@ -253,6 +257,7 @@
   a factor axis, which lattice draws between the levels, where the axis
   names nothing, and a panel that fails to draw. Printed at the console,
   such a chart is drawn by lattice as before.
+
 - Printing goes through lattice’s own `print.function` option, which
   maidr sets once ‘lattice’ is loaded and
   [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) restores. A
@@ -279,6 +284,15 @@
   and
   [`trellis.last.object()`](https://rdrr.io/pkg/lattice/man/update.trellis.html)
   act on – as it was.
+
+- An `xyplot(precision ~ recall, type = "l")` – or one whose axes are
+  otherwise titled `Recall` and `Precision` – of values that are all
+  fractions of one is emitted as a `pr_curve` layer, one curve per
+  group, as a ggplot2 line of `recall` against `precision` is: a reader
+  hears each point against the curve’s average precision and the best-F1
+  point in the description, where a line said the rates and nothing
+  else. Any other line keeps its reading. Needs maidr.js 4.14.0 or
+  later, which this release bundles.
 
 #### webR
 
@@ -323,6 +337,24 @@
 
 #### Base R
 
+- Added directed graph support: igraph’s own
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a
+  directed graph is emitted as a `directed_graph` layer, so a reader
+  walks the graph node by node and hears what feeds each node and what
+  it feeds, with that node’s circle outlined. The nodes and edges are
+  read from the igraph object, and each vertex’s own attributes are
+  announced with it. It used to be emitted as a scatter with no points
+  in it; an undirected graph, or one whose vertices are not all circles,
+  is now shown as a picture instead. Needs maidr.js 4.14.0 or later,
+  which this release bundles.
+- A `plot(recall, precision, type = "l")` or `type = "s"` – or any line
+  or staircase whose axes are titled `Recall` and `Precision` – of
+  values that are all fractions of one is emitted as a `pr_curve` layer,
+  as a ggplot2 line of `recall` against `precision` is, rather than a
+  line or a step. An
+  [`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md) drawn
+  over it, such as the chance level, stays a line. Needs maidr.js 4.14.0
+  or later, which this release bundles.
 - A
   [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html)
   chart highlights the word being read: as the arrow keys move, the word

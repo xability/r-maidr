@@ -222,6 +222,11 @@ thresholds nor the share of positives into the plot, so no threshold is
 announced, the average precision is measured from the points, and the
 points are not read against a baseline; <code>maidr_pr_curve()</code> is how an
 author supplies them.</p>
+<p>A Base R <code>plot(recall, precision, type = "l")</code> (or <code>type = "s"</code>) and a
+lattice <code>xyplot(precision ~ recall, type = "l")</code> are read the same way
+when their axes are titled <code>Recall</code> and <code>Precision</code> – which both take
+from the variables' names unless <code>xlab</code> and <code>ylab</code> say otherwise – and
+every value is a fraction of one.</p>
     </div>
     <div class="section level2">
     <h2 id="until-the-bundled-maidr-js-carries-the-trace">Until the bundled maidr.js carries the trace<a class="anchor" aria-label="anchor" href="#until-the-bundled-maidr-js-carries-the-trace"></a></h2>

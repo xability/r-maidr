@@ -440,6 +440,7 @@ experimental ones follow in a section of their own, as they do here.
 | `conditional_density` | [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `correlogram` | [`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md), [`pacf()`](https://r.maidr.ai/reference/base-r-wrappers.md), [`ccf()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `cumulative_periodogram` | [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `directed_graph` | igraph’s [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a directed graph (circle vertices) |
 | `dot` | [`dotchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) (ungrouped) |
 | `filled_contour` | [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `fourfold` | [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (2x2 tables, `std = "ind.max"` / `"all.max"`) |
