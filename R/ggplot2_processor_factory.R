@@ -45,6 +45,8 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         # processor reads it, and this one hands the rates back as numbers
         # with the thresholds and the areas the line has no field for.
         "roc" = Ggplot2RocLayerProcessor$new(layer_info),
+        "pr_curve" = Ggplot2PrCurveLayerProcessor$new(layer_info),
+        "percentile_band" = Ggplot2PercentileBandLayerProcessor$new(layer_info),
         "area" = Ggplot2AreaLayerProcessor$new(layer_info),
         # The three area variants differ in how their bands relate, not in
         # where the numbers are read from, so one processor emits all three
@@ -95,6 +97,8 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "hist",
         "line",
         "roc",
+        "pr_curve",
+        "percentile_band",
         "area",
         "stacked_area",
         "stacked_normalized_area",

@@ -70,6 +70,10 @@
 #'   \item ggplot2 Gantt charts - \code{\link{maidr_gantt}()} \[experimental\]
 #'   \item ggplot2 hexbin plots \[experimental\]
 #'   \item ggplot2 ROC curves - \code{\link{maidr_roc}()} \[experimental\]
+#'   \item ggplot2 precision-recall curves - \code{\link{maidr_pr_curve}()}
+#'     \[experimental\]
+#'   \item ggplot2 percentile bands - \code{ggdist::stat_lineribbon()}
+#'     \[experimental\]
 #'   \item Base R correlograms \[experimental\]
 #'   \item Base R Q-Q plots \[experimental\]
 #'   \item Base R radar charts - \code{stars()} \[experimental\]

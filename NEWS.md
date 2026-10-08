@@ -254,6 +254,30 @@
   already could. Drawing on a Monarch also needs a maidr build that supports
   it.
 
+### ggplot2
+
+* Added precision-recall curve support: a precision-recall curve is emitted
+  as a `pr_curve` layer, one curve per classifier, so a reader hears each
+  point's recall and precision, its threshold and how far its precision sits
+  above the share of positives, and the average precision of each curve and
+  the point with the best F1 score in the description. `maidr_pr_curve()`
+  declares one -- it is `geom_path()` with a `threshold` aesthetic and
+  `prevalence` and `ap` arguments -- and `autoplot()` of a
+  `yardstick::pr_curve()` is read as it stands, by the `recall` and
+  `precision` it maps. The trace needs maidr.js 4.14.0 or later, which this
+  release bundles; an older bundle keeps the line reading these charts had.
+* Added percentile band support: ggdist's `stat_lineribbon()`, and a
+  `geom_lineribbon()` of a `median_qi()` summary, are emitted as a
+  `percentile_band` layer, so a reader enters each x on the median and walks
+  up and down through the quantiles, each announced with the band it bounds
+  ("Middle 80% is 0.4 to 1.61"), and each band is outlined as it is read.
+  The chart used to fall back to a static image, since ggdist's geom was not
+  read at all. Only a median with quantile intervals is read this way -- a
+  ribbon of width `w` spans the quantiles `(1 - w) / 2` and `(1 + w) / 2` --
+  so a mean, a highest-density interval or several series in one layer keep
+  the reading they had. Needs maidr.js 4.14.0 or later, which this release
+  bundles.
+
 ## Performance
 
 * The SVG export, the maidr-data payload and the ggplot2 heatmap grid now

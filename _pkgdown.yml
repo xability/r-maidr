@@ -118,6 +118,7 @@ reference:
     contents:
       - maidr_gantt
       - maidr_roc
+      - maidr_pr_curve
 
   - title: Turning interception on and off
     desc: >
