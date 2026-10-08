@@ -114,14 +114,17 @@ LatticeLineLayerProcessor <- R6::R6Class(
       } else {
         self$time_axes(self$layer_axes(layout, panel_ctx, grouped = grouped), panel_ctx)
       }
+      # A line titled Recall against Precision is a precision-recall curve
+      # by its own names (`titled_pr_curve()`), a staircase included.
+      pr_curve <- titled_pr_curve(axes, series)
       result <- list(
-        type = if (step) "step" else "line",
+        type = if (pr_curve) "pr_curve" else if (step) "step" else "line",
         data = series,
         selectors = selectors,
         title = panel_ctx$title,
         axes = axes
       )
-      if (step) {
+      if (step && !pr_curve) {
         # The type the layer's groups were drawn with: under
         # `distribute.type = TRUE` the chart's `type` vector names every
         # group's, and holds an "S" whenever any group is drawn with one.

@@ -77,6 +77,12 @@ pr_curve_trace_available <- function() {
 #' points are not read against a baseline; `maidr_pr_curve()` is how an
 #' author supplies them.
 #'
+#' A Base R `plot(recall, precision, type = "l")` (or `type = "s"`) and a
+#' lattice `xyplot(precision ~ recall, type = "l")` are read the same way
+#' when their axes are titled `Recall` and `Precision` -- which both take
+#' from the variables' names unless `xlab` and `ylab` say otherwise -- and
+#' every value is a fraction of one.
+#'
 #' # Until the bundled maidr.js carries the trace
 #'
 #' The `pr_curve` trace shipped in maidr.js 4.14.0. While the copy this
