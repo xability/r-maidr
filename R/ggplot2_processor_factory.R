@@ -47,6 +47,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "roc" = Ggplot2RocLayerProcessor$new(layer_info),
         "pr_curve" = Ggplot2PrCurveLayerProcessor$new(layer_info),
         "percentile_band" = Ggplot2PercentileBandLayerProcessor$new(layer_info),
+        "directed_graph" = Ggplot2DirectedGraphLayerProcessor$new(layer_info),
         "area" = Ggplot2AreaLayerProcessor$new(layer_info),
         # The three area variants differ in how their bands relate, not in
         # where the numbers are read from, so one processor emits all three
@@ -99,6 +100,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "roc",
         "pr_curve",
         "percentile_band",
+        "directed_graph",
         "area",
         "stacked_area",
         "stacked_normalized_area",

@@ -51,6 +51,23 @@ Ggplot2Adapter <- R6::R6Class(
         return("skip")
       }
 
+      # A ggraph drawing of a directed graph is read as the graph: its node
+      # layer carries the `directed_graph` reading, built from the igraph
+      # object ggraph keeps on the layout, and its edge layers -- ggraph's
+      # own `GeomEdge*` geoms, which matched no branch and dropped the chart
+      # to a static image -- are skipped, since the reading already holds
+      # every edge. An undirected graph is left as it was: the trace reads
+      # direction. See `ggraph_directed_graph()`.
+      if (!is.null(ggraph_directed_graph(plot_object)) &&
+        directed_graph_trace_available()) {
+        if (startsWith(geom_class, "GeomEdge")) {
+          return("skip")
+        }
+        if (is_ggraph_node_layer(layer, plot_object)) {
+          return("directed_graph")
+        }
+      }
+
       # geom_step() draws a stairstep: the value is piecewise constant, held
       # across an interval and then jumped, rather than interpolated between
       # samples the way a line implies. GeomStep *inherits* GeomPath, so this

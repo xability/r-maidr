@@ -73,6 +73,8 @@ Suggests:
     pROC,
     yardstick,
     ggdist,
+    ggraph,
+    igraph,
     plotly,
     highcharter,
     echarts4r,

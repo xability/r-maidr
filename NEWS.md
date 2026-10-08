@@ -277,6 +277,15 @@
   so a mean, a highest-density interval or several series in one layer keep
   the reading they had. Needs maidr.js 4.14.0 or later, which this release
   bundles.
+* Added directed graph support: a `ggraph::ggraph()` drawing of a directed
+  graph is emitted as a `directed_graph` layer, so a reader walks the graph
+  node by node and hears what feeds each node, what it feeds, and where the
+  graph branches and merges, with that node's point outlined. The nodes and
+  edges are read from the igraph object ggraph laid out, and each node's own
+  attributes are announced with it. The chart used to fall back to a static
+  image, since ggraph's edge geoms were not read. An undirected graph keeps
+  the reading it had. Needs maidr.js 4.14.0 or later, which this release
+  bundles.
 
 ## Performance
 

@@ -362,6 +362,7 @@ own, as they do here.
 | `stacked_normalized_area` | `geom_area(position = "fill")` |
 | `stacked_normalized_bar` | `geom_bar(position = "fill")` |
 | `contour` | `geom_contour()`, `geom_density_2d()` |
+| `directed_graph` | `ggraph::ggraph()` of a directed graph (the node layer; edges are read from the graph) |
 | `error_bar` | `geom_errorbar()`, `geom_errorbarh()`, `geom_linerange()`, `geom_pointrange()`, `geom_crossbar()`, `geom_ribbon()` as a band |
 | `gantt` | `geom_segment()`, `geom_curve()`, `maidr_gantt()` |
 | `hexbin` | `geom_hex()`, `stat_bin_2d()` |

@@ -74,6 +74,7 @@
 #'     \[experimental\]
 #'   \item ggplot2 percentile bands - \code{ggdist::stat_lineribbon()}
 #'     \[experimental\]
+#'   \item ggplot2 directed graphs - \code{ggraph::ggraph()} \[experimental\]
 #'   \item Base R correlograms \[experimental\]
 #'   \item Base R Q-Q plots \[experimental\]
 #'   \item Base R radar charts - \code{stars()} \[experimental\]
