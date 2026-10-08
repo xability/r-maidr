@@ -7,7 +7,8 @@
 announce_masking(package)
 }
 \arguments{
-\item{package}{Name of the package, as in \link{WRAPPED_SUGGESTS}.}
+\item{package}{Name of the package, as in \link{WRAPPED_SUGGESTS} or
+\link{PLOT_MASKING_SUGGESTS}.}
 }
 \description{
 Run from the attach hooks below. By then the package sits ahead of maidr

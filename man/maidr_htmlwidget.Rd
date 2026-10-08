@@ -4,7 +4,7 @@
 \alias{maidr_htmlwidget}
 \title{Make a plotly, highcharter or echarts4r htmlwidget accessible}
 \usage{
-maidr_htmlwidget(widget, use_cdn = FALSE)
+maidr_htmlwidget(widget, use_cdn = FALSE, percentile_bands = NULL)
 }
 \arguments{
 \item{widget}{An htmlwidget created by plotly, highcharter or echarts4r.}
@@ -17,6 +17,20 @@ which works offline and makes no network request.
 MAIDR unless \code{maidr.cdn_version} pins one; see
 \code{?"maidr-options"}.
 }}
+
+\item{percentile_bands}{echarts4r only. The fan charts the chart draws,
+each read as one percentile band layer; see "Fan charts in echarts4r"
+below. A list of fans, or a single fan, each a list with:
+\itemize{
+\item \code{median}: the name of the median's line series.
+\item \code{bands}: a data frame with columns \code{series},
+\code{lower} and \code{upper}, or a list of lists with those
+elements, one per band: the name of the band's filled series and
+the quantiles of its lower and upper edges, as fractions.
+\item \code{title}, \code{name} (optional): the layer's title and
+name, in place of the ones read from the chart.
+}
+\code{NULL} (default) declares none.}
 }
 \value{
 The widget, with MAIDR attached. Print it, return it from a
@@ -55,6 +69,33 @@ where the chart is read again each time the server re-renders it.
 
 Applying it twice returns the widget unchanged.
 }
+\section{Fan charts in echarts4r}{
+
+ECharts has no series for a band: a fan chart is drawn as a median
+\code{e_line()} and, for each band, an invisible line holding its lower edge
+with an \code{e_area()} of its width stacked on it. Nothing in the chart says
+which quantiles those edges are, so they are stated with
+\code{percentile_bands}, and MAIDR then reads the median and its bands as one
+percentile band layer (experimental): each position announced with its
+median and the edges of every band, as ECharts computed them for drawing.
+Name the median's series and each band's filled series by the \code{name}
+(or \code{id}) ECharts knows it by -- in echarts4r, the \code{name} given to
+\code{e_line()} and \code{e_area()}, or the column name when none was given. Each
+band's \code{lower} and \code{upper} are fractions, \code{0.05} rather than \code{5}, every
+\code{lower} below 0.5 and every \code{upper} above it, and the bands must nest.
+Draw the fan over a category x axis, a character or factor column given
+to \code{e_charts()}: over a numeric x axis ECharts stacks each series on the
+x values rather than the y, so neither the picture nor the reading is a
+band. A width series stacks on a negative lower edge only under
+\code{stackStrategy = "all"}.
+
+The option is read by maidr.js 4.15.0 and later. The copy bundled with
+this version of the package is older, so with \code{use_cdn = FALSE}, or a
+\code{maidr.cdn_version} pinned below 4.15.0, \code{percentile_bands} is checked
+and then ignored with a warning, and the series read as they would be
+without it.
+}
+
 \examples{
 if (requireNamespace("plotly", quietly = TRUE)) {
   w <- plotly::plot_ly(
@@ -69,5 +110,26 @@ mtcars |>
   e_charts(wt) |>
   e_scatter(mpg) |>
   maidr_htmlwidget()
+
+# A fan chart: a median and a 90\% band drawn as a stacked area
+fan <- data.frame(
+  week = paste("Week", 1:8),
+  median = c(10, 12, 13, 15, 16, 18, 19, 21),
+  lower = c(8, 9, 9, 10, 10, 11, 11, 12)
+)
+fan$width <- 2 * (fan$median - fan$lower)
+fan |>
+  e_charts(week) |>
+  e_line(median, name = "Median") |>
+  e_line(lower, stack = "band", name = "lower", symbol = "none",
+         lineStyle = list(opacity = 0)) |>
+  e_area(width, stack = "band", name = "90\% interval", symbol = "none") |>
+  maidr_htmlwidget(
+    use_cdn = TRUE,
+    percentile_bands = list(
+      median = "Median",
+      bands = data.frame(series = "90\% interval", lower = 0.05, upper = 0.95)
+    )
+  )
 }
 }

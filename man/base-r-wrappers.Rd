@@ -251,6 +251,17 @@ round it is \code{maidr::vioplot()}, \code{maidr::wordcloud()} or
 \code{maidr::chartSeries()}, called explicitly.
 }
 
+\subsection{Attach order for ROCR}{
+
+ROCR exports an S4 generic for \code{plot()}, so that \code{plot()} of a
+\code{performance} object draws its curve. Attached after maidr, that generic
+masks maidr's \code{plot()}, and no bare \code{plot()} call is recorded, whatever it
+draws. Attach ROCR before maidr, or call \code{maidr::plot()}; maidr says so
+when ROCR is attached after it. A precision-recall curve drawn as
+\code{plot(performance(pred, "prec", "rec"))} is then read as one, with the
+cutoff of each point.
+}
+
 \subsection{Calling an original directly}{
 
 The wrappers add nothing to the drawing and return what the original

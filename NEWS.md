@@ -262,6 +262,21 @@
   ggplot2 line of `recall` against `precision` is, rather than a line or a
   step. An `abline()` drawn over it, such as the chance level, stays a
   line. Needs maidr.js 4.14.0 or later, which this release bundles.
+* `plot()` of a ROCR `performance` object is read from the object. ROCR's
+  plot method draws its curve from inside ROCR's namespace, where maidr
+  records nothing, so the chart used to be emitted as a scatter with no
+  points in it. A precision-recall curve,
+  `plot(performance(pred, "prec", "rec"))`, which ROCR titles `Recall` and
+  `Precision`, is now a `pr_curve` layer, each point announced with the
+  cutoff it was scored at, from the object's `alpha.values`; any other
+  measure ROCR plots, a ROC curve's rates among them, is a line. A
+  cross-validated object of several runs is one curve per run. A plot drawn
+  with `avg`, `colorize = TRUE`, `downsampling`, `add = TRUE` or a `type`
+  other than `"l"` is shown as a picture. ROCR exports an S4 generic for
+  `plot()`, so attached after maidr it masks maidr's `plot()` and no bare
+  `plot()` call is recorded at all: attach ROCR before maidr, or call
+  `maidr::plot()`. maidr now says so when ROCR is attached after it, and
+  in the "No Base R plots detected" error.
 * A `wordcloud::wordcloud()` chart highlights the word being read: as the
   arrow keys move, the word announced is recoloured in the reader's
   highlight colour. Each term is matched to the text R drew it as by its
@@ -322,6 +337,27 @@
   image, since ggraph's edge geoms were not read. An undirected graph keeps
   the reading it had. Needs maidr.js 4.14.0 or later, which this release
   bundles.
+
+### plotly, highcharter and echarts4r widgets
+
+* `maidr_htmlwidget()` takes `percentile_bands`, which declares the fan
+  charts an echarts4r chart draws -- a median `e_line()` and, for each band,
+  an `e_area()` of its width stacked on an invisible line at its lower edge
+  -- naming the median's series, each band's filled series and the quantiles
+  of its edges. MAIDR then reads the fan as one `percentile_band` layer, as
+  it reads ggdist's lineribbon: a reader enters each x on the median and
+  walks through the quantiles, and each band is outlined as it is read.
+  ECharts carries nothing that says which quantiles a band's edges are, so
+  without the declaration the series stay a line and two areas. The levels
+  are checked in R, with the rules maidr.js applies -- fractions, every
+  `lower` below 0.5 and every `upper` above it, the bands nested -- and a
+  series name the chart does not have is a warning. It is passed to the
+  ECharts adapter's `percentileBands` option, which maidr.js reads from
+  4.15.0; the maidr.js bundled with this release is 4.14.0, so the option
+  takes effect with `use_cdn = TRUE` and is otherwise checked, then ignored
+  with a warning, until the bundle is raised. Draw the fan over a category
+  x axis: over a numeric one ECharts stacks the series on the x values, and
+  draws no band.
 
 ## Performance
 
