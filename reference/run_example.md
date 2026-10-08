@@ -61,6 +61,7 @@ run_example()
 #>   - boxplot
 #>   - candlestick
 #>   - candlestick_with_ma_volume
+#>   - directed_graph
 #>   - dodged_bar
 #>   - faceted
 #>   - gantt
@@ -69,7 +70,9 @@ run_example()
 #>   - line
 #>   - multiline
 #>   - patchwork
+#>   - percentile_band
 #>   - pie
+#>   - pr_curve
 #>   - roc
 #>   - scatter
 #>   - smooth

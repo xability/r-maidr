@@ -26,6 +26,8 @@ picture alone cannot say it
   Declare that a rectangle layer draws a schedule
 - [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md) : Declare
   that a path layer draws a ROC curve
+- [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md) :
+  Declare that a path layer draws a precision-recall curve
 
 ## Turning interception on and off
 

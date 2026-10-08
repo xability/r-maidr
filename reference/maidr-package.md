@@ -143,6 +143,18 @@ them, whatever its layer type. Among them:
   [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md)
   \[experimental\]
 
+- ggplot2 precision-recall curves -
+  [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md)
+  \[experimental\]
+
+- ggplot2 percentile bands -
+  [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html)
+  \[experimental\]
+
+- ggplot2 directed graphs -
+  [`ggraph::ggraph()`](https://ggraph.data-imaginist.com/reference/ggraph.html)
+  \[experimental\]
+
 - Base R correlograms \[experimental\]
 
 - Base R Q-Q plots \[experimental\]

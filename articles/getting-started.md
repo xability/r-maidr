@@ -543,8 +543,14 @@ with no mark is stable. Among them:
   [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
   \[experimental\], error bars \[experimental\], Gantt charts via
   [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md)
-  \[experimental\], hexbin plots \[experimental\] and ROC curves via
+  \[experimental\], hexbin plots \[experimental\], ROC curves via
   [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md)
+  \[experimental\] and precision-recall curves via
+  [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md)
+  \[experimental\] and percentile bands via
+  [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html)
+  \[experimental\] and directed graphs via
+  [`ggraph::ggraph()`](https://ggraph.data-imaginist.com/reference/ggraph.html)
   \[experimental\]
 - Base R: correlograms \[experimental\], Q-Q plots \[experimental\],
   radar charts via
