@@ -549,6 +549,8 @@ with no mark is stable. Among them:
   [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md)
   \[experimental\] and percentile bands via
   [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html)
+  or a `median_hilow` ribbon of
+  [`stat_summary()`](https://ggplot2.tidyverse.org/reference/stat_summary.html)
   \[experimental\] and directed graphs via
   [`ggraph::ggraph()`](https://ggraph.data-imaginist.com/reference/ggraph.html)
   \[experimental\]

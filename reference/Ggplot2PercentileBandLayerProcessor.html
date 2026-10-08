@@ -18,6 +18,11 @@ shape the core reads as &quot;one element per band&quot;. ggdist draws its ribbo
 widest first, so the draw order of the band polygons is already the order
 asked for; a count that disagrees with the widths emits no selectors
 rather than mispaired ones.
+A median_hilow ribbon. stat_summary(geom = &quot;ribbon&quot;, fun.data = median_hilow) is a band of one width, fun.args$conf.int, around the
+median the stat computed, and is read the same way from
+summary_band_rows(). Its selectors are the ribbon's one polygon and,
+when a stat_summary() median line sits on it, that line's polyline;
+the line layer itself is skipped, its values being the band's median.
 Emitted with type = &quot;percentile_band&quot;, which the core has read since
 maidr 4.14.0."><meta property="og:description" content="Reads a fan of nested quantile intervals around a median – the
 stat_lineribbon() / geom_lineribbon() of ggdist – as the
@@ -38,6 +43,11 @@ shape the core reads as &quot;one element per band&quot;. ggdist draws its ribbo
 widest first, so the draw order of the band polygons is already the order
 asked for; a count that disagrees with the widths emits no selectors
 rather than mispaired ones.
+A median_hilow ribbon. stat_summary(geom = &quot;ribbon&quot;, fun.data = median_hilow) is a band of one width, fun.args$conf.int, around the
+median the stat computed, and is read the same way from
+summary_band_rows(). Its selectors are the ribbon's one polygon and,
+when a stat_summary() median line sits on it, that line's polyline;
+the line layer itself is skipped, its values being the band's median.
 Emitted with type = &quot;percentile_band&quot;, which the core has read since
 maidr 4.14.0."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
@@ -83,6 +93,11 @@ shape the core reads as &quot;one element per band&quot;. ggdist draws its ribbo
 widest first, so the draw order of the band polygons is already the order
 asked for; a count that disagrees with the widths emits no selectors
 rather than mispaired ones.
+A median_hilow ribbon. stat_summary(geom = &quot;ribbon&quot;, fun.data = median_hilow) is a band of one width, fun.args$conf.int, around the
+median the stat computed, and is read the same way from
+summary_band_rows(). Its selectors are the ribbon&#x27;s one polygon and,
+when a stat_summary() median line sits on it, that line&#x27;s polyline;
+the line layer itself is skipped, its values being the band&#x27;s median.
 Emitted with type = &quot;percentile_band&quot;, which the core has read since
 maidr 4.14.0.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2PercentileBandLayerProcessor.html">
@@ -163,6 +178,11 @@ shape the core reads as "one element per band". ggdist draws its ribbons
 widest first, so the draw order of the band polygons is already the order
 asked for; a count that disagrees with the widths emits no selectors
 rather than mispaired ones.</p>
+<p><strong>A <code>median_hilow</code> ribbon.</strong> <code>stat_summary(geom = "ribbon", fun.data = median_hilow)</code> is a band of one width, <code>fun.args$conf.int</code>, around the
+median the stat computed, and is read the same way from
+<code><a href="summary_band_rows.html">summary_band_rows()</a></code>. Its selectors are the ribbon's one polygon and,
+when a <code><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html" class="external-link">stat_summary()</a></code> median line sits on it, that line's polyline;
+the line layer itself is skipped, its values being the band's median.</p>
 <p>Emitted with <code>type = "percentile_band"</code>, which the core has read since
 maidr 4.14.0.</p>
     </div>
@@ -180,6 +200,7 @@ maidr 4.14.0.</p>
 <p></p><ul><li><p><a href="#method-Ggplot2PercentileBandLayerProcessor-process"><code>Ggplot2PercentileBandLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PercentileBandLayerProcessor-quantile_points"><code>Ggplot2PercentileBandLayerProcessor$quantile_points()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PercentileBandLayerProcessor-band_selectors"><code>Ggplot2PercentileBandLayerProcessor$band_selectors()</code></a></p></li>
+<li><p><a href="#method-Ggplot2PercentileBandLayerProcessor-summary_band_selectors"><code>Ggplot2PercentileBandLayerProcessor$summary_band_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PercentileBandLayerProcessor-clone"><code>Ggplot2PercentileBandLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href="LayerProcessor.html#method-find_layer_grob_tree"><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
@@ -347,13 +368,55 @@ line's</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2PercentileBandLayerProcessor-summary_band_selectors"></a><div class="section">
+<h3 id="ggplot-percentilebandlayerprocessor-summary-band-selectors-"><code>Ggplot2PercentileBandLayerProcessor$summary_band_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-percentilebandlayerprocessor-summary-band-selectors-"></a></h3>
+<p>The selectors of a <code>median_hilow</code> ribbon: its one band,
+then the median line drawn on it, when there is one</p>
+<p>The ribbon is drawn as one polygon, and the median line as the bare
+polyline <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> draws, found the way the line processor finds
+its own. Without the line the core outlines the band for the median,
+the band it sits inside.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PercentileBandLayerProcessor</span><span class="op">$</span><span class="fu">summary_band_selectors</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_bands <span class="op">=</span> <span class="fl">0L</span>,</span>
+<span>  median_line <span class="op">=</span> <span class="cn">NA_integer_</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable object</p></dd>
+
+      <dt><code>panel_ctx</code></dt>
+<dd><p>Panel context for panel-scoped selector generation</p></dd>
+
+      <dt><code>n_bands</code></dt>
+<dd><p>How many interval widths the data holds</p></dd>
+
+      <dt><code>median_line</code></dt>
+<dd><p>Index of the median line's layer, or NA</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>A list of selectors, or an empty list</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2PercentileBandLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-percentilebandlayerprocessor-clone-"><code>Ggplot2PercentileBandLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-percentilebandlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PercentileBandLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

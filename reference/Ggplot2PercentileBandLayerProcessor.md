@@ -24,6 +24,16 @@ widest first, so the draw order of the band polygons is already the
 order asked for; a count that disagrees with the widths emits no
 selectors rather than mispaired ones.
 
+**A `median_hilow` ribbon.**
+`stat_summary(geom = "ribbon", fun.data = median_hilow)` is a band of
+one width, `fun.args$conf.int`, around the median the stat computed, and
+is read the same way from
+[`summary_band_rows()`](https://r.maidr.ai/reference/summary_band_rows.md).
+Its selectors are the ribbon's one polygon and, when a
+[`stat_summary()`](https://ggplot2.tidyverse.org/reference/stat_summary.html)
+median line sits on it, that line's polyline; the line layer itself is
+skipped, its values being the band's median.
+
 Emitted with `type = "percentile_band"`, which the core has read since
 maidr 4.14.0.
 
@@ -44,6 +54,8 @@ maidr 4.14.0.
 - [`Ggplot2PercentileBandLayerProcessor$quantile_points()`](#method-Ggplot2PercentileBandLayerProcessor-quantile_points)
 
 - [`Ggplot2PercentileBandLayerProcessor$band_selectors()`](#method-Ggplot2PercentileBandLayerProcessor-band_selectors)
+
+- [`Ggplot2PercentileBandLayerProcessor$summary_band_selectors()`](#method-Ggplot2PercentileBandLayerProcessor-summary_band_selectors)
 
 - [`Ggplot2PercentileBandLayerProcessor$clone()`](#method-Ggplot2PercentileBandLayerProcessor-clone)
 
@@ -223,6 +235,55 @@ One selector per band, outermost first, then the median line's
 - `n_bands`:
 
   How many interval widths the data holds
+
+#### Returns
+
+A list of selectors, or an empty list
+
+------------------------------------------------------------------------
+
+### `Ggplot2PercentileBandLayerProcessor$summary_band_selectors()`
+
+The selectors of a `median_hilow` ribbon: its one band, then the median
+line drawn on it, when there is one
+
+The ribbon is drawn as one polygon, and the median line as the bare
+polyline
+[`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+draws, found the way the line processor finds its own. Without the line
+the core outlines the band for the median, the band it sits inside.
+
+#### Usage
+
+    Ggplot2PercentileBandLayerProcessor$summary_band_selectors(
+      plot,
+      gt = NULL,
+      panel_ctx = NULL,
+      n_bands = 0L,
+      median_line = NA_integer_
+    )
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation
+
+- `n_bands`:
+
+  How many interval widths the data holds
+
+- `median_line`:
+
+  Index of the median line's layer, or NA
 
 #### Returns
 

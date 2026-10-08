@@ -370,6 +370,21 @@
   `(1 - w) / 2` and `(1 + w) / 2` – so a mean, a highest-density
   interval or several series in one layer keep the reading they had.
   Needs maidr.js 4.14.0 or later, which this release bundles.
+- A `stat_summary(geom = "ribbon", fun.data = median_hilow)` band is now
+  read as a `percentile_band` layer too: the stat computes the quantiles
+  `(1 - w) / 2` and `(1 + w) / 2` around the median, `w` being
+  `fun.args$conf.int` (0.95 unless set), so a reader enters each x on
+  the median and hears the band as the share it covers (“Middle 50% is
+  …”) where it used to hear two bare bounds of an error bar. A
+  [`stat_summary()`](https://ggplot2.tidyverse.org/reference/stat_summary.html)
+  line of the median (`fun = median`, or `fun.data = median_hilow`)
+  drawn on the same rows is read as the band’s median and outlined with
+  it, rather than a second line. Any other summary, a ribbon of several
+  series or a flipped one, and a median line that sits on more than one
+  band, keep the reading they had. A `median_hilow` point range or error
+  bar stays an error bar: the band trace outlines one shape across every
+  x, not one per
+  24. Needs maidr.js 4.14.0 or later, which this release bundles.
 - Added directed graph support: a
   [`ggraph::ggraph()`](https://ggraph.data-imaginist.com/reference/ggraph.html)
   drawing of a directed graph is emitted as a `directed_graph` layer, so

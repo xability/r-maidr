@@ -148,7 +148,8 @@ them, whatever its layer type. Among them:
   \[experimental\]
 
 - ggplot2 percentile bands -
-  [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html)
+  [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html),
+  `stat_summary(geom = "ribbon", fun.data = median_hilow)`
   \[experimental\]
 
 - ggplot2 directed graphs -
