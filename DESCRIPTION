@@ -76,6 +76,7 @@ Suggests:
     ggdist,
     ggraph,
     igraph,
+    Hmisc,
     plotly,
     highcharter,
     echarts4r,

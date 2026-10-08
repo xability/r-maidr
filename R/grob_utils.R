@@ -54,7 +54,11 @@ polyline_layer_position <- function(plot, layer_index) {
       pos <- 0L
       for (i in seq_along(plot$layers)) {
         tp <- adapter$detect_layer_type(plot$layers[[i]], plot)
-        if (layer_draws_bare_polyline(plot$layers[[i]], tp)) {
+        # A median line folded into a percentile band is tagged "skip" but
+        # still draws its polyline, and the band names it by this count.
+        folded <- identical(tp, "skip") &&
+          summary_band_folds_line(i, plot)
+        if (layer_draws_bare_polyline(plot$layers[[i]], tp) || folded) {
           pos <- pos + 1L
           if (i == layer_index) {
             return(pos)
