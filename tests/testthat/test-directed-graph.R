@@ -138,3 +138,72 @@ test_that("the processor is registered for the type", {
   factory <- maidr:::Ggplot2ProcessorFactory$new()
   testthat::expect_true("directed_graph" %in% factory$get_supported_types())
 })
+
+# Base R: igraph's own `plot()` of a directed graph. `plot.igraph()` draws
+# every circle vertex with one `symbols()` call, in vertex order, so the
+# n-th circle of that group is the n-th node.
+
+base_r_graph_layers <- function(plot_fun) {
+  testthat::skip_if_not_installed("igraph")
+  testthat::skip_if_not_installed("jsonlite")
+  maidr:::clear_all_device_storage()
+  file <- tempfile(fileext = ".html")
+  grDevices::pdf(NULL)
+  on.exit(
+    {
+      grDevices::dev.off()
+      unlink(file)
+      maidr:::clear_all_device_storage()
+    },
+    add = TRUE
+  )
+  plot_fun()
+  suppressWarnings(suppressMessages(maidr::save_html(plot = NULL, file = file)))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  list(html = html, layers = layers_from(html))
+}
+
+test_that("Base R plot() of a directed igraph reads its nodes, one circle each", {
+  result <- base_r_graph_layers(function() {
+    set.seed(1)
+    plot(pipeline(), main = "Pipeline")
+  })
+
+  testthat::expect_false(fell_back(result$html))
+  testthat::expect_length(result$layers, 1L)
+  layer <- result$layers[[1]]
+  testthat::expect_identical(layer$type, "directed_graph")
+  testthat::expect_identical(layer$title, "Pipeline")
+  nodes <- stats::setNames(layer$data, vapply(layer$data, `[[`, "", "id"))
+  testthat::expect_identical(
+    names(nodes), c("load", "clean", "features", "labels", "train")
+  )
+  testthat::expect_identical(unlist(nodes$train$inputs), c("features", "labels"))
+  testthat::expect_identical(nodes$train$attributes$stage, "fit")
+
+  testthat::expect_length(layer$selectors, 5L)
+  testthat::expect_match(
+    unlist(layer$selectors)[[5]], "symbols-circle-1\\.1 > circle:nth-of-type(5)",
+    fixed = TRUE
+  )
+  circles <- regmatches(
+    result$html,
+    gregexpr('<circle id="graphics-plot-1-symbols-circle-1\\.1\\.[0-9]+"', result$html)
+  )[[1]]
+  testthat::expect_length(unique(circles), 5L)
+})
+
+test_that("Base R plot() of an undirected or reshaped igraph is a picture", {
+  undirected <- base_r_graph_layers(function() plot(pipeline(directed = FALSE)))
+  testthat::expect_true(fell_back(undirected$html))
+
+  squares <- base_r_graph_layers(function() {
+    plot(pipeline(), vertex.shape = "square")
+  })
+  testthat::expect_true(fell_back(squares$html))
+})
+
+test_that("the Base R processor is registered for the type", {
+  factory <- maidr:::BaseRProcessorFactory$new()
+  testthat::expect_true("directed_graph" %in% factory$get_supported_types())
+})

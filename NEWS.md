@@ -248,6 +248,14 @@
 
 ### Base R
 
+* Added directed graph support: igraph's own `plot()` of a directed graph is
+  emitted as a `directed_graph` layer, so a reader walks the graph node by
+  node and hears what feeds each node and what it feeds, with that node's
+  circle outlined. The nodes and edges are read from the igraph object, and
+  each vertex's own attributes are announced with it. It used to be emitted
+  as a scatter with no points in it; an undirected graph, or one whose
+  vertices are not all circles, is now shown as a picture instead. Needs
+  maidr.js 4.14.0 or later, which this release bundles.
 * A `plot(recall, precision, type = "l")` or `type = "s"` -- or any line or
   staircase whose axes are titled `Recall` and `Precision` -- of values
   that are all fractions of one is emitted as a `pr_curve` layer, as a

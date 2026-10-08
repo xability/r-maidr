@@ -381,6 +381,7 @@ own, as they do here.
 | `conditional_density` | `cdplot()` |
 | `correlogram` | `acf()`, `pacf()`, `ccf()` |
 | `cumulative_periodogram` | `cpgram()` |
+| `directed_graph` | igraph's `plot()` of a directed graph (circle vertices) |
 | `dot` | `dotchart()` (ungrouped) |
 | `filled_contour` | `filled.contour()` |
 | `fourfold` | `fourfoldplot()` (2x2 tables, `std = "ind.max"` / `"all.max"`) |
