@@ -541,6 +541,12 @@ BaseRAdapter <- R6::R6Class(
           first_arg <- resolve_xy_args(args)$x
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
+          } else if (is_rocr_performance(first_arg)) {
+            # `plot()` of a ROCR `performance` object draws its curves from
+            # inside ROCR's namespace, where nothing is recorded; they are
+            # read from the object (`BaseRRocrPerformanceLayerProcessor`).
+            # Typed by `type` as a scatter, it was an empty point layer.
+            rocr_performance_layer_type(args)
           } else if (inherits(first_arg, "igraph")) {
             # `plot.igraph()` draws a graph, not the points `type` would
             # say: a directed one is read from the graph itself.

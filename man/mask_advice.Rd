@@ -7,7 +7,8 @@
 mask_advice(package)
 }
 \arguments{
-\item{package}{Name of the package, as in \link{WRAPPED_SUGGESTS}.}
+\item{package}{Name of the package, as in \link{WRAPPED_SUGGESTS} or
+\link{PLOT_MASKING_SUGGESTS}.}
 }
 \value{
 A single advice string.

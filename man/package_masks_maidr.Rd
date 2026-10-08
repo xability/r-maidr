@@ -7,7 +7,8 @@
 package_masks_maidr(package)
 }
 \arguments{
-\item{package}{Name of the package, as in \link{WRAPPED_SUGGESTS}.}
+\item{package}{Name of the package, as in \link{WRAPPED_SUGGESTS} or
+\link{PLOT_MASKING_SUGGESTS}.}
 }
 \value{
 \code{TRUE} when both packages are attached and \code{package} comes first.

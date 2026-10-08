@@ -45,6 +45,25 @@ WRAPPED_SUGGESTS <- c(
   wordcloud = "wordcloud"
 )
 
+#' The Suggests packages whose S4 `plot()` generic masks maidr's wrapper
+#'
+#' ROCR exports an S4 generic for `plot()` (`exportMethods(plot)` in its
+#' NAMESPACE, ROCR 1.0.11) so that `plot()` of a `performance` object draws
+#' its curve. Attached after maidr, that generic sits ahead of maidr's
+#' `plot()` wrapper on the search path, and every bare `plot()` -- of a
+#' `performance` object or of anything else, since the generic's default is
+#' base `plot()` -- goes around the wrapper unrecorded. Measured:
+#' `library(maidr); library(ROCR); plot(1:10); save_html()` stopped with
+#' "No Base R plots detected". Attached before maidr, maidr's wrapper is
+#' found first and hands a `performance` object on to the S3 method ROCR
+#' also registers (`S3method(plot, performance)`), so the call is recorded.
+#'
+#' Named by package, valued by the function it masks, as [WRAPPED_SUGGESTS]
+#' is; maidr wraps nothing of these packages, so they are kept apart from it.
+#'
+#' @keywords internal
+PLOT_MASKING_SUGGESTS <- c(ROCR = "plot")
+
 #' Is a package attached ahead of maidr on the search path?
 #'
 #' `library(quantmod)` after `library(maidr)` puts `package:quantmod` in
@@ -60,7 +79,8 @@ WRAPPED_SUGGESTS <- c(
 #' wrapper, which for quantmod corrupts the `match.call(expand.dots = TRUE)`
 #' it relies on. maidr reports the condition instead.
 #'
-#' @param package Name of the package, as in [WRAPPED_SUGGESTS].
+#' @param package Name of the package, as in [WRAPPED_SUGGESTS] or
+#'   [PLOT_MASKING_SUGGESTS].
 #' @return `TRUE` when both packages are attached and `package` comes first.
 #' @keywords internal
 package_masks_maidr <- function(package) {
@@ -86,7 +106,7 @@ quantmod_masks_maidr <- function() {
 #' @return Package names, in [WRAPPED_SUGGESTS] order; empty when none masks.
 #' @keywords internal
 packages_masking_maidr <- function() {
-  packages <- names(WRAPPED_SUGGESTS)
+  packages <- c(names(WRAPPED_SUGGESTS), names(PLOT_MASKING_SUGGESTS))
   packages[vapply(packages, package_masks_maidr, logical(1))]
 }
 
@@ -95,10 +115,19 @@ packages_masking_maidr <- function() {
 #' Shared by `.onAttach`, the attach hooks and the "No Base R plots
 #' detected" errors so the wording stays in one place.
 #'
-#' @param package Name of the package, as in [WRAPPED_SUGGESTS].
+#' @param package Name of the package, as in [WRAPPED_SUGGESTS] or
+#'   [PLOT_MASKING_SUGGESTS].
 #' @return A single advice string.
 #' @keywords internal
 mask_advice <- function(package) {
+  if (package %in% names(PLOT_MASKING_SUGGESTS)) {
+    return(paste0(
+      "'", package, "' is attached ahead of 'maidr' on the search path, and ",
+      "its plot() generic masks maidr's, so no bare plot() call is recorded, ",
+      "whatever it draws. Attach '", package, "' before 'maidr', or call ",
+      "maidr::plot() explicitly."
+    ))
+  }
   fn <- WRAPPED_SUGGESTS[[package]]
   paste0(
     "'", package, "' is attached ahead of 'maidr' on the search path, so a ",
@@ -146,7 +175,8 @@ no_base_r_plots_message <- function() {
 #' calls to its entry point will no longer be recorded. Silent when the
 #' package does not mask, and under `maidr.startup_message = FALSE`.
 #'
-#' @param package Name of the package, as in [WRAPPED_SUGGESTS].
+#' @param package Name of the package, as in [WRAPPED_SUGGESTS] or
+#'   [PLOT_MASKING_SUGGESTS].
 #' @keywords internal
 announce_masking <- function(package) {
   tryCatch(
@@ -174,6 +204,10 @@ announce_masking <- function(package) {
 
 .maidr_wordcloud_attach_hook <- function(...) {
   announce_masking("wordcloud")
+}
+
+.maidr_rocr_attach_hook <- function(...) {
+  announce_masking("ROCR")
 }
 
 #' Wrap vioplot's entry point once its namespace is available
@@ -316,6 +350,13 @@ announce_masking <- function(package) {
     )
   }
 
+  # ROCR's S4 plot() generic masks maidr's plot() wrapper when ROCR is
+  # attached after maidr (`PLOT_MASKING_SUGGESTS`); said as it happens.
+  tryCatch(
+    setHook(packageEvent("ROCR", "attach"), .maidr_rocr_attach_hook),
+    error = function(e) NULL
+  )
+
   # A document's own library(maidr): installed into the running knit now.
   # A later render in this session, which loads nothing, installs it from the
   # first plot it draws instead (see ensure_knitr_integration()).
@@ -356,6 +397,7 @@ announce_masking <- function(package) {
   drop_hook("onLoad", .maidr_wordcloud_onload_hook, package = "wordcloud")
   drop_hook("attach", .maidr_wordcloud_attach_hook, package = "wordcloud")
   drop_hook("onLoad", .maidr_lattice_onload_hook, package = "lattice")
+  drop_hook("attach", .maidr_rocr_attach_hook, package = "ROCR")
 
   # lattice outlives maidr, and would otherwise keep printing through a
   # function from a namespace that is gone.

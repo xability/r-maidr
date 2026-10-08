@@ -299,8 +299,9 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   lists them at `library(maidr)`. Each records the call and passes through
   to the original, and `show()` hands anything that is not a plot back to
   `methods::show()`. In a script or a package call `maidr::show()` by name,
-  and attach vioplot, wordcloud or quantmod *before* maidr, or their own
-  functions mask the wrappers and their charts go unrecorded. See
+  and attach vioplot, wordcloud, quantmod or ROCR *before* maidr, or their
+  own functions mask the wrappers and their charts go unrecorded -- ROCR's
+  `plot()` masks maidr's for every chart, not only its own. See
   [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
 ## Supported plot types
@@ -416,6 +417,7 @@ own, as they do here.
 | `qqline` | `qqline()` |
 | `radar` | `stars()` |
 | `residual` | `assocplot()` (two-way tables) |
+| `rocr_performance` | ROCR's `plot()` of a `performance` object: a `pr_curve` layer for `performance(pred, "prec", "rec")`, a line for any other measure (attach ROCR before maidr) |
 | `spectral_density` | `spectrum()` |
 | `spine` | `spineplot()` |
 | `stacked_normalized_bar` | `barplot()` of proportions |

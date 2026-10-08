@@ -262,6 +262,21 @@
   ggplot2 line of `recall` against `precision` is, rather than a line or a
   step. An `abline()` drawn over it, such as the chance level, stays a
   line. Needs maidr.js 4.14.0 or later, which this release bundles.
+* `plot()` of a ROCR `performance` object is read from the object. ROCR's
+  plot method draws its curve from inside ROCR's namespace, where maidr
+  records nothing, so the chart used to be emitted as a scatter with no
+  points in it. A precision-recall curve,
+  `plot(performance(pred, "prec", "rec"))`, which ROCR titles `Recall` and
+  `Precision`, is now a `pr_curve` layer, each point announced with the
+  cutoff it was scored at, from the object's `alpha.values`; any other
+  measure ROCR plots, a ROC curve's rates among them, is a line. A
+  cross-validated object of several runs is one curve per run. A plot drawn
+  with `avg`, `colorize = TRUE`, `downsampling`, `add = TRUE` or a `type`
+  other than `"l"` is shown as a picture. ROCR exports an S4 generic for
+  `plot()`, so attached after maidr it masks maidr's `plot()` and no bare
+  `plot()` call is recorded at all: attach ROCR before maidr, or call
+  `maidr::plot()`. maidr now says so when ROCR is attached after it, and
+  in the "No Base R plots detected" error.
 * A `wordcloud::wordcloud()` chart highlights the word being read: as the
   arrow keys move, the word announced is recoloured in the reader's
   highlight colour. Each term is matched to the text R drew it as by its

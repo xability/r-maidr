@@ -141,8 +141,9 @@ show()
   lists them at `library(maidr)`. Each records the call and passes through
   to the original, and `show()` hands anything that is not a plot back to
   `methods::show()`. In a script or a package call `maidr::show()` by name,
-  and attach vioplot, wordcloud or quantmod *before* maidr, or their own
-  functions mask the wrappers and their charts go unrecorded. See
+  and attach vioplot, wordcloud, quantmod or ROCR *before* maidr, or their
+  own functions mask the wrappers and their charts go unrecorded -- ROCR's
+  `plot()` masks maidr's for every chart, not only its own. See
   [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
 ## Interactive htmlwidgets: plotly, highcharter and echarts4r
@@ -481,7 +482,9 @@ Among them:
   `ggraph::ggraph()` [experimental]
 - Base R: correlograms [experimental], Q-Q plots [experimental], radar charts
   via `stars()` [experimental], mosaic plots [experimental], violin plots via
-  `vioplot::vioplot()` [experimental] and word clouds [experimental]
+  `vioplot::vioplot()` [experimental], word clouds [experimental] and
+  precision-recall curves, a line titled Recall and Precision or ROCR's
+  `plot(performance(pred, "prec", "rec"))` [experimental]
 - lattice, where every reading is experimental: bar charts via `barchart()`
   [experimental], histograms via `histogram()` [experimental], scatter, line
   and step plots via `xyplot()` [experimental], box plots via `bwplot()`

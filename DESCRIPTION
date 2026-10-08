@@ -71,6 +71,7 @@ Suggests:
     wordcloud,
     sm,
     pROC,
+    ROCR,
     yardstick,
     dplyr,
     ggdist,
