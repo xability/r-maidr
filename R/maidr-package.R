@@ -72,7 +72,8 @@
 #'   \item ggplot2 ROC curves - \code{\link{maidr_roc}()} \[experimental\]
 #'   \item ggplot2 precision-recall curves - \code{\link{maidr_pr_curve}()}
 #'     \[experimental\]
-#'   \item ggplot2 percentile bands - \code{ggdist::stat_lineribbon()}
+#'   \item ggplot2 percentile bands - \code{ggdist::stat_lineribbon()},
+#'     \code{stat_summary(geom = "ribbon", fun.data = median_hilow)}
 #'     \[experimental\]
 #'   \item ggplot2 directed graphs - \code{ggraph::ggraph()} \[experimental\]
 #'   \item Base R correlograms \[experimental\]

@@ -469,7 +469,8 @@ Among them:
   via `maidr_gantt()` [experimental], hexbin plots [experimental], ROC
   curves via `maidr_roc()` [experimental] and precision-recall curves via
   `maidr_pr_curve()` [experimental] and percentile bands via
-  `ggdist::stat_lineribbon()` [experimental] and directed graphs via
+  `ggdist::stat_lineribbon()` or a `median_hilow` ribbon of
+  `stat_summary()` [experimental] and directed graphs via
   `ggraph::ggraph()` [experimental]
 - Base R: correlograms [experimental], Q-Q plots [experimental], radar charts
   via `stars()` [experimental], mosaic plots [experimental], violin plots via

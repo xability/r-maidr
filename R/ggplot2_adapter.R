@@ -350,6 +350,16 @@ Ggplot2Adapter <- R6::R6Class(
       if (geom_class == "GeomPrCurve") {
         return(if (pr_curve_trace_available()) "pr_curve" else "line")
       }
+      # The median line of a `median_hilow` ribbon is that band's median:
+      # the band's layer reads its values and names its polyline, so it is
+      # not read a second time as a line of its own.
+      if (geom_class %in% c("GeomLine", "GeomPath") &&
+        stat_class == "StatSummary" && percentile_band_trace_available()) {
+        index <- self$find_layer_index(plot_object, layer)
+        if (!is.null(index) && summary_band_folds_line(index, plot_object)) {
+          return("skip")
+        }
+      }
       if (geom_class %in% c("GeomLine", "GeomPath") &&
         layer_maps_pr_rates(layer, plot_object)) {
         return(if (pr_curve_trace_available()) "pr_curve" else "line")
@@ -560,6 +570,22 @@ Ggplot2Adapter <- R6::R6Class(
       # `lineribbon_quantile_rows()`.
       if (geom_class == "GeomLineribbon" && percentile_band_trace_available() &&
         !is.null(lineribbon_quantile_rows(layer, plot_object))) {
+        return("percentile_band")
+      }
+
+      # `stat_summary(geom = "ribbon", fun.data = median_hilow)` is a
+      # percentile band of one interval: the stat computes the median and
+      # the quantiles `(1 - w) / 2` and `(1 + w) / 2` at each x, `w` being
+      # `fun.args$conf.int`, so the levels are read off the layer rather than
+      # guessed from the drawn values. It used to read as an `error_bar`,
+      # which announces the two bounds with nothing to say what share of the
+      # data lies between them. A `stat_summary()` median line drawn on the
+      # same rows is its median, and is folded into it below. Any other
+      # summary, several series in one layer or a flipped ribbon keeps the
+      # reading it had. See `summary_band_pairs()`.
+      if (geom_class == "GeomRibbon" && stat_class == "StatSummary" &&
+        percentile_band_trace_available() &&
+        !is.null(summary_band_rows(layer, plot_object))) {
         return("percentile_band")
       }
 
