@@ -214,6 +214,8 @@ test_that("each panel of a facet reads its own band", {
   plot <- ggplot2::ggplot(draws(), ggplot2::aes(week, sales)) +
     hilow_ribbon() + median_line() +
     ggplot2::facet_wrap(~store)
+  testthat::expect_identical(detected(plot, 1), "percentile_band")
+  testthat::expect_identical(detected(plot, 2), "skip")
   built <- ggplot2::ggplot_build(plot)
   processor <- maidr:::Ggplot2PercentileBandLayerProcessor$new(
     list(index = 1, type = "percentile_band")

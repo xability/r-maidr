@@ -207,8 +207,11 @@ Ggplot2PercentileBandLayerProcessor <- R6::R6Class(
         line <- tryCatch(
           {
             panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
-            if (is.null(panel_grob)) NULL else
+            if (is.null(panel_grob)) {
+              NULL
+            } else {
               self$find_layer_polyline_grob(plot, panel_grob, target = median_line)
+            }
           },
           error = function(e) NULL
         )
