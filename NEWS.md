@@ -207,6 +207,15 @@
   lattice's own record of the chart it drew last -- the one
   `trellis.focus()` and `trellis.last.object()` act on -- as it was.
 
+* An `xyplot(precision ~ recall, type = "l")` -- or one whose axes are
+  otherwise titled `Recall` and `Precision` -- of values that are all
+  fractions of one is emitted as a `pr_curve` layer, one curve per group,
+  as a ggplot2 line of `recall` against `precision` is: a reader hears each
+  point against the curve's average precision and the best-F1 point in the
+  description, where a line said the rates and nothing else. Any other
+  line keeps its reading. Needs maidr.js 4.14.0 or later, which this
+  release bundles.
+
 ### webR
 
 * `show()` works under webR, where it used to stop at `utils::browseURL()`.
@@ -239,6 +248,20 @@
 
 ### Base R
 
+* Added directed graph support: igraph's own `plot()` of a directed graph is
+  emitted as a `directed_graph` layer, so a reader walks the graph node by
+  node and hears what feeds each node and what it feeds, with that node's
+  circle outlined. The nodes and edges are read from the igraph object, and
+  each vertex's own attributes are announced with it. It used to be emitted
+  as a scatter with no points in it; an undirected graph, or one whose
+  vertices are not all circles, is now shown as a picture instead. Needs
+  maidr.js 4.14.0 or later, which this release bundles.
+* A `plot(recall, precision, type = "l")` or `type = "s"` -- or any line or
+  staircase whose axes are titled `Recall` and `Precision` -- of values
+  that are all fractions of one is emitted as a `pr_curve` layer, as a
+  ggplot2 line of `recall` against `precision` is, rather than a line or a
+  step. An `abline()` drawn over it, such as the chance level, stays a
+  line. Needs maidr.js 4.14.0 or later, which this release bundles.
 * A `wordcloud::wordcloud()` chart highlights the word being read: as the
   arrow keys move, the word announced is recoloured in the reader's
   highlight colour. Each term is matched to the text R drew it as by its

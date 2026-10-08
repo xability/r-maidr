@@ -32,10 +32,16 @@ BaseRLineLayerProcessor <- R6::R6Class(
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
+      # A line titled Recall against Precision is a precision-recall curve
+      # by its own names (`titled_pr_curve()`); an `abline()` is a reference
+      # drawn over the chart, never a curve.
+      pr_curve <- !identical(layer_info$function_name, "abline") &&
+        titled_pr_curve(axes, data)
+
       list(
         data = data,
         selectors = selectors,
-        type = "line",
+        type = if (pr_curve) "pr_curve" else "line",
         title = title,
         axes = axes
       )

@@ -90,6 +90,12 @@ thresholds nor the share of positives into the plot, so no threshold is
 announced, the average precision is measured from the points, and the
 points are not read against a baseline; \code{maidr_pr_curve()} is how an
 author supplies them.
+
+A Base R \code{plot(recall, precision, type = "l")} (or \code{type = "s"}) and a
+lattice \code{xyplot(precision ~ recall, type = "l")} are read the same way
+when their axes are titled \code{Recall} and \code{Precision} -- which both take
+from the variables' names unless \code{xlab} and \code{ylab} say otherwise -- and
+every value is a fraction of one.
 }
 
 \section{Until the bundled maidr.js carries the trace}{

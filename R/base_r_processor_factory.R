@@ -114,6 +114,8 @@ BaseRProcessorFactory <- R6::R6Class(
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
         "contour" = BaseRContourLayerProcessor$new(layer_info),
         "candlestick" = BaseRCandlestickLayerProcessor$new(layer_info),
+        # `plot()` of a directed igraph object.
+        "directed_graph" = BaseRDirectedGraphLayerProcessor$new(layer_info),
         # For unknown types, use the generic processor
         BaseRUnknownLayerProcessor$new(layer_info)
       )
@@ -172,6 +174,7 @@ BaseRProcessorFactory <- R6::R6Class(
         # adapter; the list had simply not been kept in step with the switch.
         "violin",
         "pairs",
+        "directed_graph",
         "unknown"
       )
     },

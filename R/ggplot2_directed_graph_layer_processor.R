@@ -155,6 +155,21 @@ ggraph_directed_nodes <- function(plot_object) {
   if (is.null(graph)) {
     return(NULL)
   }
+  igraph_directed_nodes(graph)
+}
+
+#' The nodes of a directed igraph object, as the trace declares them
+#'
+#' One node per vertex, in vertex order. The id and label are the vertex's
+#' `name` when it has one, and its index otherwise; `inputs` are the vertices
+#' whose edges arrive at it; its other scalar attributes are announced with
+#' it. Shared by the ggraph reading and Base R's `plot()` of an igraph.
+#'
+#' @param graph A directed igraph object
+#' @return A list of nodes, or NULL when the graph has no vertex or two
+#'   vertices share a name
+#' @keywords internal
+igraph_directed_nodes <- function(graph) {
   count <- igraph::vcount(graph)
   if (count < 1L) {
     return(NULL)

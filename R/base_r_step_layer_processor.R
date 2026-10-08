@@ -45,6 +45,14 @@ BaseRStepLayerProcessor <- R6::R6Class(
         axes = self$extract_axis_titles(layer_info)
       )
 
+      # A staircase titled Recall against Precision is a precision-recall
+      # curve by its own names (`titled_pr_curve()`), drawn as the step
+      # `precision_recall_curve()` results are.
+      if (titled_pr_curve(result$axes, result$data)) {
+        result$type <- "pr_curve"
+        return(result)
+      }
+
       direction <- self$extract_step_direction(layer_info)
       if (!is.null(direction)) {
         result$stepDirection <- direction

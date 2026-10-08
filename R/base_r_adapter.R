@@ -541,6 +541,10 @@ BaseRAdapter <- R6::R6Class(
           first_arg <- resolve_xy_args(args)$x
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
+          } else if (inherits(first_arg, "igraph")) {
+            # `plot.igraph()` draws a graph, not the points `type` would
+            # say: a directed one is read from the graph itself.
+            base_r_igraph_layer_type(first_arg, args)
           } else if (identical(
             dispatched_definition("plot", get_original_function("plot"), args),
             graphics::plot.function
