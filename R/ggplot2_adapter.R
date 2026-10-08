@@ -51,6 +51,23 @@ Ggplot2Adapter <- R6::R6Class(
         return("skip")
       }
 
+      # A ggraph drawing of a directed graph is read as the graph: its node
+      # layer carries the `directed_graph` reading, built from the igraph
+      # object ggraph keeps on the layout, and its edge layers -- ggraph's
+      # own `GeomEdge*` geoms, which matched no branch and dropped the chart
+      # to a static image -- are skipped, since the reading already holds
+      # every edge. An undirected graph is left as it was: the trace reads
+      # direction. See `ggraph_directed_graph()`.
+      if (!is.null(ggraph_directed_graph(plot_object)) &&
+        directed_graph_trace_available()) {
+        if (startsWith(geom_class, "GeomEdge")) {
+          return("skip")
+        }
+        if (is_ggraph_node_layer(layer, plot_object)) {
+          return("directed_graph")
+        }
+      }
+
       # geom_step() draws a stairstep: the value is piecewise constant, held
       # across an interval and then jumped, rather than interpolated between
       # samples the way a line implies. GeomStep *inherits* GeomPath, so this
@@ -324,6 +341,19 @@ Ggplot2Adapter <- R6::R6Class(
       if (geom_class == "GeomRoc") {
         return(if (roc_trace_available()) "roc" else "line")
       }
+      # A precision-recall curve is the same kind of path, read the same
+      # way: `maidr_pr_curve()` draws with a geom of its own, and `autoplot()`
+      # of a `yardstick::pr_curve()` maps columns named after the rates,
+      # `recall` against `precision` (`layer_maps_pr_rates()`). Falls back to
+      # `line` before maidr.js 4.14.0 for the same reason, see
+      # `pr_curve_trace_available()`.
+      if (geom_class == "GeomPrCurve") {
+        return(if (pr_curve_trace_available()) "pr_curve" else "line")
+      }
+      if (geom_class %in% c("GeomLine", "GeomPath") &&
+        layer_maps_pr_rates(layer, plot_object)) {
+        return(if (pr_curve_trace_available()) "pr_curve" else "line")
+      }
       if (geom_class %in% c("GeomLine", "GeomPath") &&
         layer_maps_roc_rates(layer, plot_object)) {
         return(if (roc_trace_available()) "roc" else "line")
@@ -520,6 +550,19 @@ Ggplot2Adapter <- R6::R6Class(
       #
       # `class(...)[1]` rather than `inherits()`, because `GeomArea` inherits
       # `GeomRibbon`: an area layer must keep reaching its own branch above.
+      # ggdist's `stat_lineribbon()` / `geom_lineribbon()`: nested quantile
+      # intervals around a median, one ribbon per width. Its geom is ggdist's
+      # own, a sibling of `GeomRibbon`, and matched no branch, so the chart
+      # fell back to a static image. Claimed only where the bands are
+      # quantiles -- a median with `qi` intervals, one series -- since the
+      # trace reads each ribbon's edges as the levels its width implies; a
+      # mean or a highest-density interval keeps the reading it had. See
+      # `lineribbon_quantile_rows()`.
+      if (geom_class == "GeomLineribbon" && percentile_band_trace_available() &&
+        !is.null(lineribbon_quantile_rows(layer, plot_object))) {
+        return("percentile_band")
+      }
+
       if (geom_class == "GeomRibbon") {
         # A zero-baseline ribbon measures a height from a baseline, which is
         # what the area processor reads; anything else is the gap between two

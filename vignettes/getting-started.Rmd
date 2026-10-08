@@ -466,8 +466,11 @@ Among them:
 
 - ggplot2: area and stacked area charts [experimental], contour plots via
   `geom_contour()` [experimental], error bars [experimental], Gantt charts
-  via `maidr_gantt()` [experimental], hexbin plots [experimental] and ROC
-  curves via `maidr_roc()` [experimental]
+  via `maidr_gantt()` [experimental], hexbin plots [experimental], ROC
+  curves via `maidr_roc()` [experimental] and precision-recall curves via
+  `maidr_pr_curve()` [experimental] and percentile bands via
+  `ggdist::stat_lineribbon()` [experimental] and directed graphs via
+  `ggraph::ggraph()` [experimental]
 - Base R: correlograms [experimental], Q-Q plots [experimental], radar charts
   via `stars()` [experimental], mosaic plots [experimental], violin plots via
   `vioplot::vioplot()` [experimental] and word clouds [experimental]
