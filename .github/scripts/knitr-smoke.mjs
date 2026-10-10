@@ -24,6 +24,10 @@
 //     browser, as on any page that is not a slide deck;
 //   * Ctrl+Shift+F pressed in a chart reaches the page, which has no deck
 //     search to keep it from: a reader may give it to a command of maidr's;
+//   * / in braille mode resets the autoplay speed, on this page and with a
+//     'pkgdown' search box added to it, which takes / from anywhere and
+//     then still neither takes the focus nor a / typed into maidr's command
+//     palette;
 //   * maidr's help, opened from a chart on this Bootstrap 3 page, whose
 //     root font size is 10px, shows its text and its title at their own
 //     sizes, neither shrunk by the page nor enlarged twice, nor sized by
@@ -530,6 +534,73 @@ check(
   sameColours(off.body, plain.body) && off.backdrop === plain.backdrop,
   `high contrast turned off in the chart leaves nothing painted (page ${off.body.join(' on ')}; chart ${off.backdrop})`,
 );
+
+// / in braille mode is maidr's "reset speed", which it reads from the
+// document. A 'pkgdown' site's search box takes / from anywhere on the
+// page; with one on it, a / typed into maidr's command palette is kept from
+// the page, and one in braille mode still resets the speed, the box taking
+// no focus.
+const said = () => page.evaluate(() => {
+  const text = document.querySelector('.maidr-knitr #maidr-text-container');
+  return text ? text.textContent.trim() : '';
+});
+const slashInBraille = async () => {
+  await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('b');
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('/');
+  await page.waitForTimeout(settle);
+  const result = await page.evaluate(() => ({
+    braille: Boolean(document.activeElement.closest('.maidr-knitr'))
+      && document.activeElement.matches('textarea[id^="maidr-braille-textarea"]'),
+  }));
+  result.text = await said();
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(settle);
+  return result;
+};
+const plainSlash = await slashInBraille();
+check(
+  plainSlash.braille && /reset speed/i.test(plainSlash.text),
+  `/ in braille mode resets the autoplay speed ("${plainSlash.text}")`,
+);
+await page.evaluate(() => {
+  const search = document.createElement('input');
+  search.id = 'search-input';
+  document.body.prepend(search);
+  window.__maidrSmokeSearchSlashes = 0;
+  document.addEventListener('keydown', event => {
+    if (event.key === '/') {
+      window.__maidrSmokeSearchSlashes += 1;
+      event.preventDefault();
+      search.focus();
+    }
+  });
+});
+const pkgdownSlash = await slashInBraille();
+check(
+  pkgdownSlash.braille && /reset speed/i.test(pkgdownSlash.text),
+  `/ in braille mode resets the autoplay speed on a page with pkgdown's search, which takes no focus ("${pkgdownSlash.text}")`,
+);
+await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('Control+Shift+P');
+await page.waitForTimeout(settle);
+const before = await page.evaluate(() => window.__maidrSmokeSearchSlashes);
+await page.keyboard.press('/');
+await page.waitForTimeout(settle);
+const palette = await page.evaluate(() => ({
+  value: document.activeElement.value,
+  inChart: Boolean(document.activeElement.closest('.maidr-knitr')),
+  slashes: window.__maidrSmokeSearchSlashes,
+}));
+check(
+  palette.inChart && palette.value === '/' && palette.slashes === before,
+  `/ typed into maidr's command palette stays there on a page with pkgdown's search (${JSON.stringify(palette)})`,
+);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(settle);
 
 check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 

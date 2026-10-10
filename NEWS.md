@@ -467,6 +467,11 @@
   reads a slide's text when it is shown, all but what is hidden, and the
   chart's drawing, which maidr names as a whole once it has loaded, was not
   hidden (#NNN).
+* `/` pressed in braille mode in such a chart resets the autoplay speed.
+  The script that keeps a 'pkgdown' site's search key from maidr's fields
+  kept it from maidr's braille field too, on every page, so the key did
+  nothing there. It now acts only on a page with pkgdown's search box, and
+  leaves maidr's braille and review fields alone (#NNN).
 
 ### ggplot2
 

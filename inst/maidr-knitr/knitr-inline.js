@@ -208,17 +208,23 @@
   }
 
   // pkgdown takes / for its search box from anywhere on the page, and stops
-  // it being typed: a / typed into maidr's own fields (the command palette,
-  // the chat) is kept from the page. maidr's handlers, below the wrapper,
-  // still see it.
+  // it being typed: on a page with pkgdown's search box, a / typed into
+  // maidr's own fields (the command palette, the chat) is kept from the
+  // page. maidr's handlers, below the wrapper, still see it. Not one typed
+  // in braille or review mode: maidr reads the keys of those fields from the
+  // document, where / resets the autoplay speed, and shimPkgdownSearch()
+  // keeps pkgdown's box from taking the focus from them.
+  var MODE_FIELD = 'textarea[id^="maidr-braille-textarea"], input[id^="maidr-review-input"]';
+
   function keepSlashFromPage(wrapper) {
     if (wrapper.__maidrKnitrSlash) return;
     wrapper.__maidrKnitrSlash = true;
     wrapper.addEventListener('keydown', function (event) {
+      if (event.key !== '/' || !document.getElementById('search-input')) return;
       var target = event.target;
       var editable = target && (target.isContentEditable ||
         (target.matches && target.matches('input, textarea, select')));
-      if (event.key === '/' && editable) event.stopPropagation();
+      if (editable && !target.matches(MODE_FIELD)) event.stopPropagation();
     });
   }
 
@@ -455,10 +461,10 @@
   }
 
   // pkgdown moves the focus to its search box on /, which maidr reads as
-  // "reset speed" on the chart itself. The box cannot take the focus while
-  // it is disabled, for the one task in which pkgdown's handler runs. (A /
-  // typed into one of maidr's fields never reaches pkgdown: see
-  // keepSlashFromPage().)
+  // "reset speed" on the chart itself and in braille mode. The box cannot
+  // take the focus while it is disabled, for the one task in which pkgdown's
+  // handler runs. (A / typed into maidr's other fields never reaches
+  // pkgdown: see keepSlashFromPage().)
   function shimPkgdownSearch(event) {
     if (event.key !== '/') return;
     var search = document.getElementById('search-input');
