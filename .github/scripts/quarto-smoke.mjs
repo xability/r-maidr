@@ -14,9 +14,10 @@
 //   * `deck.html`, a reveal.js deck, in a window large enough for reveal.js
 //     to scale its slides up: in the chart alone on its second slide, Right
 //     Arrow is maidr's and leaves the slide where it is, and Ctrl+Shift+F
-//     leaves the deck's search shut; Shift+Tab, with nothing on the slide
-//     before the chart, puts the focus on the slide, where Right Arrow moves
-//     the deck on.
+//     leaves the deck's search shut; maidr's help, opened from it, stays
+//     within the window on a slide reveal.js scales up; Shift+Tab, with
+//     nothing on the slide before the chart, puts the focus on the slide,
+//     where Right Arrow moves the deck on.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures.
 //
@@ -229,6 +230,32 @@ const open = async (name, charts, viewport) => {
     return box ? getComputedStyle(box).display : 'none';
   });
   check(search === 'none', `deck.html: Ctrl+Shift+F in a chart leaves the deck's search shut (${search})`);
+
+  await chart.focus();
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('Control+Slash');
+  await page.waitForTimeout(settle * 2);
+  const help = await page.evaluate(() => {
+    const paper = document.querySelector('#a-chart .MuiDialog-paper');
+    const slides = document.querySelector('.reveal .slides');
+    if (!paper) {
+      return null;
+    }
+    const box = paper.getBoundingClientRect();
+    return {
+      top: Math.round(box.top),
+      bottom: Math.round(box.bottom),
+      height: window.innerHeight,
+      scale: Math.round(slides.getBoundingClientRect().width / slides.offsetWidth * 100) / 100,
+    };
+  });
+  check(
+    help !== null && help.scale > 1 && help.top >= 0 && help.bottom <= help.height,
+    'deck.html: maidr\'s help stays within the window on a slide scaled up'
+      + (help ? ` (${help.top}-${help.bottom} of ${help.height}, slides scaled ${help.scale})` : ': not opened'),
+  );
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(settle);
 
   await chart.focus();
   await page.waitForTimeout(settle);

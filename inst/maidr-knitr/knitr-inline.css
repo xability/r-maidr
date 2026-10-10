@@ -139,6 +139,15 @@ html.maidr-knitr-contrast body {
   max-height: calc((100vh - 64px) / var(--maidr-knitr-zoom, 1));
 }
 
+/* reveal.js 5, which Quarto's decks use, scales its slides with a transform
+ * rather than a zoom, which makes the slides the box a fixed dialog is
+ * placed in and scales the dialog with them: a dialog as tall as the
+ * window, scaled up, ran off it. It is kept to the box it is placed in as
+ * well. */
+.reveal .maidr-knitr .MuiDialog-paper {
+  max-height: min(calc(100% - 64px), calc((100vh - 64px) / var(--maidr-knitr-zoom, 1)));
+}
+
 /* A reveal.js slide, and the slides around it, set a perspective, which
  * makes the slide the box a fixed dialog is placed in rather than the
  * window: a slide taller than the window put the dialog's buttons out of
@@ -156,6 +165,8 @@ html.maidr-knitr-contrast body {
  * for the page itself. */
 .maidr-knitr [role="dialog"] {
   text-align: start;
+  font-size: var(--maidr-knitr-rem, 1rem);
+  line-height: 1.5;
 }
 .maidr-knitr [role="dialog"] :is(h1, h2, h3, h4, h5, h6) {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
@@ -178,6 +189,22 @@ html.maidr-knitr-contrast body {
   font-size: calc(0.875 * var(--maidr-knitr-rem, 1rem)) !important;
   line-height: 1.57 !important;
   letter-spacing: 0.00714em !important;
+}
+/* The text of maidr's dialogs that has none of MUI's type, a heading among
+ * it, sized as MUI's body text; their captions; and their lists, which a
+ * slide's rules for its own lists would restyle. */
+.maidr-knitr [role="dialog"] :is(h1, h2, h3, h4, h5, h6):not([class*="MuiTypography-"]) {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+}
+.maidr-knitr [role="dialog"] .MuiTypography-caption {
+  font-size: calc(0.75 * var(--maidr-knitr-rem, 1rem)) !important;
+  line-height: 1.66 !important;
+}
+.maidr-knitr [role="dialog"] :is(ul, ol) {
+  display: block !important;
+  margin: 0 !important;
 }
 
 /* Dashboards size their boxes to the window and hide what does not fit:

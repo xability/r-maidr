@@ -456,6 +456,12 @@
   maidr's braille and review fields keep to the chart's width in a column
   narrower than they are, as on a phone, where they ran past it and the
   page scrolled sideways (#NNN).
+* maidr's dialogs, opened from such a chart on a slide of a Quarto deck,
+  stay within the window. Quarto's reveal.js 5 scales its slides up with a
+  transform on a large window, and scales the dialogs with them: maidr's
+  help ran off the top and bottom of the window. Their text, captions,
+  headings and lists keep the sizes maidr gives them whatever the deck's
+  rules for its own text (#NNN).
 
 ### ggplot2
 
