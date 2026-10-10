@@ -358,6 +358,29 @@
   with a warning, until the bundle is raised. Draw the fan over a category
   x axis: over a numeric one ECharts stacks the series on the x values, and
   draws no band.
+* `maidr_htmlwidget()` takes `hover_mode`, which it hands to a highcharter
+  or echarts4r widget's bind hook to write into the chart the adapter
+  reads, as `show()` writes it (below). A plotly widget, which the MAIDR
+  core reads by itself, takes none: `hover_mode` is an error for one, and
+  `maidr.hover_mode` is not applied to it.
+
+### Hover mode
+
+* `show()`, `save_html()`, `render_maidr()` and `maidr_htmlwidget()` take
+  `hover_mode`, the chart's starting value for the reader's Hover Mode
+  setting: `"pointermove"` (hovering moves the reader's position and its
+  highlight, maidr.js's default), `"click"` (only a click moves it) or
+  `"off"` (the pointer is ignored, and only the keyboard moves the reader).
+  It is written as `hoverMode` at the top of the chart's schema
+  (xability/maidr#1382). A reader who has changed the setting keeps theirs.
+  `NULL`, the default, writes nothing. Anything else is an error naming the
+  three.
+* `options(maidr.hover_mode = )` sets it for every chart that sets none,
+  the charts of an R Markdown or Quarto document and those printed at the
+  console included.
+* maidr.js reads it from the release after 4.14.0. The 4.14.0 bundled with
+  this release ignores it, as every older maidr.js does, so it takes effect
+  with `use_cdn = TRUE` until the bundle is raised.
 
 ## Performance
 

@@ -11,6 +11,7 @@ create_maidr_html(
   orchestrator = NULL,
   width = NULL,
   height = NULL,
+  hover_mode = NULL,
   ...
 )
 }
@@ -28,6 +29,9 @@ creation). The chart is drawn at the size it was created with, and
 
 \item{width, height}{The size to draw the chart at, in inches, or \code{NULL}
 for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}. Checked by the caller.}
+
+\item{hover_mode}{The chart's \code{hoverMode}, or \code{NULL} for
+\code{getOption("maidr.hover_mode")}; see \code{\link[=build_interactive_svg]{build_interactive_svg()}}.}
 
 \item{...}{Additional arguments passed to \code{\link[=create_fallback_html]{create_fallback_html()}}}
 }

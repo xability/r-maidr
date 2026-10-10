@@ -10,6 +10,7 @@ save_html(
   use_cdn = NULL,
   width = NULL,
   height = NULL,
+  hover_mode = NULL,
   ...
 )
 }
@@ -36,6 +37,18 @@ The MAIDR.js library is written to a \code{lib/} folder beside
 single positive number no larger than 50, or \code{NULL} (the default) for
 7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
 its default. See \strong{Chart size}.}
+
+\item{hover_mode}{How the pointer moves the reader through the chart:
+\code{"pointermove"} (hovering moves the reader's position and its
+highlight), \code{"click"} (only a click moves it) or \code{"off"}
+(the pointer is ignored, and only the keyboard moves it). It is the
+chart's starting value for the reader's Hover Mode setting: a reader
+who has changed that setting keeps theirs. \code{NULL} (the default)
+takes \code{getOption("maidr.hover_mode")}, and when that is unset
+writes nothing, so maidr.js uses the reader's setting, whose default is
+\code{"pointermove"}. Read by the maidr.js releases after 4.14.0; the
+4.14.0 bundled with this package ignores it, so it takes effect with
+\code{use_cdn = TRUE}. See \code{?"maidr-options"}.}
 
 \item{...}{Additional arguments passed to internal functions}
 }

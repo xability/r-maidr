@@ -132,6 +132,17 @@
 #'   its default. With `as_widget = TRUE` they size the chart in the widget,
 #'   not the widget, whose own CSS size is set on the widget returned:
 #'   `widget$width <- "300px"`. See \strong{Chart size}.
+#' @param hover_mode How the pointer moves the reader through the chart:
+#'   \code{"pointermove"} (hovering moves the reader's position and its
+#'   highlight), \code{"click"} (only a click moves it) or \code{"off"}
+#'   (the pointer is ignored, and only the keyboard moves it). It is the
+#'   chart's starting value for the reader's Hover Mode setting: a reader
+#'   who has changed that setting keeps theirs. \code{NULL} (the default)
+#'   takes \code{getOption("maidr.hover_mode")}, and when that is unset
+#'   writes nothing, so maidr.js uses the reader's setting, whose default is
+#'   \code{"pointermove"}. Read by the maidr.js releases after 4.14.0; the
+#'   4.14.0 bundled with this package ignores it, so it takes effect with
+#'   \code{use_cdn = TRUE}. See \code{?"maidr-options"}.
 #' @param ... Additional arguments passed to internal functions
 #' @return Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
 #' @examples
@@ -161,6 +172,11 @@
 #' }
 #' }
 #'
+#' # Hovering does not move the reader; a click does
+#' \donttest{
+#' maidr::show(p, hover_mode = "click")
+#' }
+#'
 #' # Base R example (requires interactive session for function patching)
 #' if (interactive()) {
 #'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
@@ -170,7 +186,7 @@
 #' @importFrom ggplotify as.grob
 #' @export
 show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
-                 width = NULL, height = NULL, ...) {
+                 width = NULL, height = NULL, hover_mode = NULL, ...) {
   # Attaching maidr masks methods::show(). An object that is not a ggplot2
   # plot -- an S4 object, a vector -- is that generic's to print, so it is
   # handed over rather than failed on (#320). Decided on the object rather
@@ -185,7 +201,11 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
       # NULL is the bundled copy here, as everywhere; anything else goes on to
       # maidr_htmlwidget(), which checks it.
       display_html_webr(
-        maidr_htmlwidget(plot, use_cdn = if (is.null(use_cdn)) FALSE else use_cdn)
+        maidr_htmlwidget(
+          plot,
+          use_cdn = if (is.null(use_cdn)) FALSE else use_cdn,
+          hover_mode = hover_mode
+        )
       )
       return(invisible(NULL))
     }
@@ -209,6 +229,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
   }
   check_chart_size(width, "width")
   check_chart_size(height, "height")
+  check_hover_mode(hover_mode)
 
   device_id <- grDevices::dev.cur()
   is_base_r <- is.null(plot)
@@ -275,6 +296,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
       use_cdn = use_cdn,
       fig_width = width,
       fig_height = height,
+      hover_mode = hover_mode,
       ...
     )
     if (is_base_r) {
@@ -291,6 +313,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
       shiny = TRUE,
       width = width,
       height = height,
+      hover_mode = hover_mode,
       ...
     )
     if (is_base_r) {
@@ -307,6 +330,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
     plot,
     use_cdn = use_cdn,
     orchestrator = orchestrator,
+    hover_mode = hover_mode,
     ...
   )
 
@@ -344,11 +368,13 @@ is_maidr_plot_object <- function(x) {
 #'   `width` and `height` are not read.
 #' @param width,height The size to draw the chart at, in inches, or `NULL`
 #'   for maidr's own; see [chart_canvas_size()]. Checked by the caller.
+#' @param hover_mode The chart's `hoverMode`, or `NULL` for
+#'   `getOption("maidr.hover_mode")`; see [build_interactive_svg()].
 #' @param ... Additional arguments passed to [create_fallback_html()]
 #' @return An htmltools HTML document object or SVG content
 #' @keywords internal
 create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator = NULL,
-                              width = NULL, height = NULL, ...) {
+                              width = NULL, height = NULL, hover_mode = NULL, ...) {
   # Use provided orchestrator or create a new one
   if (is.null(orchestrator)) {
     registry <- get_global_registry()
@@ -394,7 +420,7 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   warn_panel_fallback(orchestrator)
 
-  svg_content <- build_interactive_svg(orchestrator)
+  svg_content <- build_interactive_svg(orchestrator, hover_mode = hover_mode)
 
   # `build_interactive_svg()` answers NULL for a plot that could not be built,
   # which is the same outcome as the gate above reaching a chart it cannot
@@ -466,16 +492,27 @@ fallback_title <- function(orchestrator) {
 #' picture of its own catches that and keeps the failure: a knitted chart is
 #' knitr's figure, and the document's build says why.
 #'
+#' The chart's `hoverMode` is written into its schema here, the one place
+#' every render path -- [show()], [save_html()], the widget, Shiny, knitr
+#' and the console print methods -- builds a chart through. It is resolved,
+#' and an option set to something else refused, before the build, so the
+#' error is not taken for a chart that could not be built.
+#'
 #' @param orchestrator The orchestrator for the plot being rendered.
+#' @param hover_mode The chart's `hoverMode`: one of `"pointermove"`,
+#'   `"click"` or `"off"`, or `NULL` for `getOption("maidr.hover_mode")`,
+#'   and for none when that is unset.
 #' @return The SVG content, drawn at the orchestrator's `canvas_size()`, or
 #'   `NULL` when the build failed and fallback is enabled.
 #' @keywords internal
-build_interactive_svg <- function(orchestrator) {
+build_interactive_svg <- function(orchestrator, hover_mode = NULL) {
+  hover_mode <- resolve_hover_mode(hover_mode)
+
   build <- function() {
     gt <- orchestrator$get_gtable()
 
     # All plot types now use the unified orchestrator data generation
-    maidr_data <- orchestrator$generate_maidr_data()
+    maidr_data <- with_hover_mode(orchestrator$generate_maidr_data(), hover_mode)
 
     size <- orchestrator$canvas_size()
     create_enhanced_svg(gt, maidr_data, width = size[["width"]], height = size[["height"]])
@@ -564,6 +601,7 @@ warn_panel_fallback <- function(orchestrator) {
 #'   single positive number no larger than 50, or `NULL` (the default) for
 #'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
 #'   its default. See \strong{Chart size}.
+#' @inheritParams show
 #' @inheritSection show Base R charts
 #' @inheritSection show Chart size
 #' @param ... Additional arguments passed to internal functions
@@ -603,9 +641,10 @@ warn_panel_fallback <- function(orchestrator) {
 #' }
 #' @export
 save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL,
-                      width = NULL, height = NULL, ...) {
+                      width = NULL, height = NULL, hover_mode = NULL, ...) {
   check_chart_size(width, "width")
   check_chart_size(height, "height")
+  check_hover_mode(hover_mode)
 
   device_id <- grDevices::dev.cur()
   is_base_r <- is.null(plot)
@@ -619,6 +658,7 @@ save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL,
     use_cdn = use_cdn,
     width = width,
     height = height,
+    hover_mode = hover_mode,
     ...
   )
 

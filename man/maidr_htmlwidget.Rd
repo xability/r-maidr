@@ -4,7 +4,12 @@
 \alias{maidr_htmlwidget}
 \title{Make a plotly, highcharter or echarts4r htmlwidget accessible}
 \usage{
-maidr_htmlwidget(widget, use_cdn = FALSE, percentile_bands = NULL)
+maidr_htmlwidget(
+  widget,
+  use_cdn = FALSE,
+  percentile_bands = NULL,
+  hover_mode = NULL
+)
 }
 \arguments{
 \item{widget}{An htmlwidget created by plotly, highcharter or echarts4r.}
@@ -31,6 +36,16 @@ the quantiles of its lower and upper edges, as fractions.
 name, in place of the ones read from the chart.
 }
 \code{NULL} (default) declares none.}
+
+\item{hover_mode}{highcharter and echarts4r only. How the pointer moves
+the reader through the chart: \code{"pointermove"}, \code{"click"} or
+\code{"off"}, as in \code{\link{show}()}, written into the chart MAIDR
+reads once it has been drawn. \code{NULL} (default) takes
+\code{getOption("maidr.hover_mode")}, and when that is unset writes
+nothing, so maidr.js uses the reader's own setting. A plotly chart is
+read by the MAIDR core itself, which takes no hover mode from R: an
+explicit \code{hover_mode} is refused for one, and the option is not
+applied to it.}
 }
 \value{
 The widget, with MAIDR attached. Print it, return it from a

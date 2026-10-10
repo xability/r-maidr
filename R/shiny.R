@@ -47,6 +47,11 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #'   on the page, which \code{\link{maidr_output}()}'s \code{width} and
 #'   \code{height} set: a chart wider than its output shrinks to fit it.
 #'   Nothing sizes the chart to its output; the size is the one given here.
+#' @param hover_mode How the pointer moves the reader through the chart, as
+#'   in \code{\link{show}()}: \code{"pointermove"}, \code{"click"} or
+#'   \code{"off"}, or \code{NULL} (the default) for
+#'   \code{getOption("maidr.hover_mode")}, and for the reader's own setting
+#'   when that is unset.
 #' @return A Shiny render function for use in server
 #' @examples
 #' if (interactive()) {
@@ -67,13 +72,23 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #'       fig_width = 10,
 #'       fig_height = 4
 #'     )
+#'
+#'     # Only a click moves the reader through this one
+#'     output$quiet <- render_maidr(
+#'       {
+#'         ggplot(mtcars, aes(x = wt, y = mpg)) +
+#'           geom_point()
+#'       },
+#'       hover_mode = "click"
+#'     )
 #'   }
 #' }
 #' @export
 render_maidr <- function(expr, env = parent.frame(), quoted = FALSE,
-                         fig_width = NULL, fig_height = NULL) {
+                         fig_width = NULL, fig_height = NULL, hover_mode = NULL) {
   check_chart_size(fig_width, "fig_width")
   check_chart_size(fig_height, "fig_height")
+  check_hover_mode(hover_mode)
 
   if (!quoted) {
     quoted <- TRUE
@@ -111,11 +126,17 @@ render_maidr <- function(expr, env = parent.frame(), quoted = FALSE,
     }
 
     if (is_maidr_plot_object(plot_result)) {
-      maidr_widget(plot_result, fig_width = fig_width, fig_height = fig_height)
+      maidr_widget(
+        plot_result,
+        fig_width = fig_width, fig_height = fig_height, hover_mode = hover_mode
+      )
     } else if (drew_something && is_patching_active()) {
       # A Base R call that drew to the recorded device; its return value is
       # irrelevant, so hand over to Base R auto-detection
-      maidr_widget(NULL, fig_width = fig_width, fig_height = fig_height)
+      maidr_widget(
+        NULL,
+        fig_width = fig_width, fig_height = fig_height, hover_mode = hover_mode
+      )
     } else if (is.null(plot_result)) {
       # Shiny's convention: an empty reactive renders nothing
       NULL

@@ -12,6 +12,7 @@ maidr_widget(
   element_id = NULL,
   fig_width = NULL,
   fig_height = NULL,
+  hover_mode = NULL,
   ...
 )
 }
@@ -43,6 +44,10 @@ an unset \code{use_cdn} loads from the CDN on a machine that is online.}
 positive number no larger than 50, or \code{NULL} (the default) for
 7 x 5 in, 12 x 6 in for a candlestick chart. Not the widget's size, which \code{width} and
 \code{height} set; a chart wider than the widget shrinks to fit it.}
+
+\item{hover_mode}{The chart's starting hover mode, as in \code{show()}:
+\code{"pointermove"}, \code{"click"} or \code{"off"}, or \code{NULL}
+(the default) for \code{getOption("maidr.hover_mode")}.}
 
 \item{...}{Additional arguments passed to create_maidr_html()}
 }

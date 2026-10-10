@@ -82,6 +82,21 @@
 #'     too. Falls back to the environment variable
 #'     \code{MAIDR_LOCALE_BASE_URL}. Default: unset, which declares the packs
 #'     of the bundled version on jsDelivr.}
+#'   \item{\code{maidr.hover_mode}}{Character. The hover mode a chart starts
+#'     with when it is not given one: \code{"pointermove"} (hovering moves
+#'     the reader's position and its highlight), \code{"click"} (only a
+#'     click moves it) or \code{"off"} (the pointer is ignored, and only the
+#'     keyboard moves it). It is the \code{hover_mode} of every chart whose
+#'     \code{show()}, \code{save_html()}, \code{render_maidr()} or
+#'     \code{maidr_htmlwidget()} call sets none, and of the charts an R
+#'     Markdown or Quarto document draws and those printed at the console;
+#'     a plotly widget, which the MAIDR core reads by itself, takes none.
+#'     It is only where the reader starts: a reader who has changed the
+#'     Hover Mode setting keeps theirs. Read by the maidr.js releases after
+#'     4.14.0; the 4.14.0 bundled with this package ignores it. Anything
+#'     else is an error when a chart is drawn. Default: unset, which writes
+#'     nothing, so maidr.js uses the reader's setting, \code{"pointermove"}
+#'     unless they changed it.}
 #' }
 #'
 #' @section Setting Options:
@@ -111,6 +126,9 @@
 #' # Serve MAIDR's language packs yourself, or never fetch one (English only)
 #' options(maidr.locale_base_url = "https://example.org/maidr/")
 #' options(maidr.locale_base_url = FALSE)
+#'
+#' # Move the reader through a chart only on a click, not on hover
+#' options(maidr.hover_mode = "click")
 #' }
 #'
 #' @section DotPad SDK and offline documents:

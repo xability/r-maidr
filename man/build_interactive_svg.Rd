@@ -4,10 +4,14 @@
 \alias{build_interactive_svg}
 \title{Build the Interactive SVG, or Answer NULL When It Cannot Be Built}
 \usage{
-build_interactive_svg(orchestrator)
+build_interactive_svg(orchestrator, hover_mode = NULL)
 }
 \arguments{
 \item{orchestrator}{The orchestrator for the plot being rendered.}
+
+\item{hover_mode}{The chart's \code{hoverMode}: one of \code{"pointermove"},
+\code{"click"} or \code{"off"}, or \code{NULL} for \code{getOption("maidr.hover_mode")},
+and for none when that is unset.}
 }
 \value{
 The SVG content, drawn at the orchestrator's \code{canvas_size()}, or
@@ -47,5 +51,11 @@ Before the picture is drawn, the failure is signalled as a condition of
 class \code{maidr_build_failure}, holding it as \code{error}. A caller that shows a
 picture of its own catches that and keeps the failure: a knitted chart is
 knitr's figure, and the document's build says why.
+
+The chart's \code{hoverMode} is written into its schema here, the one place
+every render path -- \code{\link[=show]{show()}}, \code{\link[=save_html]{save_html()}}, the widget, Shiny, knitr
+and the console print methods -- builds a chart through. It is resolved,
+and an option set to something else refused, before the build, so the
+error is not taken for a chart that could not be built.
 }
 \keyword{internal}
