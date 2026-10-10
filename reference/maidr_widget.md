@@ -16,6 +16,7 @@ maidr_widget(
   element_id = NULL,
   fig_width = NULL,
   fig_height = NULL,
+  hover_mode = NULL,
   ...
 )
 ```
@@ -71,6 +72,13 @@ maidr_widget(
   in, 12 x 6 in for a candlestick chart. Not the widget's size, which
   `width` and `height` set; a chart wider than the widget shrinks to fit
   it.
+
+- hover_mode:
+
+  The chart's starting hover mode, as in
+  [`show()`](https://r.maidr.ai/reference/show.md): `"pointermove"`,
+  `"click"` or `"off"`, or `NULL` (the default) for
+  `getOption("maidr.hover_mode")`.
 
 - ...:
 

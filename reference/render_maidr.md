@@ -12,7 +12,8 @@ render_maidr(
   env = parent.frame(),
   quoted = FALSE,
   fig_width = NULL,
-  fig_height = NULL
+  fig_height = NULL,
+  hover_mode = NULL
 )
 ```
 
@@ -49,6 +50,14 @@ render_maidr(
   it. Nothing sizes the chart to its output; the size is the one given
   here.
 
+- hover_mode:
+
+  How the pointer moves the reader through the chart, as in
+  [`show()`](https://r.maidr.ai/reference/show.md): `"pointermove"`,
+  `"click"` or `"off"`, or `NULL` (the default) for
+  `getOption("maidr.hover_mode")`, and for the reader's own setting when
+  that is unset.
+
 ## Value
 
 A Shiny render function for use in server
@@ -73,6 +82,15 @@ if (interactive()) {
       },
       fig_width = 10,
       fig_height = 4
+    )
+
+    # Only a click moves the reader through this one
+    output$quiet <- render_maidr(
+      {
+        ggplot(mtcars, aes(x = wt, y = mpg)) +
+          geom_point()
+      },
+      hover_mode = "click"
     )
   }
 }

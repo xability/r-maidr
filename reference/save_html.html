@@ -32,7 +32,7 @@ accessibility features.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-06">
+<meta name="DC.date" content="2026-10-10">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -98,6 +98,7 @@ accessibility features.</p>
 <span>  use_cdn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  hover_mode <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -133,6 +134,20 @@ The MAIDR.js library is written to a <code>lib/</code> folder beside
 single positive number no larger than 50, or <code>NULL</code> (the default) for
 7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
 its default. See <strong>Chart size</strong>.</p></dd>
+
+
+<dt id="arg-hover-mode">hover_mode<a class="anchor" aria-label="anchor" href="#arg-hover-mode"></a></dt>
+<dd><p>How the pointer moves the reader through the chart:
+<code>"pointermove"</code> (hovering moves the reader's position and its
+highlight), <code>"click"</code> (only a click moves it) or <code>"off"</code>
+(the pointer is ignored, and only the keyboard moves it). It is the
+chart's starting value for the reader's Hover Mode setting: a reader
+who has changed that setting keeps theirs. <code>NULL</code> (the default)
+takes <code>getOption("maidr.hover_mode")</code>, and when that is unset
+writes nothing, so maidr.js uses the reader's setting, whose default is
+<code>"pointermove"</code>. Read by the maidr.js releases after 4.14.0; the
+4.14.0 bundled with this package ignores it, so it takes effect with
+<code>use_cdn = TRUE</code>. See <code><a href="maidr-options.html">?"maidr-options"</a></code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

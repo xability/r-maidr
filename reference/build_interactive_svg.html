@@ -54,7 +54,7 @@ throw.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-05">
+<meta name="DC.date" content="2026-10-10">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -121,7 +121,7 @@ throw.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">build_interactive_svg</span><span class="op">(</span><span class="va">orchestrator</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">build_interactive_svg</span><span class="op">(</span><span class="va">orchestrator</span>, hover_mode <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -130,6 +130,12 @@ throw.</p>
 
 <dl><dt id="arg-orchestrator">orchestrator<a class="anchor" aria-label="anchor" href="#arg-orchestrator"></a></dt>
 <dd><p>The orchestrator for the plot being rendered.</p></dd>
+
+
+<dt id="arg-hover-mode">hover_mode<a class="anchor" aria-label="anchor" href="#arg-hover-mode"></a></dt>
+<dd><p>The chart's <code>hoverMode</code>: one of <code>"pointermove"</code>,
+<code>"click"</code> or <code>"off"</code>, or <code>NULL</code> for <code>getOption("maidr.hover_mode")</code>,
+and for none when that is unset.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -157,6 +163,11 @@ the same size and would fail the same way.</p>
 class <code>maidr_build_failure</code>, holding it as <code>error</code>. A caller that shows a
 picture of its own catches that and keeps the failure: a knitted chart is
 knitr's figure, and the document's build says why.</p>
+<p>The chart's <code>hoverMode</code> is written into its schema here, the one place
+every render path – <code><a href="show.html">show()</a></code>, <code><a href="save_html.html">save_html()</a></code>, the widget, Shiny, knitr
+and the console print methods – builds a chart through. It is resolved,
+and an option set to something else refused, before the build, so the
+error is not taken for a chart that could not be built.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

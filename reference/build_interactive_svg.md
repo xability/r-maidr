@@ -15,7 +15,7 @@ svglite export draws both, but an export can still throw.
 ## Usage
 
 ``` r
-build_interactive_svg(orchestrator)
+build_interactive_svg(orchestrator, hover_mode = NULL)
 ```
 
 ## Arguments
@@ -23,6 +23,12 @@ build_interactive_svg(orchestrator)
 - orchestrator:
 
   The orchestrator for the plot being rendered.
+
+- hover_mode:
+
+  The chart's `hoverMode`: one of `"pointermove"`, `"click"` or `"off"`,
+  or `NULL` for `getOption("maidr.hover_mode")`, and for none when that
+  is unset.
 
 ## Value
 
@@ -56,3 +62,10 @@ Before the picture is drawn, the failure is signalled as a condition of
 class `maidr_build_failure`, holding it as `error`. A caller that shows
 a picture of its own catches that and keeps the failure: a knitted chart
 is knitr's figure, and the document's build says why.
+
+The chart's `hoverMode` is written into its schema here, the one place
+every render path – [`show()`](https://r.maidr.ai/reference/show.md),
+[`save_html()`](https://r.maidr.ai/reference/save_html.md), the widget,
+Shiny, knitr and the console print methods – builds a chart through. It
+is resolved, and an option set to something else refused, before the
+build, so the error is not taken for a chart that could not be built.

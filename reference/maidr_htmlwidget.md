@@ -9,7 +9,12 @@ drawn in the browser; nothing about it is recomputed in R.
 ## Usage
 
 ``` r
-maidr_htmlwidget(widget, use_cdn = FALSE, percentile_bands = NULL)
+maidr_htmlwidget(
+  widget,
+  use_cdn = FALSE,
+  percentile_bands = NULL,
+  hover_mode = NULL
+)
 ```
 
 ## Arguments
@@ -46,6 +51,18 @@ maidr_htmlwidget(widget, use_cdn = FALSE, percentile_bands = NULL)
     the ones read from the chart.
 
   `NULL` (default) declares none.
+
+- hover_mode:
+
+  highcharter and echarts4r only. How the pointer moves the reader
+  through the chart: `"pointermove"`, `"click"` or `"off"`, as in
+  [`show()`](https://r.maidr.ai/reference/show.md), written into the
+  chart MAIDR reads once it has been drawn. `NULL` (default) takes
+  `getOption("maidr.hover_mode")`, and when that is unset writes
+  nothing, so maidr.js uses the reader's own setting. A plotly chart is
+  read by the MAIDR core itself, which takes no hover mode from R: an
+  explicit `hover_mode` is refused for one, and the option is not
+  applied to it.
 
 ## Value
 

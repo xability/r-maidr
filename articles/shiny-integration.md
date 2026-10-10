@@ -355,6 +355,20 @@ output$wide_plot <- render_maidr(
 )
 ```
 
+A chart can also start with another hover mode than following the
+pointer, for a page where the pointer passes over it on the way to other
+inputs: `hover_mode = "click"` moves the reader only where they click,
+and `"off"` leaves the pointer out of it. Readers can change it in the
+settings.
+
+``` r
+
+output$quiet_plot <- render_maidr(
+  ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point(),
+  hover_mode = "click"
+)
+```
+
 ### 2. Add Descriptive Context
 
 ``` r

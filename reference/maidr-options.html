@@ -29,7 +29,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-03">
+<meta name="DC.date" content="2026-10-10">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -193,6 +193,23 @@ too. Falls back to the environment variable
 <code>MAIDR_LOCALE_BASE_URL</code>. Default: unset, which declares the packs
 of the bundled version on jsDelivr.</p></dd>
 
+<dt><code>maidr.hover_mode</code></dt>
+<dd><p>Character. The hover mode a chart starts
+with when it is not given one: <code>"pointermove"</code> (hovering moves
+the reader's position and its highlight), <code>"click"</code> (only a
+click moves it) or <code>"off"</code> (the pointer is ignored, and only the
+keyboard moves it). It is the <code>hover_mode</code> of every chart whose
+<code><a href="show.html">show()</a></code>, <code><a href="save_html.html">save_html()</a></code>, <code><a href="render_maidr.html">render_maidr()</a></code> or
+<code><a href="maidr_htmlwidget.html">maidr_htmlwidget()</a></code> call sets none, and of the charts an R
+Markdown or Quarto document draws and those printed at the console;
+a plotly widget, which the MAIDR core reads by itself, takes none.
+It is only where the reader starts: a reader who has changed the
+Hover Mode setting keeps theirs. Read by the maidr.js releases after
+4.14.0; the 4.14.0 bundled with this package ignores it. Anything
+else is an error when a chart is drawn. Default: unset, which writes
+nothing, so maidr.js uses the reader's setting, <code>"pointermove"</code>
+unless they changed it.</p></dd>
+
 
 </dl></div>
     <div class="section level2">
@@ -223,7 +240,10 @@ of the bundled version on jsDelivr.</p></dd>
 <span></span>
 <span><span class="co"># Serve MAIDR's language packs yourself, or never fetch one (English only)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="st">"https://example.org/maidr/"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Move the reader through a chart only on a click, not on hover</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.hover_mode <span class="op">=</span> <span class="st">"click"</span><span class="op">)</span></span></code></pre></div>
 
     </div>
     <div class="section level2">

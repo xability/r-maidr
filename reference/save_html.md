@@ -12,6 +12,7 @@ save_html(
   use_cdn = NULL,
   width = NULL,
   height = NULL,
+  hover_mode = NULL,
   ...
 )
 ```
@@ -48,6 +49,21 @@ save_html(
   number no larger than 50, or `NULL` (the default) for 7 x 5 in, 12 x 6
   in for a candlestick chart. A side not given takes its default. See
   **Chart size**.
+
+- hover_mode:
+
+  How the pointer moves the reader through the chart: `"pointermove"`
+  (hovering moves the reader's position and its highlight), `"click"`
+  (only a click moves it) or `"off"` (the pointer is ignored, and only
+  the keyboard moves it). It is the chart's starting value for the
+  reader's Hover Mode setting: a reader who has changed that setting
+  keeps theirs. `NULL` (the default) takes
+  `getOption("maidr.hover_mode")`, and when that is unset writes
+  nothing, so maidr.js uses the reader's setting, whose default is
+  `"pointermove"`. Read by the maidr.js releases after 4.14.0; the
+  4.14.0 bundled with this package ignores it, so it takes effect with
+  `use_cdn = TRUE`. See
+  [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md).
 
 - ...:
 

@@ -41,7 +41,7 @@ drawn in the browser; nothing about it is recomputed in R.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-08">
+<meta name="DC.date" content="2026-10-10">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -104,7 +104,12 @@ drawn in the browser; nothing about it is recomputed in R.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maidr_htmlwidget</span><span class="op">(</span><span class="va">widget</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span>, percentile_bands <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maidr_htmlwidget</span><span class="op">(</span></span>
+<span>  <span class="va">widget</span>,</span>
+<span>  use_cdn <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  percentile_bands <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  hover_mode <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -135,6 +140,18 @@ the quantiles of its lower and upper edges, as fractions.</p></li>
 <li><p><code>title</code>, <code>name</code> (optional): the layer's title and
 name, in place of the ones read from the chart.</p></li>
 </ul><p><code>NULL</code> (default) declares none.</p></dd>
+
+
+<dt id="arg-hover-mode">hover_mode<a class="anchor" aria-label="anchor" href="#arg-hover-mode"></a></dt>
+<dd><p>highcharter and echarts4r only. How the pointer moves
+the reader through the chart: <code>"pointermove"</code>, <code>"click"</code> or
+<code>"off"</code>, as in <code><a href="show.html">show()</a></code>, written into the chart MAIDR
+reads once it has been drawn. <code>NULL</code> (default) takes
+<code>getOption("maidr.hover_mode")</code>, and when that is unset writes
+nothing, so maidr.js uses the reader's own setting. A plotly chart is
+read by the MAIDR core itself, which takes no hover mode from R: an
+explicit <code>hover_mode</code> is refused for one, and the option is not
+applied to it.</p></dd>
 
 </dl></div>
     <div class="section level2">

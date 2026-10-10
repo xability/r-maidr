@@ -12,6 +12,7 @@ create_maidr_html(
   orchestrator = NULL,
   width = NULL,
   height = NULL,
+  hover_mode = NULL,
   ...
 )
 ```
@@ -44,6 +45,12 @@ create_maidr_html(
   see
   [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md).
   Checked by the caller.
+
+- hover_mode:
+
+  The chart's `hoverMode`, or `NULL` for
+  `getOption("maidr.hover_mode")`; see
+  [`build_interactive_svg()`](https://r.maidr.ai/reference/build_interactive_svg.md).
 
 - ...:
 

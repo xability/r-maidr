@@ -415,6 +415,28 @@ Every other shortcut, including autoplay, jumping to the ends, the
 command palette, settings and the AI chat, is on the [MAIDR controls
 reference](https://maidr.ai/docs/CONTROLS.html).
 
+### Pointer and Hover Mode
+
+Moving the pointer over a chart moves the reader’s position with it, and
+the highlight, sound and announcement follow. A chart can start with
+another hover mode: `"click"` moves the reader only where they click,
+and `"off"` leaves the pointer out of it, so only the keyboard moves
+them. Readers can change it in the settings, and a reader who has keeps
+theirs.
+
+``` r
+
+show(p, hover_mode = "click")
+save_html(p, "plot.html", hover_mode = "off")
+
+# The default for every chart that sets none, documents included
+options(maidr.hover_mode = "click")
+```
+
+maidr.js reads the hover mode from the release after 4.14.0; the 4.14.0
+bundled with this package ignores it, so it takes effect with
+`use_cdn = TRUE`.
+
 ### Screen Reader Announcements
 
 MAIDR plots include:

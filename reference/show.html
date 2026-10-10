@@ -32,7 +32,7 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-06">
+<meta name="DC.date" content="2026-10-10">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -99,6 +99,7 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 <span>  as_widget <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  hover_mode <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -142,6 +143,20 @@ single positive number no larger than 50, or <code>NULL</code> (the default) for
 its default. With <code>as_widget = TRUE</code> they size the chart in the widget,
 not the widget, whose own CSS size is set on the widget returned:
 <code>widget$width &lt;- "300px"</code>. See <strong>Chart size</strong>.</p></dd>
+
+
+<dt id="arg-hover-mode">hover_mode<a class="anchor" aria-label="anchor" href="#arg-hover-mode"></a></dt>
+<dd><p>How the pointer moves the reader through the chart:
+<code>"pointermove"</code> (hovering moves the reader's position and its
+highlight), <code>"click"</code> (only a click moves it) or <code>"off"</code>
+(the pointer is ignored, and only the keyboard moves it). It is the
+chart's starting value for the reader's Hover Mode setting: a reader
+who has changed that setting keeps theirs. <code>NULL</code> (the default)
+takes <code>getOption("maidr.hover_mode")</code>, and when that is unset
+writes nothing, so maidr.js uses the reader's setting, whose default is
+<code>"pointermove"</code>. Read by the maidr.js releases after 4.14.0; the
+4.14.0 bundled with this package ignores it, so it takes effect with
+<code>use_cdn = TRUE</code>. See <code><a href="maidr-options.html">?"maidr-options"</a></code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -290,6 +305,11 @@ Base R chart maidr cannot read is held to its size in the same way.</p>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"lattice"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu">maidr</span><span class="fu">::</span><span class="fu">show</span><span class="op">(</span><span class="fu">lattice</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">wt</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Hovering does not move the reader; a click does</span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="fu">maidr</span><span class="fu">::</span><span class="fu">show</span><span class="op">(</span><span class="va">p</span>, hover_mode <span class="op">=</span> <span class="st">"click"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Base R example (requires interactive session for function patching)</span></span></span>

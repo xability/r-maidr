@@ -36,7 +36,7 @@ Use maidr_output() and render_maidr() for Shiny integration instead.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-04">
+<meta name="DC.date" content="2026-10-10">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -105,6 +105,7 @@ Use maidr_output() and render_maidr() for Shiny integration instead.</p>
 <span>  element_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fig_width <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fig_height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  hover_mode <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -148,6 +149,12 @@ an unset <code>use_cdn</code> loads from the CDN on a machine that is online.</p
 positive number no larger than 50, or <code>NULL</code> (the default) for
 7 x 5 in, 12 x 6 in for a candlestick chart. Not the widget's size, which <code>width</code> and
 <code>height</code> set; a chart wider than the widget shrinks to fit it.</p></dd>
+
+
+<dt id="arg-hover-mode">hover_mode<a class="anchor" aria-label="anchor" href="#arg-hover-mode"></a></dt>
+<dd><p>The chart's starting hover mode, as in <code><a href="show.html">show()</a></code>:
+<code>"pointermove"</code>, <code>"click"</code> or <code>"off"</code>, or <code>NULL</code>
+(the default) for <code>getOption("maidr.hover_mode")</code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
