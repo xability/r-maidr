@@ -111,7 +111,7 @@ jobs:
   # runs on the pull request that changes a processor and on the dispatch a
   # bundle refresh sends. The same browser then uses the charts of a knitted
   # R Markdown page, which shows them inline and loads maidr.js once for all
-  # of them.
+  # of them, and of the pages Quarto renders.
   highlight-smoke:
     runs-on: ubuntu-latest
     name: highlight in a browser
@@ -172,3 +172,15 @@ jobs:
 
       - name: Use every chart of the page from the keyboard
         run: node .github/scripts/knitr-smoke.mjs knitr
+
+      # Quarto puts the same charts in the cards of a dashboard, on the
+      # slides of a reveal.js deck and in figures of its own, each with keys
+      # and a layout of its own. The test-local job renders Quarto documents
+      # too, but has no browser to use them in.
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render Quarto pages of inline charts
+        run: Rscript .github/scripts/quarto-smoke.R quarto
+
+      - name: Use the charts of every Quarto page from the keyboard
+        run: node .github/scripts/quarto-smoke.mjs quarto

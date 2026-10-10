@@ -1479,6 +1479,70 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   testthat::expect_match(html, '<img src="charts_files/figure-html/[^"]+\\.svg"')
 })
 
+test_that("a Quarto dashboard keeps every chart in a card", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("withr")
+  quarto <- Sys.which("quarto")
+  testthat::skip_if(!nzchar(quarto), "Quarto is not installed")
+  withr::local_envvar(QUARTO_R = R.home("bin"))
+  dir <- withr::local_tempdir("maidr-qdash-")
+  qmd <- file.path(dir, "dash.qmd")
+  writeLines(c(
+    "---", "title: dashboard", "format: dashboard", "---",
+    "```{r}",
+    "#| include: false",
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    maidr_loader(),
+    "library(ggplot2)",
+    "```",
+    "",
+    "## Row",
+    "",
+    "```{r}",
+    "#| title: Cylinders",
+    "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+    "```",
+    "",
+    "```{r}",
+    "#| title: Gears",
+    "barplot(table(mtcars$gear))",
+    "```"
+  ), qmd)
+
+  out <- suppressWarnings(system2(
+    quarto, c("render", shQuote(qmd), "--quiet"),
+    stdout = TRUE, stderr = TRUE, timeout = 300
+  ))
+  status <- attr(out, "status")
+  log <- paste(out, collapse = "\n")
+  testthat::expect_identical(if (is.null(status)) 0L else status, 0L, info = log)
+  page <- file.path(dir, "dash.html")
+  testthat::skip_if_not(file.exists(page))
+  doc <- xml2::read_html(page)
+
+  # Quarto's dashboard filter lifts out of its card a cell output it takes
+  # for a bslib component, by the text 'bslib-' in it. knitr-inline.js,
+  # which names bslib's cards, is a dependency in the page's head, so no
+  # cell carries it, and every chart stays in a card.
+  has_class <- function(class) {
+    sprintf("contains(concat(' ', normalize-space(@class), ' '), ' %s ')", class)
+  }
+  charts <- xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("maidr-knitr")))
+  testthat::expect_length(charts, 2L)
+  for (chart in charts) {
+    testthat::expect_gt(
+      length(xml2::xml_find_all(chart, sprintf("ancestor::div[%s]", has_class("bslib-card")))),
+      0L
+    )
+  }
+  testthat::expect_length(
+    xml2::xml_find_all(doc, "//head/script[contains(@src, 'knitr-inline.js')]"),
+    1L
+  )
+})
+
 test_that("Quarto renders an EPUB with maidr loaded", {
   testthat::skip_on_cran()
   skip_if_no_render()

@@ -436,6 +436,12 @@
   page, which maidr binds in the page itself, is painted in place of the
   page as well, and the page keeps its colours when the reader tabs from
   one kind of chart to the other (#NNN).
+* Escape pressed in such a chart in a card of a Quarto dashboard shown full
+  screen closes maidr's own modes, its help and its braille and review
+  modes among them, and leaves the card full screen. The card listens for
+  Escape on the whole page, so the key that closed maidr's help also took
+  the card out of full screen. Pressed anywhere else, Escape still does
+  (#NNN).
 
 ### ggplot2
 

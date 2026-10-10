@@ -463,6 +463,39 @@
     setTimeout(function () { search.disabled = false; }, 0);
   }
 
+  // A bslib card shown full screen (a Quarto dashboard's) leaves it on
+  // Escape pressed anywhere, through a listener on the document that it
+  // keeps on the card's instance. The one for a card around a chart ignores
+  // the keys pressed in the chart, where Escape closes maidr's own modes.
+  // (This file reaches a page as a dependency in its <head>, never as a
+  // cell's output, so Quarto's dashboard filter, which lifts outputs that
+  // hold 'bslib-' out of their cards, never reads it.)
+  function shimCard(card) {
+    var Card = window.bslib && window.bslib.Card;
+    var instance = Card && typeof Card.getInstance === 'function' && Card.getInstance(card);
+    if (!instance || instance.__maidrKnitr || typeof instance._exitFullScreenOnEscape !== 'function') {
+      return;
+    }
+    instance.__maidrKnitr = true;
+    var previous = instance._exitFullScreenOnEscape;
+    var guarded = function (event) {
+      if (inChart(event.target)) return;
+      return previous.call(instance, event);
+    };
+    if (card.getAttribute('data-full-screen') === 'true') {
+      document.removeEventListener('keydown', previous, false);
+      document.addEventListener('keydown', guarded, false);
+    }
+    instance._exitFullScreenOnEscape = guarded;
+  }
+
+  function shimCards(node) {
+    for (var card = node.closest('.bslib-card'); card;
+      card = card.parentElement && card.parentElement.closest('.bslib-card')) {
+      shimCard(card);
+    }
+  }
+
   function shimHosts() {
     shimIoslides();
     shimReveal();
@@ -514,7 +547,10 @@
   }, true);
   document.addEventListener('focusin', function (event) {
     var target = event.target;
-    if (inChart(target)) notePageColours();
+    if (inChart(target)) {
+      notePageColours();
+      shimCards(target);
+    }
     if (target && target.matches && target.matches(PLOT)) describe(target);
     // The page may have zoomed since (a deck resized to its window), and a
     // dialog takes the focus when it is shown.
