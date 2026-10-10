@@ -349,13 +349,21 @@
 
   // --- Host page shortcuts ---------------------------------------------
 
+  // Each host object this script guards is marked, and one marked already
+  // is left alone: by this script, or by a maidr.js that guards the page's
+  // hosts itself, which marks what it guards with __maidrHostGuard (and
+  // this script's mark), so a key is never guarded twice over.
+  function isGuarded(object) {
+    return !!(object.__maidrKnitr || object.__maidrHostGuard);
+  }
+
   // reveal.js (rmarkdown revealjs, Quarto revealjs) reads keyboardCondition
   // on every keydown; whatever the deck set is kept. reveal.js 3, which
   // older revealjs packages bundle, has no on(), and may be ready only once
   // its dependencies have loaded.
   function shimReveal() {
     var reveal = window.Reveal;
-    if (!reveal || reveal.__maidrKnitr || typeof reveal.configure !== 'function' ||
+    if (!reveal || isGuarded(reveal) || typeof reveal.configure !== 'function' ||
         typeof reveal.getConfig !== 'function') {
       return;
     }
@@ -386,7 +394,7 @@
   // the sidebar, f opens the search).
   function shimMousetrap() {
     var mousetrap = window.Mousetrap;
-    if (!mousetrap || mousetrap.__maidrKnitr) return;
+    if (!mousetrap || isGuarded(mousetrap)) return;
     var host = mousetrap.prototype && typeof mousetrap.prototype.stopCallback === 'function'
       ? mousetrap.prototype : mousetrap;
     var previous = host.stopCallback;
@@ -402,7 +410,7 @@
   // field, through window.quartoOpenSearch, looked up when the key is let go.
   function shimQuartoSearch() {
     var open = window.quartoOpenSearch;
-    if (typeof open !== 'function' || open.__maidrKnitr) return;
+    if (typeof open !== 'function' || isGuarded(open)) return;
     var guarded = function () {
       if (focusInChart()) return;
       return open.apply(this, arguments);
@@ -420,7 +428,7 @@
     var frames = document.querySelectorAll('.sbframelist');
     for (var i = 0; i < frames.length; i++) {
       var sly = Sly.getInstance(frames[i]);
-      if (!sly || !sly.options || sly.options.__maidrKnitr) continue;
+      if (!sly || !sly.options || isGuarded(sly.options)) continue;
       guardSlyOptions(sly.options);
     }
   }
@@ -440,7 +448,7 @@
   // runs before that, so the handler is guarded on the prototype.
   function shimIoslides() {
     var SlideDeck = window.SlideDeck;
-    if (!SlideDeck || !SlideDeck.prototype || SlideDeck.__maidrKnitr ||
+    if (!SlideDeck || !SlideDeck.prototype || isGuarded(SlideDeck) ||
         typeof SlideDeck.prototype.onBodyKeyDown_ !== 'function') {
       return;
     }
@@ -455,7 +463,7 @@
   // slidy leaves alone a key pressed on an element with an onkeydown
   // property of its own.
   function keepFromSlidy(plot) {
-    if (window.w3c_slidy && !plot.onkeydown) {
+    if (window.w3c_slidy && !isGuarded(window.w3c_slidy) && !plot.onkeydown) {
       plot.onkeydown = function () {};
     }
   }
@@ -483,7 +491,7 @@
   function shimCard(card) {
     var Card = window.bslib && window.bslib.Card;
     var instance = Card && typeof Card.getInstance === 'function' && Card.getInstance(card);
-    if (!instance || instance.__maidrKnitr || typeof instance._exitFullScreenOnEscape !== 'function') {
+    if (!instance || isGuarded(instance) || typeof instance._exitFullScreenOnEscape !== 'function') {
       return;
     }
     instance.__maidrKnitr = true;
