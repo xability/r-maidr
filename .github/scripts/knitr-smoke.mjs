@@ -28,6 +28,9 @@
 //     root font size is 10px, shows its text and its title at their own
 //     sizes, neither shrunk by the page nor enlarged twice, nor sized by
 //     the page's rule for its paragraphs, within the window;
+//   * in a phone's column, 360 pixels wide, maidr's braille and review
+//     fields keep to the chart's width and the page does not scroll
+//     sideways, while the fields of maidr's settings keep their own height;
 //   * high contrast, turned on in a chart, paints the chart dark and leaves
 //     the page in its own colours, and leaving the chart leaves nothing
 //     painted; on a second page, `mixed.html`, the same holds for a 'plotly'
@@ -529,6 +532,64 @@ check(
 );
 
 check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
+
+// The same page in a phone's column. maidr's braille and review fields are
+// as wide as their text, which here is wider than the column; they keep to
+// the chart's width, and the page does not scroll sideways. The fields of
+// maidr's settings, which MUI sizes, keep their own box and height.
+const phone = await browser.newPage({ viewport: { width: 360, height: 740 } });
+await phone.goto('file://' + file, { waitUntil: 'load' });
+await phone.waitForFunction(
+  () => document.querySelector('.maidr-knitr article[id^="maidr-article-"]'),
+  null,
+  { timeout: 15000 },
+).catch(() => {});
+await phone.waitForTimeout(settle);
+// How far past the chart's right edge each of maidr's braille and review
+// fields shown ends, and how wide the page is.
+const column = () => phone.evaluate(() => {
+  const wrapper = document.querySelector('.maidr-knitr');
+  const edge = wrapper.getBoundingClientRect().right;
+  const fields = Array.from(
+    wrapper.querySelectorAll('textarea[id^="maidr-braille-textarea"], input[id^="maidr-review-input"]'),
+    field => Math.round(field.getBoundingClientRect().right - edge),
+  );
+  return { scroll: document.documentElement.scrollWidth, width: window.innerWidth, fields };
+});
+const keptToColumn = (mode, at) => check(
+  at.fields.length === 1 && at.fields[0] <= 1 && at.scroll <= at.width,
+  `in a phone's column maidr's ${mode} field keeps to the chart's width`
+    + ` (page ${at.scroll} wide in ${at.width}; field ends ${at.fields.join(', ')} px past the chart)`,
+);
+await phone.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await phone.waitForTimeout(settle);
+await phone.keyboard.press('b');
+await phone.waitForTimeout(settle);
+keptToColumn('braille', await column());
+await phone.keyboard.press('r');
+await phone.waitForTimeout(settle);
+keptToColumn('review', await column());
+// Back to braille mode, and out of it onto the chart.
+await phone.keyboard.press('r');
+await phone.waitForTimeout(settle);
+await phone.keyboard.press('Escape');
+await phone.waitForTimeout(settle);
+await phone.keyboard.press('Control+Comma');
+await phone.waitForTimeout(settle * 2);
+const setting = await phone.evaluate(() => {
+  const field = Array.from(document.querySelectorAll('.maidr-knitr [role="dialog"] input.MuiInputBase-input'))
+    .find(input => input.getBoundingClientRect().width > 0);
+  return field
+    ? { sizing: getComputedStyle(field).boxSizing, height: Math.round(field.getBoundingClientRect().height) }
+    : null;
+});
+check(
+  setting !== null && setting.sizing === 'content-box' && setting.height >= 30,
+  'the fields of maidr\'s settings keep their own size'
+    + (setting ? ` (${setting.sizing}, ${setting.height}px tall)` : ': no settings field shown'),
+);
+await phone.keyboard.press('Escape');
+await phone.close();
 
 // A 'plotly' widget maidr binds in the page itself, then an inline chart.
 // High contrast, turned on in the widget, is on in the chart a reader tabs

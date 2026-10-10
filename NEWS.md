@@ -451,6 +451,11 @@
   Ctrl+Shift+F (Cmd+Shift+F on a Mac) pressed in a chart no longer opens
   the deck's search; on any other page it is left to maidr, for a reader
   who gives it to one of maidr's commands (#NNN).
+* Such a chart in a Quarto figure is centred, as Quarto centres its
+  figures unless `fig-align` says otherwise; it stood at the figure's left.
+  maidr's braille and review fields keep to the chart's width in a column
+  narrower than they are, as on a phone, where they ran past it and the
+  page scrolled sideways (#NNN).
 
 ### ggplot2
 

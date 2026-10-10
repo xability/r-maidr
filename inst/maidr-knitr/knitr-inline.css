@@ -23,14 +23,20 @@
   height: auto;
 }
 
-/* fig.align; knitr's figures are left-aligned by default. */
+/* fig.align; knitr's figures are left-aligned by default. A Quarto figure
+ * is centred unless fig-align says otherwise, by a text-align that centres
+ * an image, not the chart's block. */
 .maidr-knitr-center > .maidr-knitr-svg,
-.maidr-knitr-center figure[id^="maidr-figure"] > [tabindex] {
+.maidr-knitr-center figure[id^="maidr-figure"] > [tabindex],
+.quarto-figure-center .maidr-knitr > .maidr-knitr-svg,
+.quarto-figure-center .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
   margin-left: auto;
   margin-right: auto;
 }
 .maidr-knitr-right > .maidr-knitr-svg,
-.maidr-knitr-right figure[id^="maidr-figure"] > [tabindex] {
+.maidr-knitr-right figure[id^="maidr-figure"] > [tabindex],
+.quarto-figure-right .maidr-knitr > .maidr-knitr-svg,
+.quarto-figure-right .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
   margin-left: auto;
 }
 .maidr-knitr-center > .maidr-knitr-caption {
@@ -53,6 +59,15 @@
 .maidr-knitr-row + :not(.maidr-knitr-row),
 .maidr-knitr-row-end {
   clear: both;
+}
+
+/* maidr's braille and review fields are as wide as their text; in a phone's
+ * column they keep to the chart's width. maidr's other fields, in its
+ * dialogs, are sized by MUI. */
+.maidr-knitr textarea[id^="maidr-braille-textarea"],
+.maidr-knitr input[id^="maidr-review-input"] {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* A visible focus (WCAG 2.4.7) that survives a page that removes every

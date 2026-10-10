@@ -11,7 +11,9 @@
 #   * `dash.qmd`, a dashboard of two R charts, each with a title of its own:
 #     Quarto puts them in a bslib card, which a reader can show full screen;
 #   * `deck.qmd`, a reveal.js deck with a chart alone on its second slide,
-#     a chart in a captioned figure on its third, and a slide after them.
+#     a chart in a captioned figure on its third, and a slide after them;
+#   * `fig.qmd`, an HTML page with a chart in a captioned figure narrower
+#     than the page's column, which Quarto centres unless told otherwise.
 #
 #     Rscript .github/scripts/quarto-smoke.R <out-dir>
 
@@ -84,6 +86,21 @@ documents <- list(
     "## The end",
     "",
     "Thanks."
+  ),
+  fig = c(
+    "---",
+    "title: \"maidr figure smoke\"",
+    "format: html",
+    "---",
+    "",
+    setup,
+    "```{r}",
+    "#| label: fig-cylinders",
+    "#| fig-cap: Cars by cylinder",
+    "#| fig-width: 4",
+    "#| fig-height: 3",
+    "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+    "```"
   )
 )
 

@@ -17,6 +17,8 @@
 //     leaves the deck's search shut; Shift+Tab, with nothing on the slide
 //     before the chart, puts the focus on the slide, where Right Arrow moves
 //     the deck on.
+//   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
+//     in the middle of the figure, as Quarto centres its figures.
 //
 //     node .github/scripts/quarto-smoke.mjs <dir-rendered-by-quarto-smoke.R>
 //
@@ -245,6 +247,23 @@ const open = async (name, charts, viewport) => {
   );
 
   check(errors.length === 0, `deck.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
+  await page.close();
+}
+
+// --- A Quarto figure -----------------------------------------------------------
+
+{
+  const { page, errors } = await open('fig.html', 1, { width: 1200, height: 900 });
+  const gaps = await page.evaluate(() => {
+    const svg = document.querySelector('.maidr-knitr svg').getBoundingClientRect();
+    const figure = document.querySelector('.maidr-knitr').closest('figure').getBoundingClientRect();
+    return { left: Math.round(svg.left - figure.left), right: Math.round(figure.right - svg.right) };
+  });
+  check(
+    gaps.left > 10 && Math.abs(gaps.left - gaps.right) <= 2,
+    `fig.html: the chart stands in the middle of its figure (${gaps.left}px to its left, ${gaps.right}px to its right)`,
+  );
+  check(errors.length === 0, `fig.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();
 }
 
