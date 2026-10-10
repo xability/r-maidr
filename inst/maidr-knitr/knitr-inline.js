@@ -56,12 +56,16 @@
   // tree a moment later. Should the mount fail, React unmounts the tree, and
   // the svg goes with it. So the svg keeps its static name until maidr's
   // focusable element is really around it, and is put back if it was lost:
-  // the reader keeps a named picture rather than nothing.
+  // the reader keeps a named picture rather than nothing. Once it is around
+  // it, maidr names that element, and the drawing is hidden: reveal.js reads
+  // a slide's text aloud when it is shown, all but what is hidden, and a
+  // chart's tick labels are text.
   function verifyMounted(svg, wrapper, attempt) {
     if (svg.isConnected && svg.closest('figure[id^="maidr-figure"] > [tabindex]')) {
       svg.removeAttribute('role');
       svg.removeAttribute('aria-label');
       svg.removeAttribute('aria-labelledby');
+      svg.setAttribute('aria-hidden', 'true');
       describeAll();
       if (wrapper) fitChart(wrapper);
       return;

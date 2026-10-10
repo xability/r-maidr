@@ -462,6 +462,11 @@
   help ran off the top and bottom of the window. Their text, captions,
   headings and lists keep the sizes maidr gives them whatever the deck's
   rules for its own text (#NNN).
+* A reveal.js deck, Quarto's among them, no longer reads such a chart's tick
+  labels and axis titles aloud when it shows the chart's slide. reveal.js
+  reads a slide's text when it is shown, all but what is hidden, and the
+  chart's drawing, which maidr names as a whole once it has loaded, was not
+  hidden (#NNN).
 
 ### ggplot2
 

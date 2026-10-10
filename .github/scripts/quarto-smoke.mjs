@@ -17,7 +17,8 @@
 //     leaves the deck's search shut; maidr's help, opened from it, stays
 //     within the window on a slide reveal.js scales up; Shift+Tab, with
 //     nothing on the slide before the chart, puts the focus on the slide,
-//     where Right Arrow moves the deck on.
+//     where Right Arrow moves the deck on. The text reveal.js reads aloud as
+//     each of the two slides is shown holds none of its chart's tick labels.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures.
 //
@@ -207,8 +208,16 @@ const open = async (name, charts, viewport) => {
 {
   const { page, errors } = await open('deck.html', 2, { width: 1600, height: 900 });
   const slideNow = () => page.evaluate(() => window.Reveal.getIndices().h);
+  // What reveal.js reads aloud as the slide shown: its text, all but what
+  // is hidden.
+  const announced = () => page.evaluate(() => document.querySelector('.reveal .aria-status').textContent);
+  const quiet = (slide, text, labels) => check(
+    labels.every(label => !text.includes(label)),
+    `deck.html: showing the ${slide} reads none of its chart's tick labels ("${text.trim()}")`,
+  );
   await page.evaluate(() => window.Reveal.slide(1));
   await page.waitForTimeout(settle * 2);
+  quiet('slide of a chart', await announced(), ['slide1', 'slide2', 'slide3']);
   const chart = page.locator(`#a-chart .maidr-knitr ${plotOf}`);
   await chart.focus();
   await page.waitForTimeout(settle);
@@ -272,6 +281,7 @@ const open = async (name, charts, viewport) => {
     landed === 'the slide' && after === 2,
     `deck.html: Shift+Tab from the chart puts the focus on its slide (${landed}), where Right Arrow moves the deck on (slide ${after})`,
   );
+  quiet('slide of a figure', await announced(), ['gear3', 'gear4', 'gear5']);
 
   check(errors.length === 0, `deck.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();
