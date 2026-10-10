@@ -14,7 +14,8 @@
  * a slide deck's arrow keys, a book's page keys and a site's search key
  * would otherwise act on the same key presses maidr navigates with. Every
  * shim only acts while the focus is inside a chart, so the page's own keys
- * work everywhere else. */
+ * work everywhere else. High contrast, which painted the frame, paints the
+ * chart, not the page around it. */
 (function () {
   'use strict';
   if (window.__maidrKnitr) return;
@@ -32,6 +33,13 @@
 
   function focusInChart() {
     return inChart(document.activeElement);
+  }
+
+  // The element that stands for a chart's frame: an inline chart's wrapper,
+  // or the element maidr mounted a widget in.
+  function paintTarget(node) {
+    if (!node || !node.closest) return null;
+    return node.closest('.maidr-knitr') || node.closest('article[id^="maidr-article-"]');
   }
 
   // maidr.js finds maidr-math.css beside its own <script src>. Inlined into a
@@ -262,6 +270,73 @@
     }
   }
 
+  // --- High contrast -------------------------------------------------------
+
+  // maidr.js paints document.body for high contrast. In a frame that was the
+  // chart's own body; inline it is the whole page. While maidr has it
+  // painted, the page is given its own colours back, and the chart's wrapper
+  // -- or a widget's, which maidr mounted in the page itself -- takes
+  // maidr's, which is what the frame looked like. The body's inline style is
+  // left as maidr.js wrote it -- knitr-inline.css overrides it -- so that
+  // maidr.js putting it back is a change this sees, whenever it happens:
+  // high contrast turned off, or the reader leaving the chart.
+  var painted = null;
+  var pageInline = null;
+
+  function bodyColours() {
+    var style = document.body.style;
+    return [style.getPropertyValue('background-color'), style.getPropertyValue('color')];
+  }
+
+  function unpaint() {
+    document.documentElement.classList.remove('maidr-knitr-contrast');
+    if (painted) {
+      painted.style.removeProperty('background-color');
+      painted.style.removeProperty('color');
+      painted = null;
+    }
+  }
+
+  // The page's colours, read before maidr paints the body over them. Not
+  // while a chart has it painted: the reader went from one chart to the
+  // next, and the colours on it are maidr's.
+  function notePageColours() {
+    if (!document.body || document.documentElement.classList.contains('maidr-knitr-contrast')) return;
+    var computed = getComputedStyle(document.body);
+    var root = document.documentElement.style;
+    root.setProperty('--maidr-knitr-page-bg', computed.backgroundColor);
+    root.setProperty('--maidr-knitr-page-fg', computed.color);
+    pageInline = bodyColours();
+  }
+
+  function followContrast() {
+    var now = bodyColours();
+    if (!pageInline || (now[0] === pageInline[0] && now[1] === pageInline[1])) {
+      unpaint();
+      return;
+    }
+    var target = paintTarget(document.activeElement);
+    if (!target) {
+      // The page changed its own body, not maidr.
+      unpaint();
+      pageInline = now;
+      return;
+    }
+    if (painted && painted !== target) unpaint();
+    target.style.setProperty('background-color', now[0]);
+    target.style.setProperty('color', now[1]);
+    painted = target;
+    document.documentElement.classList.add('maidr-knitr-contrast');
+  }
+
+  function watchContrast() {
+    if (!document.body || !window.MutationObserver || watchContrast.done) return;
+    watchContrast.done = true;
+    notePageColours();
+    new MutationObserver(followContrast)
+      .observe(document.body, { attributes: true, attributeFilter: ['style'] });
+  }
+
   // --- Host page shortcuts ---------------------------------------------
 
   // reveal.js (rmarkdown revealjs, Quarto revealjs) reads keyboardCondition
@@ -439,6 +514,7 @@
   }, true);
   document.addEventListener('focusin', function (event) {
     var target = event.target;
+    if (inChart(target)) notePageColours();
     if (target && target.matches && target.matches(PLOT)) describe(target);
     // The page may have zoomed since (a deck resized to its window), and a
     // dialog takes the focus when it is shown.
@@ -450,6 +526,7 @@
     pointAtMathStylesheet();
     bindCharts();
     shimHosts();
+    watchContrast();
     watchPreviews();
     // Hosts that build their page when it is ready (Quarto's search, a
     // storyboard) are built by load, and so is a maidr.js that loaded late.

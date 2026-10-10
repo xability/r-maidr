@@ -428,6 +428,14 @@
   dialogs for such a page itself would have shown 22.4px body text under a
   20px title. With the bundled maidr.js 4.13.0 their body text is still
   14px under a 20px title at a browser's default font size (#354).
+* High contrast, turned on in a chart a knitted page shows inline (new in
+  this version, above), paints the chart, as it painted the chart's frame,
+  and leaves the page around it in its own colours. maidr.js paints the
+  page's body for high contrast, which inline is the whole page, so the
+  whole page turned black. A chart made with `maidr_htmlwidget()` on such a
+  page, which maidr binds in the page itself, is painted in place of the
+  page as well, and the page keeps its colours when the reader tabs from
+  one kind of chart to the other (#NNN).
 
 ### ggplot2
 

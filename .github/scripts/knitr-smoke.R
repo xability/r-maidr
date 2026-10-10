@@ -27,6 +27,10 @@
 #     page loads;
 #   * a grid drawing maidr does not read, which stays knitr's own figure.
 #
+# A second, smaller page, `mixed.html`, holds a 'plotly' widget that maidr
+# binds in the page itself, followed by an inline chart, so that a reader
+# can go from one kind of chart to the other.
+#
 # Every chart's values are its own, so an announcement names the chart it
 # came from. The page sets its paragraphs in a size of its own, as an author
 # may, with a rule that also reaches the paragraphs of maidr's dialogs; the
@@ -143,3 +147,31 @@ writeLines(c(
 ), rmd)
 
 rmarkdown::render(rmd, output_file = "charts.html", quiet = TRUE, envir = new.env())
+
+mixed <- file.path(out, "mixed.Rmd")
+writeLines(c(
+  "---",
+  "title: \"maidr knitr smoke, widget and inline chart\"",
+  "output:",
+  "  html_document:",
+  "    self_contained: true",
+  "---",
+  "",
+  "```{r setup, include = FALSE}",
+  "library(maidr)",
+  "library(ggplot2)",
+  "```",
+  "",
+  "```{r widget}",
+  "maidr_htmlwidget(plotly::plot_ly(",
+  "  x = c(\"wid1\", \"wid2\", \"wid3\"), y = c(131, 132, 133), type = \"bar\"",
+  "))",
+  "```",
+  "",
+  "```{r inline}",
+  "after <- data.frame(kind = c(\"after1\", \"after2\"), n = c(141, 142))",
+  "ggplot(after, aes(kind, n)) + geom_col() + labs(title = \"Chart after a widget\")",
+  "```"
+), mixed)
+
+rmarkdown::render(mixed, output_file = "mixed.html", quiet = TRUE, envir = new.env())

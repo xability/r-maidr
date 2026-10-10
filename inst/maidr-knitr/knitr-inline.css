@@ -1,6 +1,7 @@
 /* maidr knitr-inline: the charts r-maidr writes inline into a knitted HTML
- * page. Every rule is scoped to the .maidr-knitr wrapper around a chart, or
- * to a dashboard box holding one. */
+ * page. Every rule is scoped to the .maidr-knitr wrapper around a chart, to
+ * a dashboard box holding one, or to the page while a chart's high contrast
+ * is on. */
 
 .maidr-knitr {
   margin: 0 0 1em;
@@ -97,6 +98,14 @@
   .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus .maidr-knitr-svg {
     outline: none !important;
   }
+}
+
+/* High contrast: maidr.js paints the body, which inline is the page's;
+ * knitr-inline.js gives it the page's own colours back and the chart's
+ * wrapper maidr's. */
+html.maidr-knitr-contrast body {
+  background-color: var(--maidr-knitr-page-bg) !important;
+  color: var(--maidr-knitr-page-fg) !important;
 }
 
 /* maidr opens its dialogs inside the chart. knitr-inline.js sets, on each

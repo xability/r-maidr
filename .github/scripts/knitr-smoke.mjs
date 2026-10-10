@@ -24,13 +24,19 @@
 //   * maidr's help, opened from a chart on this Bootstrap 3 page, whose
 //     root font size is 10px, shows its text and its title at their own
 //     sizes, neither shrunk by the page nor enlarged twice, nor sized by
-//     the page's rule for its paragraphs, within the window.
+//     the page's rule for its paragraphs, within the window;
+//   * high contrast, turned on in a chart, paints the chart dark and leaves
+//     the page in its own colours, and leaving the chart leaves nothing
+//     painted; on a second page, `mixed.html`, the same holds for a 'plotly'
+//     widget maidr binds in the page itself and for the inline chart a
+//     reader tabs to from it with high contrast still on. What is checked is
+//     what the page shows -- computed colours -- whatever paints them.
 //
 // A chart whose ids clashed with another's, or that was bound to another's
 // data, announces or highlights the wrong chart; a page that loaded the
 // bundle once per chart runs maidr.js more than once.
 //
-//     node .github/scripts/knitr-smoke.mjs <dir-with-charts.html>
+//     node .github/scripts/knitr-smoke.mjs <dir-with-charts.html-and-mixed.html>
 //
 // Needs the `playwright` package and its Chromium; `MAIDR_SMOKE_CHROMIUM`
 // names an executable to use instead of the one Playwright installed.
@@ -133,6 +139,31 @@ await page.addInitScript(() => {
     };
   };
 });
+
+// The colours a reader sees around a chart: the page's body, and the
+// nearest box from the chart's plot out to `container` -- its wrapper, or
+// the widget maidr mounted it in -- that has a background of its own; null
+// when none has.
+const coloursScript = () => {
+  window.__maidrSmokeColours = container => {
+    const body = getComputedStyle(document.body);
+    const plot = container.querySelector('figure[id^="maidr-figure"] > [tabindex="0"]');
+    let backdrop = null;
+    for (let at = plot; at && !backdrop; at = at === container ? null : at.parentElement) {
+      const colour = getComputedStyle(at).backgroundColor;
+      if (colour !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(colour)) {
+        backdrop = colour;
+      }
+    }
+    return { body: [body.backgroundColor, body.color], backdrop };
+  };
+};
+await page.addInitScript(coloursScript);
+// A colour no channel of which is lighter than a quarter: maidr's default
+// dark colour for high contrast is black.
+const dark = colour => Boolean(colour)
+  && Math.max(...colour.match(/[\d.]+/g).slice(0, 3).map(Number)) <= 64;
+const sameColours = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 await page.goto('file://' + file, { waitUntil: 'load' });
 await page.waitForFunction(count => {
@@ -432,7 +463,104 @@ check(
 await page.keyboard.press('Escape');
 await page.waitForTimeout(settle);
 
+// High contrast, from the first chart. maidr.js paints the page's body for
+// it, which inline is the whole page around the chart. Checked after the
+// rest, since maidr keeps the setting for the next chart a reader enters.
+const plotOf = 'figure[id^="maidr-figure"] > [tabindex="0"]';
+const coloursOf = (target, selector) => target.evaluate(
+  selector => window.__maidrSmokeColours(document.querySelector(selector)),
+  selector,
+);
+const plain = await coloursOf(page, '.maidr-knitr');
+await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('c');
+await page.waitForTimeout(settle);
+const contrasted = await coloursOf(page, '.maidr-knitr');
+check(
+  sameColours(contrasted.body, plain.body) && dark(contrasted.backdrop),
+  'high contrast paints the chart dark and leaves the page in its own colours'
+    + ` (page ${contrasted.body.join(' on ')}, was ${plain.body.join(' on ')}; chart ${contrasted.backdrop})`,
+);
+await page.keyboard.press('Shift+Tab');
+await page.waitForTimeout(settle);
+const left = await coloursOf(page, '.maidr-knitr');
+check(
+  sameColours(left.body, plain.body) && left.backdrop === plain.backdrop,
+  `leaving a chart in high contrast leaves nothing painted (page ${left.body.join(' on ')}; chart ${left.backdrop})`,
+);
+await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('c');
+await page.waitForTimeout(settle);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(settle);
+const off = await coloursOf(page, '.maidr-knitr');
+check(
+  sameColours(off.body, plain.body) && off.backdrop === plain.backdrop,
+  `high contrast turned off in the chart leaves nothing painted (page ${off.body.join(' on ')}; chart ${off.backdrop})`,
+);
+
 check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
+
+// A 'plotly' widget maidr binds in the page itself, then an inline chart.
+// High contrast, turned on in the widget, is on in the chart a reader tabs
+// to from it, before maidr has given the widget's colours back: each is
+// painted in turn, and the page never is.
+const widget = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+const widgetErrors = [];
+widget.on('pageerror', error => widgetErrors.push(String(error)));
+await widget.addInitScript(coloursScript);
+await widget.goto('file://' + path.resolve(dir, 'mixed.html'), { waitUntil: 'load' });
+await widget.waitForFunction(
+  () => document.querySelectorAll('article[id^="maidr-article-"]').length === 2,
+  null,
+  { timeout: 15000 },
+).catch(() => {});
+await widget.waitForTimeout(settle * 2);
+const mounted = await widget.evaluate(plotOf => ({
+  widget: Boolean(document.querySelector(`.html-widget ${plotOf}`)),
+  inline: Boolean(document.querySelector(`.maidr-knitr ${plotOf}`)),
+}), plotOf);
+check(mounted.widget && mounted.inline, `the widget and the inline chart are both bound (${JSON.stringify(mounted)})`);
+if (mounted.widget && mounted.inline) {
+  const widgetPlain = await coloursOf(widget, '.html-widget');
+  const inlinePlain = await coloursOf(widget, '.maidr-knitr');
+  await widget.locator(`.html-widget ${plotOf}`).focus();
+  await widget.waitForTimeout(settle);
+  await widget.keyboard.press('c');
+  await widget.waitForTimeout(settle);
+  const inWidget = await coloursOf(widget, '.html-widget');
+  check(
+    sameColours(inWidget.body, widgetPlain.body) && dark(inWidget.backdrop),
+    'high contrast paints a widget maidr binds in the page, and leaves the page in its own colours'
+      + ` (page ${inWidget.body.join(' on ')}, was ${widgetPlain.body.join(' on ')}; widget ${inWidget.backdrop})`,
+  );
+  await widget.keyboard.press('Tab');
+  await widget.waitForTimeout(settle);
+  const moved = await widget.evaluate(plotOf => document.activeElement
+    === document.querySelector(`.maidr-knitr ${plotOf}`), plotOf);
+  const inInline = await coloursOf(widget, '.maidr-knitr');
+  const widgetAfter = await coloursOf(widget, '.html-widget');
+  check(
+    moved && sameColours(inInline.body, inlinePlain.body) && dark(inInline.backdrop)
+      && widgetAfter.backdrop === widgetPlain.backdrop,
+    'Tab from the widget to the inline chart paints the chart, not the page, and leaves the widget unpainted'
+      + ` (on the chart: ${moved}; page ${inInline.body.join(' on ')}; chart ${inInline.backdrop};`
+      + ` widget ${widgetAfter.backdrop})`,
+  );
+  await widget.keyboard.press('c');
+  await widget.waitForTimeout(settle);
+  const widgetOff = await coloursOf(widget, '.maidr-knitr');
+  check(
+    sameColours(widgetOff.body, inlinePlain.body) && widgetOff.backdrop === inlinePlain.backdrop,
+    `high contrast turned off leaves nothing painted (page ${widgetOff.body.join(' on ')}; chart ${widgetOff.backdrop})`,
+  );
+}
+check(
+  widgetErrors.length === 0,
+  `no page errors on the widget's page${widgetErrors.length ? ': ' + widgetErrors.join(' | ') : ''}`,
+);
 
 await browser.close();
 if (failures.length > 0) {
