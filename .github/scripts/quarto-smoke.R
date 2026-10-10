@@ -9,7 +9,9 @@
 # in headless Chromium:
 #
 #   * `dash.qmd`, a dashboard of two R charts, each with a title of its own:
-#     Quarto puts them in a bslib card, which a reader can show full screen.
+#     Quarto puts them in a bslib card, which a reader can show full screen;
+#   * `deck.qmd`, a reveal.js deck with a chart alone on its second slide,
+#     a chart in a captioned figure on its third, and a slide after them.
 #
 #     Rscript .github/scripts/quarto-smoke.R <out-dir>
 
@@ -56,6 +58,32 @@ documents <- list(
     "#| title: Gears",
     "barplot(c(gear3 = 15, gear4 = 12, gear5 = 5))",
     "```"
+  ),
+  deck = c(
+    "---",
+    "title: \"maidr deck smoke\"",
+    "format: revealjs",
+    "---",
+    "",
+    setup,
+    "## A chart",
+    "",
+    "```{r}",
+    "slide <- data.frame(kind = c(\"slide1\", \"slide2\", \"slide3\"), n = c(21, 22, 23))",
+    "ggplot(slide, aes(kind, n)) + geom_col()",
+    "```",
+    "",
+    "## A figure",
+    "",
+    "```{r}",
+    "#| label: fig-gears",
+    "#| fig-cap: Gears",
+    "barplot(c(gear3 = 15, gear4 = 12, gear5 = 5))",
+    "```",
+    "",
+    "## The end",
+    "",
+    "Thanks."
   )
 )
 

@@ -20,7 +20,10 @@
 //     just before, so no stray tab stop sits between them; Right Arrow
 //     announces that chart's own first value, inside the chart, and draws
 //     its highlight inside that chart's own svg and viewBox, and Shift+Tab
-//     leaves it;
+//     leaves it -- from the first, which nothing comes before, for the
+//     browser, as on any page that is not a slide deck;
+//   * Ctrl+Shift+F pressed in a chart reaches the page, which has no deck
+//     search to keep it from: a reader may give it to a command of maidr's;
 //   * maidr's help, opened from a chart on this Bootstrap 3 page, whose
 //     root font size is 10px, shows its text and its title at their own
 //     sizes, neither shrunk by the page nor enlarged twice, nor sized by
@@ -122,6 +125,17 @@ await page.addInitScript(() => {
       window.__maidrRuns += 1;
       live = value;
     },
+  });
+});
+
+// Count the Ctrl+Shift+F (Cmd+Shift+F) presses that reach the document, as
+// reveal.js's search plugin would see them.
+await page.addInitScript(() => {
+  window.__maidrSmokeSearchKeys = 0;
+  document.addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.key === 'F' || event.key === 'f')) {
+      window.__maidrSmokeSearchKeys += 1;
+    }
   });
 });
 
@@ -419,6 +433,10 @@ for (const [i, chart] of charts.entries()) {
   await page.keyboard.press('Shift+Tab');
   await page.waitForTimeout(settle);
   check(!(await focus(i)).inChart, `${chart.name}: Shift+Tab leaves the chart`);
+  if (i === 0) {
+    const left = await page.evaluate(() => document.activeElement.tagName.toLowerCase());
+    check(left === 'body', `${chart.name}: Shift+Tab, with nothing before it, leaves the page for the browser (${left})`);
+  }
 }
 
 // maidr's help, from the first chart. Its text is sized in rem, which this
@@ -462,6 +480,15 @@ check(
 );
 await page.keyboard.press('Escape');
 await page.waitForTimeout(settle);
+
+// Ctrl+Shift+F, from the first chart: a key like any other on a page with
+// no deck search to keep it from.
+await page.locator('.maidr-knitr figure[id^="maidr-figure"] > [tabindex="0"]').first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('Control+Shift+F');
+await page.waitForTimeout(settle);
+const searchKeys = await page.evaluate(() => window.__maidrSmokeSearchKeys);
+check(searchKeys === 1, `Ctrl+Shift+F pressed in a chart reaches the page (${searchKeys} time(s))`);
 
 // High contrast, from the first chart. maidr.js paints the page's body for
 // it, which inline is the whole page around the chart. Checked after the

@@ -442,6 +442,15 @@
   Escape on the whole page, so the key that closed maidr's help also took
   the card out of full screen. Pressed anywhere else, Escape still does
   (#NNN).
+* In a slide deck -- reveal.js, from Quarto or 'revealjs', ioslides or
+  slidy -- Shift+Tab from such a chart that nothing on the page comes
+  before, as on a slide whose first tab stop it is, puts the focus on the
+  slide, where the deck's keys work, rather than on the browser's own
+  controls, where they do not. Elsewhere Shift+Tab is left to the browser.
+  In a reveal.js deck with its search plugin, as every Quarto deck has,
+  Ctrl+Shift+F (Cmd+Shift+F on a Mac) pressed in a chart no longer opens
+  the deck's search; on any other page it is left to maidr, for a reader
+  who gives it to one of maidr's commands (#NNN).
 
 ### ggplot2
 

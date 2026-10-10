@@ -11,6 +11,12 @@
 //     and Escape pressed anywhere else in it takes it back. High contrast,
 //     turned on in a chart, paints the chart dark and leaves the page in its
 //     own colours, read from what the page shows whatever paints it.
+//   * `deck.html`, a reveal.js deck, in a window large enough for reveal.js
+//     to scale its slides up: in the chart alone on its second slide, Right
+//     Arrow is maidr's and leaves the slide where it is, and Ctrl+Shift+F
+//     leaves the deck's search shut; Shift+Tab, with nothing on the slide
+//     before the chart, puts the focus on the slide, where Right Arrow moves
+//     the deck on.
 //
 //     node .github/scripts/quarto-smoke.mjs <dir-rendered-by-quarto-smoke.R>
 //
@@ -190,6 +196,55 @@ const open = async (name, charts, viewport) => {
   );
 
   check(errors.length === 0, `dash.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
+  await page.close();
+}
+
+// --- A reveal.js deck ---------------------------------------------------------
+
+{
+  const { page, errors } = await open('deck.html', 2, { width: 1600, height: 900 });
+  const slideNow = () => page.evaluate(() => window.Reveal.getIndices().h);
+  await page.evaluate(() => window.Reveal.slide(1));
+  await page.waitForTimeout(settle * 2);
+  const chart = page.locator(`#a-chart .maidr-knitr ${plotOf}`);
+  await chart.focus();
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(settle);
+  const read = await page.evaluate(() => {
+    const text = document.querySelector('#a-chart #maidr-text-container');
+    return text ? text.textContent.trim() : '';
+  });
+  check(
+    await slideNow() === 1 && /\bslide1\b/.test(read),
+    `deck.html: Right Arrow in a chart is maidr's, and leaves the slide where it is ("${read}")`,
+  );
+
+  await page.keyboard.press('Control+Shift+F');
+  await page.waitForTimeout(settle);
+  const search = await page.evaluate(() => {
+    const box = document.querySelector('.reveal .searchbox');
+    return box ? getComputedStyle(box).display : 'none';
+  });
+  check(search === 'none', `deck.html: Ctrl+Shift+F in a chart leaves the deck's search shut (${search})`);
+
+  await chart.focus();
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('Shift+Tab');
+  await page.waitForTimeout(settle);
+  const landed = await page.evaluate(() => {
+    const active = document.activeElement;
+    return active.matches('section#a-chart') ? 'the slide' : active.tagName.toLowerCase();
+  });
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(settle * 2);
+  const after = await slideNow();
+  check(
+    landed === 'the slide' && after === 2,
+    `deck.html: Shift+Tab from the chart puts the focus on its slide (${landed}), where Right Arrow moves the deck on (slide ${after})`,
+  );
+
+  check(errors.length === 0, `deck.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();
 }
 

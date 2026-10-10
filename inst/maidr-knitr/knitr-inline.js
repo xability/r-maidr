@@ -504,6 +504,83 @@
     shimSly();
   }
 
+  // --- A deck's keys -------------------------------------------------------
+
+  // A slide deck: reveal.js (rmarkdown revealjs, Quarto revealjs), ioslides
+  // or slidy.
+  function onDeck() {
+    return !!(window.Reveal || window.SlideDeck || window.w3c_slidy);
+  }
+
+  // On a slide a chart is often the first thing Tab reaches, and Shift+Tab
+  // from it would leave the page for the browser's own controls, where no
+  // key reaches the deck. maidr.js hands the reader to the slide when its
+  // chart is framed; this does the same inline, on a deck, and only when
+  // nothing on the page comes before the chart. On any other page Shift+Tab
+  // is left to the browser.
+  var TABBABLE = 'a[href],area[href],button:not([disabled]),input:not([disabled]),' +
+    'select:not([disabled]),textarea:not([disabled]),iframe,audio[controls],video[controls],' +
+    '[contenteditable]:not([contenteditable="false"]),[tabindex]:not([tabindex^="-"])';
+
+  function reachable(element) {
+    if (element.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
+    var style = getComputedStyle(element);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  }
+
+  function takeFocus(element) {
+    var added = !element.hasAttribute('tabindex');
+    if (added) element.setAttribute('tabindex', '-1');
+    element.focus();
+    if (document.activeElement === element) return true;
+    if (added) element.removeAttribute('tabindex');
+    return false;
+  }
+
+  function handOff(event) {
+    if (event.key !== 'Tab' || !event.shiftKey || event.altKey || event.ctrlKey ||
+        event.metaKey || event.defaultPrevented || !onDeck()) {
+      return;
+    }
+    var active = document.activeElement;
+    var wrapper = paintTarget(active);
+    if (!wrapper || active.closest('[role="dialog"],[aria-modal="true"]')) return;
+    var stops = document.querySelectorAll(TABBABLE);
+    for (var i = 0; i < stops.length && stops[i] !== active; i++) {
+      if (reachable(stops[i])) return;
+    }
+    event.preventDefault();
+    // From outside the wrapper: maidr mounts a widget in an <article> of its
+    // own, which is no slide.
+    var host = wrapper.parentElement;
+    var slide = host && host.closest('section,article,[role="region"],.slide');
+    var candidates = slide ? [slide] : [];
+    for (var node = host; node; node = node.parentElement) {
+      if (node !== slide) candidates.push(node);
+    }
+    for (var j = 0; j < candidates.length; j++) {
+      if (takeFocus(candidates[j])) return;
+    }
+    active.blur();
+  }
+
+  // reveal.js's search plugin opens on Ctrl+Shift+F (Cmd on a Mac) from a
+  // listener of its own, which keyboardCondition does not reach. maidr.js
+  // binds no such key, so on a deck with that plugin it goes no further;
+  // anywhere else it is left to a reader who gave it to one of maidr's
+  // commands.
+  function keepSearchShut(event) {
+    if (!(event.ctrlKey || event.metaKey) || !event.shiftKey ||
+        (event.key !== 'F' && event.key !== 'f')) {
+      return;
+    }
+    var reveal = window.Reveal;
+    if (window.RevealSearch ||
+        (reveal && typeof reveal.hasPlugin === 'function' && reveal.hasPlugin('search'))) {
+      event.stopPropagation();
+    }
+  }
+
   // --- Quarto cross-reference previews -----------------------------------
 
   // Hovering a reference to a Quarto figure shows a copy of the figure in a
@@ -544,6 +621,8 @@
     if (!focusInChart()) return;
     shimHosts();
     shimPkgdownSearch(event);
+    handOff(event);
+    keepSearchShut(event);
   }, true);
   document.addEventListener('focusin', function (event) {
     var target = event.target;
