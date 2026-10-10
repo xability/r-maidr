@@ -190,6 +190,31 @@ in, such as a `par(mfrow)` grid of five rows, is drawn larger, at 7 x 7 in
 or the smallest larger size that leaves each of its plots room to be seen,
 and a message names the size.
 
+### Hover mode
+
+By default, moving the pointer over a chart moves the reader's position
+with it, and the highlight, sound and announcement follow. `hover_mode`
+sets how a chart starts instead: `"click"` moves the reader only where they
+click, and `"off"` leaves the pointer out of it, so only the keyboard moves
+them. It is the chart's starting value for the reader's own Hover Mode
+setting, not a lock on it: a reader who has changed that setting keeps
+theirs.
+
+``` r
+show(p, hover_mode = "click")
+save_html(p, "quiet.html", hover_mode = "off")
+output$plot <- render_maidr(p, hover_mode = "click")
+maidr_htmlwidget(w, hover_mode = "click")   # highcharter and echarts4r
+
+# Every chart that sets none, R Markdown and Quarto documents included
+options(maidr.hover_mode = "click")
+```
+
+Left unset, nothing is written and the reader's setting decides. maidr.js
+reads it from the release after 4.14.0; the 4.14.0 bundled with this
+package ignores it, so it takes effect with `use_cdn = TRUE` until the
+bundle is raised.
+
 ### R Markdown and Quarto
 
 `library(maidr)` in a setup chunk is all a document needs. Every plot it

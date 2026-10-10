@@ -11,6 +11,7 @@ show(
   as_widget = FALSE,
   width = NULL,
   height = NULL,
+  hover_mode = NULL,
   ...
 )
 }
@@ -43,6 +44,18 @@ single positive number no larger than 50, or \code{NULL} (the default) for
 its default. With \code{as_widget = TRUE} they size the chart in the widget,
 not the widget, whose own CSS size is set on the widget returned:
 \code{widget$width <- "300px"}. See \strong{Chart size}.}
+
+\item{hover_mode}{How the pointer moves the reader through the chart:
+\code{"pointermove"} (hovering moves the reader's position and its
+highlight), \code{"click"} (only a click moves it) or \code{"off"}
+(the pointer is ignored, and only the keyboard moves it). It is the
+chart's starting value for the reader's Hover Mode setting: a reader
+who has changed that setting keeps theirs. \code{NULL} (the default)
+takes \code{getOption("maidr.hover_mode")}, and when that is unset
+writes nothing, so maidr.js uses the reader's setting, whose default is
+\code{"pointermove"}. Read by the maidr.js releases after 4.14.0; the
+4.14.0 bundled with this package ignores it, so it takes effect with
+\code{use_cdn = TRUE}. See \code{?"maidr-options"}.}
 
 \item{...}{Additional arguments passed to internal functions}
 }
@@ -189,6 +202,11 @@ maidr::show(p_violin)
 if (requireNamespace("lattice", quietly = TRUE)) {
   maidr::show(lattice::xyplot(mpg ~ wt, data = mtcars))
 }
+}
+
+# Hovering does not move the reader; a click does
+\donttest{
+maidr::show(p, hover_mode = "click")
 }
 
 # Base R example (requires interactive session for function patching)

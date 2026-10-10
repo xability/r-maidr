@@ -9,7 +9,8 @@ render_maidr(
   env = parent.frame(),
   quoted = FALSE,
   fig_width = NULL,
-  fig_height = NULL
+  fig_height = NULL,
+  hover_mode = NULL
 )
 }
 \arguments{
@@ -32,6 +33,12 @@ for 7 x 5 in, 12 x 6 in for a candlestick chart. They are not the size of the ou
 on the page, which \code{\link{maidr_output}()}'s \code{width} and
 \code{height} set: a chart wider than its output shrinks to fit it.
 Nothing sizes the chart to its output; the size is the one given here.}
+
+\item{hover_mode}{How the pointer moves the reader through the chart, as
+in \code{\link{show}()}: \code{"pointermove"}, \code{"click"} or
+\code{"off"}, or \code{NULL} (the default) for
+\code{getOption("maidr.hover_mode")}, and for the reader's own setting
+when that is unset.}
 }
 \value{
 A Shiny render function for use in server
@@ -58,6 +65,15 @@ if (interactive()) {
       },
       fig_width = 10,
       fig_height = 4
+    )
+
+    # Only a click moves the reader through this one
+    output$quiet <- render_maidr(
+      {
+        ggplot(mtcars, aes(x = wt, y = mpg)) +
+          geom_point()
+      },
+      hover_mode = "click"
     )
   }
 }

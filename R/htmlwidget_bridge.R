@@ -78,6 +78,15 @@
 #'       name, in place of the ones read from the chart.
 #'   }
 #'   \code{NULL} (default) declares none.
+#' @param hover_mode highcharter and echarts4r only. How the pointer moves
+#'   the reader through the chart: \code{"pointermove"}, \code{"click"} or
+#'   \code{"off"}, as in \code{\link{show}()}, written into the chart MAIDR
+#'   reads once it has been drawn. \code{NULL} (default) takes
+#'   \code{getOption("maidr.hover_mode")}, and when that is unset writes
+#'   nothing, so maidr.js uses the reader's own setting. A plotly chart is
+#'   read by the MAIDR core itself, which takes no hover mode from R: an
+#'   explicit \code{hover_mode} is refused for one, and the option is not
+#'   applied to it.
 #' @return The widget, with MAIDR attached. Print it, return it from a
 #'   Shiny render function, or save it as you would the original.
 #' @examples
@@ -117,11 +126,27 @@
 #'   )
 #' }
 #' @export
-maidr_htmlwidget <- function(widget, use_cdn = FALSE, percentile_bands = NULL) {
+maidr_htmlwidget <- function(widget, use_cdn = FALSE, percentile_bands = NULL,
+                             hover_mode = NULL) {
   adapter <- maidr_htmlwidget_adapter(widget)
 
   if (!is.logical(use_cdn) || length(use_cdn) != 1L || is.na(use_cdn)) {
     stop("`use_cdn` must be TRUE or FALSE.", call. = FALSE)
+  }
+
+  # The core binds a plotly chart on its own, from a schema it builds itself,
+  # so there is nothing here to write a hover mode into.
+  check_hover_mode(hover_mode)
+  if (identical(adapter, "plotly")) {
+    if (!is.null(hover_mode)) {
+      stop(
+        "`hover_mode` is read only for a highcharter or echarts4r widget: ",
+        "MAIDR reads a plotly chart by itself.",
+        call. = FALSE
+      )
+    }
+  } else {
+    hover_mode <- resolve_hover_mode(hover_mode)
   }
 
   options <- list()
@@ -170,6 +195,9 @@ maidr_htmlwidget <- function(widget, use_cdn = FALSE, percentile_bands = NULL) {
   data <- list(adapter = adapter)
   if (length(options) > 0L) {
     data$options <- options
+  }
+  if (!is.null(hover_mode)) {
+    data$hoverMode <- hover_mode
   }
   htmlwidgets::onRender(widget, MAIDR_HTMLWIDGET_BIND_JS, data = data)
 }
@@ -504,6 +532,11 @@ maidr_adapter_dependency <- function(adapter, use_cdn = FALSE) {
 # `maidr_htmlwidget(percentile_bands = )`) arrive as `data.options`, and are
 # handed to `createMaidrFromEChart()` as its third argument.
 #
+# A hover mode (`maidr_htmlwidget(hover_mode = )`, or the `maidr.hover_mode`
+# option) arrives as `data.hoverMode` and is written into the top level of
+# the schema the adapter built, as `with_hover_mode()` writes it for a chart
+# drawn in R, before the schema is handed over.
+#
 # The payload is handed to MAIDR through the `maidr:bindchart` event, which
 # `maidr.js` listens for from the moment it loads, and the `maidr-data`
 # attribute it reads is removed again once it has. Left in place, it would be
@@ -518,6 +551,9 @@ MAIDR_HTMLWIDGET_BIND_JS <- "function (el, x, data) {
   }
 
   function bind(target, maidr) {
+    if (data.hoverMode) {
+      maidr.hoverMode = data.hoverMode;
+    }
     target.setAttribute('maidr-data', JSON.stringify(maidr));
     target.dispatchEvent(
       new CustomEvent('maidr:bindchart', { bubbles: true, detail: maidr })

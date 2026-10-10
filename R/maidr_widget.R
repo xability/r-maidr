@@ -33,13 +33,17 @@ NULL
 #'   positive number no larger than 50, or \code{NULL} (the default) for
 #'   7 x 5 in, 12 x 6 in for a candlestick chart. Not the widget's size, which \code{width} and
 #'   \code{height} set; a chart wider than the widget shrinks to fit it.
+#' @param hover_mode The chart's starting hover mode, as in \code{show()}:
+#'   \code{"pointermove"}, \code{"click"} or \code{"off"}, or \code{NULL}
+#'   (the default) for \code{getOption("maidr.hover_mode")}.
 #' @param ... Additional arguments passed to create_maidr_html()
 #' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
 #' @keywords internal
 maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, element_id = NULL,
-                         fig_width = NULL, fig_height = NULL, ...) {
+                         fig_width = NULL, fig_height = NULL, hover_mode = NULL, ...) {
   check_chart_size(fig_width, "fig_width")
   check_chart_size(fig_height, "fig_height")
+  check_hover_mode(hover_mode)
 
   # NULL means Base R auto-detection (recorded plot calls), mirroring show()
   if (is.null(plot)) {
@@ -57,6 +61,7 @@ maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, elem
     shiny = TRUE,
     width = fig_width,
     height = fig_height,
+    hover_mode = hover_mode,
     ...
   )
 
