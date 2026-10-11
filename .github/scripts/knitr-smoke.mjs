@@ -52,7 +52,11 @@
 //     foot, a chart too large to leave room below it for maidr's text is
 //     made smaller: maidr's instructions, text and braille and review fields
 //     stay on the slide, and the chart keeps its size and place, and the
-//     slide its title in view, as the reader uses it.
+//     slide its title in view, as the reader uses it;
+//   * on a Bootstrap 5 page, `bs5.html`, which makes a figure an inline
+//     block, a captioned chart given out.width = "50%" and fig.align =
+//     "right" is half the column wide and stands at its right, as knitr's
+//     image given the same does.
 //
 // A chart whose ids clashed with another's, or that was bound to another's
 // data, announces or highlights the wrong chart; a page that loaded the
@@ -861,6 +865,43 @@ check(
 );
 check(ioErrors.length === 0, `no page errors on the slides${ioErrors.length ? ': ' + ioErrors.join(' | ') : ''}`);
 await io.close();
+
+// A Bootstrap 5 page: a captioned chart given out.width and aligned right.
+const bs5 = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+const bs5Errors = [];
+bs5.on('pageerror', error => bs5Errors.push(String(error)));
+await bs5.goto('file://' + path.resolve(dir, 'bs5.html'), { waitUntil: 'load' });
+await bs5.waitForFunction(
+  plotOf => document.querySelector(`.maidr-knitr ${plotOf}`),
+  plotOf,
+  { timeout: 15000 },
+).catch(() => {});
+await bs5.waitForTimeout(settle);
+const placed = await bs5.evaluate(() => {
+  const chart = document.querySelector('.maidr-knitr svg.maidr-knitr-svg');
+  if (!chart) {
+    return null;
+  }
+  const column = chart.closest('.main-container');
+  const style = getComputedStyle(column);
+  const outer = column.getBoundingClientRect();
+  const left = outer.left + parseFloat(style.paddingLeft);
+  const right = outer.right - parseFloat(style.paddingRight);
+  const box = chart.getBoundingClientRect();
+  return {
+    left: Math.round(box.left - left),
+    right: Math.round(right - box.right),
+    width: Math.round(box.width),
+    column: Math.round(right - left),
+  };
+});
+check(
+  Boolean(placed) && Math.abs(placed.right) <= 1 && Math.abs(placed.width - placed.column / 2) <= 1,
+  'on a Bootstrap 5 page a captioned chart given out.width = "50%" and fig.align = "right" is half the column'
+    + ` wide, at its right, as knitr's image is (${JSON.stringify(placed)})`,
+);
+check(bs5Errors.length === 0, `no page errors on the Bootstrap 5 page${bs5Errors.length ? ': ' + bs5Errors.join(' | ') : ''}`);
+await bs5.close();
 
 await browser.close();
 if (failures.length > 0) {

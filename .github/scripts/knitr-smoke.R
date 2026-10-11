@@ -36,6 +36,8 @@
 # can go from one kind of chart to the other. A third, `slides.html`, is an
 # ioslides presentation with a chart at its 7.5 x 4.5 in below a point on a
 # slide, larger than the slide leaves room for with maidr's text below it.
+# A fourth, `bs5.html`, is a Bootstrap 5 page with a captioned chart given
+# `out.width = "50%"` and `fig.align = "right"`.
 #
 # Every chart's values are its own, so an announcement names the chart it
 # came from. The page sets its paragraphs in a size of its own, as an author
@@ -216,3 +218,25 @@ writeLines(c(
 
 rmarkdown::render(slides, output_file = "slides.html", quiet = TRUE, envir = new.env())
 
+bs5 <- file.path(out, "bs5.Rmd")
+writeLines(c(
+  "---",
+  "title: \"maidr knitr smoke, Bootstrap 5\"",
+  "output:",
+  "  html_document:",
+  "    theme:",
+  "      version: 5",
+  "---",
+  "",
+  "```{r setup, include = FALSE}",
+  "library(maidr)",
+  "library(ggplot2)",
+  "```",
+  "",
+  "```{r bs5-chart, fig.cap = \"On the right\", fig.align = \"right\", out.width = \"50%\"}",
+  "bs <- data.frame(kind = c(\"bs1\", \"bs2\"), n = c(161, 162))",
+  "ggplot(bs, aes(kind, n)) + geom_col()",
+  "```"
+), bs5)
+
+rmarkdown::render(bs5, output_file = "bs5.html", quiet = TRUE, envir = new.env())

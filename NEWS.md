@@ -543,6 +543,9 @@
   so the chart keeps its size and place while a reader uses it, and a
   pointer finds the point under it. A 'flexdashboard' still shrinks a
   chart to its box when it is taller.
+* A captioned chart given an `out.width` and aligned right or centre is
+  placed as knitr places its image under Bootstrap 4 and 5 too, which make
+  a figure an inline block; it stood at the left of the column.
 
 ### ggplot2
 

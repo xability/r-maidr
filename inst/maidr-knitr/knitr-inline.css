@@ -92,6 +92,13 @@
 .cell-output-display .maidr-knitr > .maidr-knitr-caption {
   text-align: start;
 }
+/* Bootstrap 4 and 5 make a .figure an inline block, which a margin does
+ * not place: a captioned chart given an out.width and aligned is a block,
+ * as narrow as it was given, placed in its column as knitr's image is. */
+.maidr-knitr.figure.maidr-knitr-sized.maidr-knitr-center,
+.maidr-knitr.figure.maidr-knitr-sized.maidr-knitr-right {
+  display: block;
+}
 .quarto-float .maidr-knitr {
   margin-bottom: 0.5em;
 }
