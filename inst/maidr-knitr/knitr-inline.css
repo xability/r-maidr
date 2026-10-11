@@ -61,9 +61,10 @@
   clear: both;
 }
 
-/* maidr's braille and review fields are as wide as their text; in a phone's
- * column they keep to the chart's width. maidr's other fields, in its
- * dialogs, are sized by MUI. */
+/* maidr's braille field is as wide as the reader's braille display, and its
+ * review field 50 characters; in a narrower column, as a phone's, they keep
+ * to the chart's width. maidr's other fields, in its dialogs, are sized by
+ * MUI. */
 .maidr-knitr textarea[id^="maidr-braille-textarea"],
 .maidr-knitr input[id^="maidr-review-input"] {
   max-width: 100%;

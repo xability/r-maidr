@@ -453,7 +453,8 @@
   who gives it to one of maidr's commands (#NNN).
 * Such a chart in a Quarto figure is centred, as Quarto centres its
   figures unless `fig-align` says otherwise; it stood at the figure's left.
-  maidr's braille and review fields keep to the chart's width in a column
+  maidr's review field, 50 characters wide, and its braille field, as wide
+  as the reader's braille display, keep to the chart's width in a column
   narrower than they are, as on a phone, where they ran past it and the
   page scrolled sideways (#NNN).
 * maidr's dialogs, opened from such a chart on a slide of a Quarto deck,

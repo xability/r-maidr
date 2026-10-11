@@ -32,9 +32,11 @@
 //     root font size is 10px, shows its text and its title at their own
 //     sizes, neither shrunk by the page nor enlarged twice, nor sized by
 //     the page's rule for its paragraphs, within the window;
-//   * in a phone's column, 360 pixels wide, maidr's braille and review
-//     fields keep to the chart's width and the page does not scroll
-//     sideways, while the fields of maidr's settings keep their own height;
+//   * in a phone's column, 360 pixels wide, maidr's braille field, set for
+//     an 80-cell display, and its review field, both wider than the chart
+//     left to their own widths, keep to the chart's width and the page does
+//     not scroll sideways, while the fields of maidr's settings keep their
+//     own height;
 //   * high contrast, turned on in a chart, paints the chart dark and leaves
 //     the page in its own colours, and leaving the chart leaves nothing
 //     painted; on a second page, `mixed.html`, the same holds for a 'plotly'
@@ -604,11 +606,23 @@ await page.waitForTimeout(settle);
 
 check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 
-// The same page in a phone's column. maidr's braille and review fields are
-// as wide as their text, which here is wider than the column; they keep to
-// the chart's width, and the page does not scroll sideways. The fields of
+// The same page in a phone's column. maidr's braille field is as wide as
+// the reader's braille display, which fits the column at maidr's default
+// of 32 cells and is set here to an 80-cell one, and its review field is
+// 50 characters wide: both are wider than the chart. They keep to the
+// chart's width, and the page does not scroll sideways. The fields of
 // maidr's settings, which MUI sizes, keep their own box and height.
 const phone = await browser.newPage({ viewport: { width: 360, height: 740 } });
+await phone.addInitScript(() => {
+  localStorage.setItem('maidr-settings', JSON.stringify({
+    general: {
+      brailleDisplayKind: 'single',
+      brailleDisplayPresetId: 'focus-80-blue-5g',
+      brailleDisplaySize: 80,
+      brailleDisplayLines: 1,
+    },
+  }));
+});
 await phone.goto('file://' + file, { waitUntil: 'load' });
 await phone.waitForFunction(
   () => document.querySelector('.maidr-knitr article[id^="maidr-article-"]'),
@@ -617,20 +631,28 @@ await phone.waitForFunction(
 ).catch(() => {});
 await phone.waitForTimeout(settle);
 // How far past the chart's right edge each of maidr's braille and review
-// fields shown ends, and how wide the page is.
+// fields shown ends, and would end left to its own width, and how wide the
+// page is. A field that would not run past the chart checks nothing.
 const column = () => phone.evaluate(() => {
   const wrapper = document.querySelector('.maidr-knitr');
   const edge = wrapper.getBoundingClientRect().right;
   const fields = Array.from(
     wrapper.querySelectorAll('textarea[id^="maidr-braille-textarea"], input[id^="maidr-review-input"]'),
-    field => Math.round(field.getBoundingClientRect().right - edge),
+    field => {
+      const ends = Math.round(field.getBoundingClientRect().right - edge);
+      field.style.setProperty('max-width', 'none', 'important');
+      const own = Math.round(field.getBoundingClientRect().right - edge);
+      field.style.removeProperty('max-width');
+      return { ends, own };
+    },
   );
   return { scroll: document.documentElement.scrollWidth, width: window.innerWidth, fields };
 });
 const keptToColumn = (mode, at) => check(
-  at.fields.length === 1 && at.fields[0] <= 1 && at.scroll <= at.width,
+  at.fields.length === 1 && at.fields[0].own > 1 && at.fields[0].ends <= 1 && at.scroll <= at.width,
   `in a phone's column maidr's ${mode} field keeps to the chart's width`
-    + ` (page ${at.scroll} wide in ${at.width}; field ends ${at.fields.join(', ')} px past the chart)`,
+    + ` (page ${at.scroll} wide in ${at.width}; field ends`
+    + ` ${at.fields.map(field => `${field.ends} px past the chart, ${field.own} px at its own width`).join('; ')})`,
 );
 await phone.locator(`.maidr-knitr ${plotOf}`).first().focus();
 await phone.waitForTimeout(settle);
