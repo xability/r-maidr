@@ -4,7 +4,9 @@
 // `quarto-smoke.R` renders the pages with the Quarto CLI. Here each is
 // loaded in headless Chromium and checked the way a reader would find it:
 //
-//   * `dash.html`, a dashboard: every chart is in one of its cards. With a
+//   * `dash.html`, a dashboard: every chart is in one of its cards (not one
+//     card each: two chunks in a row whose only output is a chart share the
+//     first one's card, a bug of how the chart's output is written). With a
 //     card shown full screen, Escape pressed in its chart -- on the chart,
 //     or to close maidr's help -- leaves the card full screen, whether the
 //     card was shown full screen before the chart had the focus or after,

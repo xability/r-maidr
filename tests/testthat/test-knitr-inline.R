@@ -1525,7 +1525,10 @@ test_that("a Quarto dashboard keeps every chart in a card", {
   # Quarto's dashboard filter lifts out of its card a cell output it takes
   # for a bslib component, by the text 'bslib-' in it. knitr-inline.js,
   # which names bslib's cards, is a dependency in the page's head, so no
-  # cell carries it, and every chart stays in a card.
+  # cell carries it, and every chart stays in a card. The cards are not
+  # counted: two chunks in a row whose only output is a chart share the
+  # first one's card, a bug in how the chart's output is written that
+  # predates the script.
   has_class <- function(class) {
     sprintf("contains(concat(' ', normalize-space(@class), ' '), ' %s ')", class)
   }
