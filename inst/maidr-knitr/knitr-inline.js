@@ -357,6 +357,15 @@
     return !!(object.__maidrKnitr || object.__maidrHostGuard);
   }
 
+  // Such a maidr.js says so in maidrLive.features. reveal.js's search key
+  // below guards no object to mark, and is left to it: it holds the key
+  // off the deck itself, but for a reader who gave the key to one of
+  // maidr's commands.
+  function nativeGuards() {
+    var live = window.maidrLive;
+    return !!(live && live.features && live.features.hostGuards >= 1);
+  }
+
   // reveal.js (rmarkdown revealjs, Quarto revealjs) reads keyboardCondition
   // on every keydown; whatever the deck set is kept. reveal.js 3, which
   // older revealjs packages bundle, has no on(), and may be ready only once
@@ -596,7 +605,7 @@
   // and it is stopped only on a deck that has the plugin: anywhere else it
   // is left to a reader who gave it to one of maidr's commands.
   function keepSearchShut(event) {
-    if (!(event.ctrlKey || event.metaKey) || event.key !== 'F') return;
+    if (!(event.ctrlKey || event.metaKey) || event.key !== 'F' || nativeGuards()) return;
     var reveal = window.Reveal;
     if (window.RevealSearch ||
         (reveal && typeof reveal.hasPlugin === 'function' && reveal.hasPlugin('search'))) {
