@@ -449,7 +449,8 @@
   controls, where they do not. Elsewhere Shift+Tab is left to the browser.
   In a reveal.js deck with its search plugin, as every Quarto deck has,
   Ctrl+Shift+F (Cmd+Shift+F on a Mac) pressed in a chart no longer opens
-  the deck's search; on any other page it is left to maidr, for a reader
+  the deck's search, nor does Ctrl+F with Caps Lock on, which the plugin
+  opens on too; on any other page the key is left to maidr, for a reader
   who gives it to one of maidr's commands (#NNN).
 * Such a chart in a Quarto figure is centred, as Quarto centres its
   figures unless `fig-align` says otherwise; it stood at the figure's left.

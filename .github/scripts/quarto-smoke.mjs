@@ -15,14 +15,15 @@
 //     own colours, read from what the page shows whatever paints it.
 //   * `deck.html`, a reveal.js deck, in a window large enough for reveal.js
 //     to scale its slides up: in the chart on its second slide, Right
-//     Arrow is maidr's and leaves the slide where it is, and Ctrl+Shift+F
-//     leaves the deck's search shut, and can still be recorded as a
-//     shortcut in maidr's settings; maidr's help, opened from it, stays
-//     within the window on a slide reveal.js scales up; Shift+Tab, with no
-//     tab stop before the chart -- only a link taken out of the tab order --
-//     puts the focus on the slide, where Right Arrow moves the deck on. The
-//     text reveal.js reads aloud as each of the two slides is shown holds
-//     none of its chart's tick labels.
+//     Arrow is maidr's and leaves the slide where it is; neither
+//     Ctrl+Shift+F nor Ctrl+F with Caps Lock on, each of which opens the
+//     deck's search out of a chart, opens it, and Ctrl+Shift+F can still
+//     be recorded as a shortcut in maidr's settings; maidr's help, opened
+//     from it, stays within the window on a slide reveal.js scales up;
+//     Shift+Tab, with no tab stop before the chart -- only a link taken out
+//     of the tab order -- puts the focus on the slide, where Right Arrow
+//     moves the deck on. The text reveal.js reads aloud as each of the two
+//     slides is shown holds none of its chart's tick labels.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures.
 //
@@ -241,10 +242,31 @@ const open = async (name, charts, viewport) => {
     const box = document.querySelector('.reveal .searchbox');
     return box ? getComputedStyle(box).display : 'none';
   });
+  // Shut it, as the plugin does, should a check have opened it, so that one
+  // failure does not fail the checks after it.
+  const shutSearch = () => page.evaluate(() => {
+    const box = document.querySelector('.reveal .searchbox');
+    if (box) {
+      box.style.display = 'none';
+    }
+  });
   await page.keyboard.press('Control+Shift+F');
   await page.waitForTimeout(settle);
   const search = await searchShown();
   check(search === 'none', `deck.html: Ctrl+Shift+F in a chart leaves the deck's search shut (${search})`);
+  await shutSearch();
+  await chart.focus();
+  await page.waitForTimeout(settle);
+  // Ctrl+F, reported as a capital F as with Caps Lock on: the plugin opens
+  // on it all the same.
+  await page.keyboard.press('Control+F');
+  await page.waitForTimeout(settle);
+  const capsSearch = await searchShown();
+  check(
+    capsSearch === 'none',
+    `deck.html: Ctrl+F reported as a capital F in a chart leaves the deck's search shut (${capsSearch})`,
+  );
+  await shutSearch();
 
   // Recorded as a shortcut of maidr's in its settings, from the chart: the
   // recorder, a React handler inside the chart, has the key, and the deck's
@@ -274,6 +296,7 @@ const open = async (name, charts, viewport) => {
     'deck.html: Ctrl+Shift+F is recorded as a shortcut in maidr\'s settings, and the deck\'s search stays shut'
       + ` (${JSON.stringify(recording)})`,
   );
+  await shutSearch();
   // Closed, whether the recorder still waits for a key or not.
   const dialogOpen = () => page.evaluate(() => Boolean(document.querySelector('#a-chart .MuiDialog-paper')));
   for (let tries = 0; tries < 3 && await dialogOpen(); tries++) {
@@ -330,6 +353,23 @@ const open = async (name, charts, viewport) => {
       + ` where Right Arrow moves the deck on (slide ${after})`,
   );
   quiet('slide of a figure', await announced(), ['gear3', 'gear4', 'gear5']);
+
+  // Out of the charts the deck's search is the deck's: each key the checks
+  // above press in a chart opens it, and shuts it again, so it is held off
+  // there and not lost.
+  await page.evaluate(() => document.activeElement.blur());
+  for (const key of ['Control+Shift+F', 'Control+F']) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(settle);
+    const opened = await searchShown();
+    await page.keyboard.press(key);
+    await page.waitForTimeout(settle);
+    const shut = await searchShown();
+    check(
+      opened !== 'none' && shut === 'none',
+      `deck.html: ${key} out of a chart opens the deck's search and shuts it again (${opened}, then ${shut})`,
+    );
+  }
 
   check(errors.length === 0, `deck.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();
