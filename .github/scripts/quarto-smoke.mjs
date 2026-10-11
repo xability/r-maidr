@@ -34,7 +34,10 @@
 //     moves the deck on. The text reveal.js reads aloud as each of the two
 //     slides is shown holds none of its chart's tick labels. The chart
 //     alone on its slide is stretched as Quarto stretches the picture alone
-//     on another, as large less the line kept for maidr's text below it.
+//     on another, larger than its own size and as large, less no more than
+//     the room maidr's instructions, text and braille and review fields
+//     take below it, which stay on the slide; and it keeps its size and
+//     place while the reader uses it.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures. A chart at
 //     Quarto's 7 x 5 in is shown as large as a picture is, and one at
@@ -614,33 +617,82 @@ const open = async (name, charts, viewport) => {
   }
 
   // The 4 x 3 in chart alone on its slide is stretched as Quarto stretches
-  // the 4 x 3 in picture alone on another, both below a line of text: as
-  // large, less at most the line kept below the chart for maidr's text. A
-  // slide's pixels, which reveal.js scales.
-  const onSlide = async index => {
-    await page.evaluate(index => window.Reveal.slide(index), index);
-    await page.waitForTimeout(settle);
-    return page.evaluate(() => {
-      const element = window.Reveal.getCurrentSlide().querySelector('svg.maidr-knitr-svg, img');
-      const scale = window.Reveal.getScale();
-      const drawn = window.__maidrSmokeDrawn(element);
-      const wrapper = element.closest('.maidr-knitr');
-      return {
-        width: Math.round(drawn.width / scale * 10) / 10,
-        height: Math.round(drawn.height / scale * 10) / 10,
-        line: wrapper ? 1.5 * parseFloat(getComputedStyle(wrapper).fontSize) : 0,
-      };
-    });
-  };
-  const stretchedChart = await onSlide(1);
-  const stretchedPicture = await onSlide(3);
+  // the 4 x 3 in picture alone on another, both below a line of text:
+  // larger than its own size, and as large, less no more than the room
+  // maidr's instructions, text and braille and review fields take below it
+  // as the reader uses the chart, which they take on the slide, the chart
+  // keeping its size and place. A slide's pixels, which reveal.js scales.
+  const slideState = () => page.evaluate(() => {
+    const scale = window.Reveal.getScale();
+    const deck = document.querySelector('.reveal .slides').getBoundingClientRect();
+    const foot = deck.top + window.Reveal.getConfig().height * scale;
+    const element = window.Reveal.getCurrentSlide().querySelector('svg.maidr-knitr-svg, img');
+    const wrapper = element.closest('.maidr-knitr');
+    const rect = element.getBoundingClientRect();
+    let lowest = 0;
+    for (const selector of ['[id^="maidr-text-container"]', 'textarea[id^="maidr-braille-textarea"]',
+      'input[id^="maidr-review-input"]']) {
+      const shown = wrapper && wrapper.querySelector(selector);
+      const box = shown && shown.getBoundingClientRect();
+      if (box && box.height) {
+        lowest = Math.max(lowest, box.bottom);
+      }
+    }
+    const unit = value => Math.round(value / scale * 10) / 10;
+    const drawn = window.__maidrSmokeDrawn(element);
+    return {
+      width: unit(drawn.width),
+      height: unit(drawn.height),
+      box: [rect.left, rect.top, rect.width, rect.height].map(unit),
+      own: wrapper ? Number.parseFloat(element.getAttribute('width')) : null,
+      below: lowest ? unit(lowest - rect.bottom) : 0,
+      past: lowest ? unit(lowest - foot) : 0,
+    };
+  });
+  await page.evaluate(() => window.Reveal.slide(3));
+  await page.waitForTimeout(settle);
+  const stretchedPicture = await slideState();
+  await page.evaluate(() => window.Reveal.slide(1));
+  await page.waitForTimeout(settle);
+  const states = { load: await slideState() };
+  await chart.focus();
+  await page.waitForTimeout(settle);
+  states.focus = await slideState();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(settle);
+  states.key = await slideState();
+  await page.keyboard.press('b');
+  await page.waitForTimeout(settle);
+  states.braille = await slideState();
+  await page.keyboard.press('b');
+  await page.waitForTimeout(settle);
+  await chart.focus();
+  await page.keyboard.press('r');
+  await page.waitForTimeout(settle);
+  states.review = await slideState();
+  await page.keyboard.press('r');
+  await page.waitForTimeout(settle);
+  await page.evaluate(() => document.activeElement.blur());
+  await page.waitForTimeout(settle);
+  states.blur = await slideState();
+  const stretchedChart = states.load;
+  const all = Object.values(states);
+  const room = Math.max(...all.map(state => state.below));
   check(
-    stretchedChart.height > 1.5 * 3 * 96
+    stretchedChart.width > stretchedChart.own + 10
       && stretchedChart.height <= stretchedPicture.height + 1
-      && stretchedChart.height >= stretchedPicture.height - stretchedChart.line - 1
+      && stretchedChart.height >= stretchedPicture.height - room - 1
       && Math.abs(stretchedChart.width / stretchedChart.height - 4 / 3) < 0.01,
-    'deck.html: the chart alone on its slide is stretched as the picture alone on another is'
-      + ` (${JSON.stringify(stretchedChart)} and ${JSON.stringify(stretchedPicture)})`,
+    'deck.html: the chart alone on its slide is stretched as the picture alone on another is, less no more'
+      + ` than the room maidr's text takes below it (${JSON.stringify(stretchedChart)} and`
+      + ` ${JSON.stringify(stretchedPicture)}; ${room} below)`,
+  );
+  check(
+    all.every(state => JSON.stringify(state.box) === JSON.stringify(stretchedChart.box))
+      && states.focus.below > 0 && states.braille.below > states.key.below && states.review.below > 0
+      && all.every(state => state.past <= 1),
+    'deck.html: the stretched chart keeps its size and place as the reader uses it, and maidr\'s'
+      + ` instructions, text and braille and review fields stay on the slide (${JSON.stringify(states)})`,
   );
 
   check(errors.length === 0, `deck.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);

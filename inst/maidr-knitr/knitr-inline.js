@@ -70,6 +70,7 @@
       if (wrapper) {
         fitChart(wrapper);
         stretchChart(wrapper);
+        fitIoslide(wrapper);
       }
       return;
     }
@@ -401,7 +402,81 @@
     });
   }
 
-  // --- reveal.js auto-stretch ----------------------------------------------
+  // --- Slides --------------------------------------------------------------
+
+  // A slide is as high as its deck makes it, and what runs past its foot is
+  // not seen: reveal.js and ioslides clip it, or the window does. A chart
+  // made as large as a slide allows keeps below it the room for what maidr
+  // shows there as the reader uses it -- the instructions it gives as they
+  // enter the chart, the line of text above its braille field and the
+  // field, or above its review field -- whichever is the tallest. That room
+  // is kept whether or not they are shown: a chart that changed size as
+  // they came and went would jump under the reader's eyes, and maidr.js
+  // would hover its marks where they were before, since it measures them
+  // once the reader is in the chart and again only when the window scrolls
+  // or resizes.
+  var BRAILLE_ROWS = 5;
+
+  // A block laid out as maidr lays out its text below a chart, the page's
+  // rules for it included, out of sight: a paragraph of `text` in a text
+  // container, and a braille field after it if asked for.
+  function textProbe(wrapper, text, braille) {
+    var probe = document.createElement('div');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.cssText = 'position: absolute; visibility: hidden; display: flow-root; ' +
+      'left: 0; top: 0; width: ' + wrapper.clientWidth + 'px;';
+    var container = document.createElement('div');
+    container.id = 'maidr-text-container-knitr-probe';
+    var paragraph = document.createElement('p');
+    paragraph.textContent = text;
+    container.appendChild(paragraph);
+    probe.appendChild(container);
+    if (braille) {
+      var field = document.createElement('textarea');
+      field.rows = BRAILLE_ROWS;
+      field.setAttribute('wrap', 'off');
+      field.tabIndex = -1;
+      probe.appendChild(field);
+    }
+    wrapper.appendChild(probe);
+    try {
+      return probe.offsetHeight;
+    } finally {
+      probe.remove();
+    }
+  }
+
+  function textRoom(wrapper) {
+    // maidr names the chart by its instructions until the reader moves in
+    // it, and they are as long as the instructions it shows; three lines
+    // where they are not known.
+    var plot = wrapper.querySelector('figure[id^="maidr-figure"] > [tabindex]');
+    var label = plot && plot.getAttribute('aria-label');
+    if (label && wrapper.__maidrKnitrInstructions === undefined) {
+      wrapper.__maidrKnitrInstructions = label;
+    }
+    var instructions = wrapper.__maidrKnitrInstructions;
+    var shown = instructions ? textProbe(wrapper, instructions, false) : 3 * textLine(wrapper);
+    return Math.max(shown, textProbe(wrapper, 'M', true));
+  }
+
+  // The room a chart has on a slide as high as `height`: what the rest of
+  // the slide leaves of it, as reveal.js measures the room of an .r-stretch
+  // element, less the room for maidr's text. The chart's wrapper is
+  // measured empty, so that what maidr shows below the chart takes none of
+  // the room, whether it is shown or not; the margin below the wrapper,
+  // which that text meets, is left to the slide's padding.
+  function slideRoom(wrapper, slide, height) {
+    var place = wrapper.style;
+    var own = slide.style.height;
+    place.height = '0px';
+    slide.style.height = 'auto';
+    var room = height - slide.offsetHeight;
+    slide.style.height = own;
+    place.height = '';
+    var margin = parseFloat(getComputedStyle(wrapper).marginBottom) || 0;
+    return room + margin - textRoom(wrapper);
+  }
 
   // Quarto stretches the one image of a slide to the room left on it
   // (auto-stretch, reveal.js's .r-stretch): as large as fits the slide's
@@ -409,10 +484,10 @@
   // chart is an svg, not an image, so r-maidr marks each chart Quarto would
   // stretch were it one (maidr-knitr-stretch: in a deck that keeps
   // auto-stretch, not given a height), and it is stretched here on the
-  // terms Quarto stretches an image on, less a line for the text maidr
+  // terms Quarto stretches an image on, less the room for the text maidr
   // shows below it. Not in reveal.js's scroll view, a phone's, where
-  // reveal.js's own stretch leaves an image no room at all: the chart keeps
-  // its size there.
+  // reveal.js's own stretch leaves an image no room at all and the page
+  // scrolls: the chart keeps its size there.
   var STRETCH = '.reveal .slides section .maidr-knitr.maidr-knitr-stretch';
   // What Quarto leaves an image in unstretched.
   var NO_STRETCH = '.column, .quarto-layout-panel, .fragment, .output-location-slide, [class*="panel-"]';
@@ -472,15 +547,7 @@
       ? reveal.getComputedSlideSize() : reveal.getConfig();
     if (!(size.width > 0) || !(size.height > 0)) return;
     wrapper.classList.add('maidr-knitr-stretched');
-    var line = 1.5 * parseFloat(getComputedStyle(wrapper).fontSize);
-    // As reveal.js measures the room an .r-stretch element has: the slide's
-    // height less what the rest of the slide takes.
-    svg.style.width = '0px';
-    svg.style.height = '0px';
-    var height = slide.style.height;
-    slide.style.height = 'auto';
-    var room = size.height - slide.offsetHeight - line;
-    slide.style.height = height;
+    var room = slideRoom(wrapper, slide, size.height);
     var scale = Math.min(size.width / box.width, Math.max(room, 96) / box.height);
     svg.style.width = box.width * scale + 'px';
     svg.style.height = box.height * scale + 'px';
@@ -498,10 +565,61 @@
       return;
     }
     watchStretch.done = true;
-    ['ready', 'resize', 'slidechanged', 'scrollviewchange'].forEach(function (name) {
+    ['ready', 'resize', 'slidechanged'].forEach(function (name) {
       reveal.on(name, stretchCharts);
     });
+    // reveal.js tells of a change of scale, but not of a change into its
+    // scroll view or out of it, which a window resized past its width
+    // makes; it has laid the deck out again by the frame after.
+    var pending = false;
+    window.addEventListener('resize', function () {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(function () {
+        pending = false;
+        stretchCharts();
+      });
+    });
     if (typeof reveal.isReady !== 'function' || reveal.isReady()) stretchCharts();
+  }
+
+  // ioslides shows a figure at its size, and clips what runs past the
+  // slide's foot. A chart too large to leave the room for maidr's text
+  // below it on its slide is made smaller, never larger. Not on a slide of
+  // two columns, whose height is not the column's.
+  var IOSLIDE = 'slides > slide';
+
+  function fitIoslide(wrapper) {
+    var slide = wrapper.closest(IOSLIDE);
+    var svg = wrapper.querySelector('svg.maidr-knitr-svg');
+    var box = svg && svg.viewBox && svg.viewBox.baseVal;
+    if (!slide || !box || !(box.width > 0) || !(box.height > 0)) return;
+    var article = wrapper.closest('article');
+    if (article && parseInt(getComputedStyle(article).columnCount, 10) > 1) return;
+    // A slide ioslides does not show is measured when it is shown.
+    var height = slide.offsetHeight;
+    if (!height) return;
+    svg.style.width = heightWidth(svg);
+    svg.style.height = '';
+    // The slide's pixels: ioslides scales its slides to a small window.
+    var scale = slide.getBoundingClientRect().height / height;
+    var shown = svg.getBoundingClientRect().height / scale;
+    var room = Math.max(slideRoom(wrapper, slide, height), 96);
+    if (shown <= room) return;
+    svg.style.width = box.width * room / box.height + 'px';
+    svg.style.height = room + 'px';
+  }
+
+  function fitIoslides() {
+    var wrappers = document.querySelectorAll(IOSLIDE + ' .maidr-knitr');
+    for (var i = 0; i < wrappers.length; i++) fitIoslide(wrappers[i]);
+    if (wrappers.length && !fitIoslides.done) {
+      fitIoslides.done = true;
+      document.addEventListener('slideenter', function (event) {
+        var inSlide = event.target.querySelectorAll ? event.target.querySelectorAll('.maidr-knitr') : [];
+        for (var j = 0; j < inSlide.length; j++) fitIoslide(inSlide[j]);
+      });
+    }
   }
 
   // --- High contrast -------------------------------------------------------
@@ -915,6 +1033,7 @@
       describeAll();
       fitCharts();
       watchStretch();
+      fitIoslides();
       sizeAllDialogs();
     });
   }

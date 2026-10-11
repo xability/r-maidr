@@ -96,15 +96,18 @@
 #' scroll sideways through a chart.
 #'
 #' In a Quarto reveal.js deck a chart alone on a slide is stretched to the
-#' room left on the slide, as Quarto stretches a lone figure, less a line
-#' for the text maidr shows below it. `auto-stretch` is read from the
-#' document's own front matter, not from a project's `_quarto.yml`; a slide
-#' marked `.nostretch`, a chart given an `out-height`, one in columns, a
-#' panel or a fragment, and a phone's scroll view are left alone, as Quarto
-#' leaves an image. In a Quarto dashboard a chart fills its card as an image
-#' does, less a line for maidr's text below it; the card scrolls to maidr's
-#' braille and review fields, and the chart keeps its size while a reader
-#' uses it.
+#' room left on the slide, as Quarto stretches a lone figure, less the room
+#' maidr's instructions, or a line of its text and its braille field, take
+#' below it, so that they stay on the slide; it is a little smaller than the
+#' figure for that. `auto-stretch` is read from the document's own front
+#' matter, not from a project's `_quarto.yml`; a slide marked `.nostretch`,
+#' a chart given an `out-height`, one in columns, a panel or a fragment, and
+#' a phone's scroll view are left alone, as Quarto leaves an image. An
+#' ioslides chart too large to leave that room on its slide is made smaller.
+#' In a Quarto dashboard a chart fills its card as an image does, less a
+#' line for maidr's text below it; the card scrolls to maidr's braille and
+#' review fields. The size a chart is given on a slide or in a card does not
+#' change while a reader uses it.
 #'
 #' A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 #' maths and `\@ref()` in `fig.cap` are shown as written, and a bookdown text

@@ -265,7 +265,8 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   aligns it. In a Quarto reveal.js deck a chart alone on a slide is
   stretched as Quarto stretches a lone figure (`auto-stretch`, read from
   the document's own front matter), and in a Quarto dashboard a chart fills
-  its card as an image does, less a line for maidr's text below it. A chart wider than the page still shrinks to
+  its card as an image does, each less the room maidr's text takes below
+  the chart. A chart wider than the page still shrinks to
   fit it, even where Quarto's `fig-responsive: false` keeps an image from
   shrinking, so that a reader on a phone or with the page magnified need
   not scroll sideways through it. See [Chart size](#chart-size) for what
