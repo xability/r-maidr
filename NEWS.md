@@ -491,7 +491,7 @@
   instructions before the reader enters it (xability/maidr#1384), that
   would have kept the instructions from a reader until they entered the
   chart. The alt text and caption are still read first, then maidr's
-  instructions. With the bundled 4.14.0 nothing changes (#NNN).
+  instructions. With the bundled 4.14.0 nothing changes (#370).
 
 ### ggplot2
 
