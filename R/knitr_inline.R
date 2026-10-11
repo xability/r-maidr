@@ -143,6 +143,12 @@ warn_inline_fallback <- function(error) {
 #' * A chart in place of a figure of a `fig-` chunk in Quarto is given to
 #'   Quarto as the figure it numbers and captions (`quarto_figure_float()`);
 #'   every other chart is captioned here.
+#' * Any other chart in place of a figure in Quarto is in a
+#'   `.cell-output-display` div (`quarto_output_display()`), as Quarto's
+#'   plot hook writes each figure, but in a `results = "asis"` chunk, where
+#'   it writes none. A dashboard makes a card of a chunk whose output is in
+#'   such a div, and none of one whose output is only raw blocks: it gathered
+#'   such chunks, one after another, into one card, titled by the first.
 #' * `fig.align` aligns the chart, and an `out.width` the author sets (not
 #'   the one knitr derives for a retina figure) sets the wrapper's width,
 #'   which the chart shrinks to. The chart itself was drawn at the chunk's
@@ -255,7 +261,25 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   if (float) {
     return(quarto_figure_float(block, options, index, float_caption))
   }
+  if (figure && quarto && !identical(options$results, "asis")) {
+    return(quarto_output_display(block))
+  }
   paste0("\n\n", block, "\n\n")
+}
+
+#' A figure's output as Quarto's plot hook writes it
+#'
+#' In a `.cell-output-display` div, which Quarto's filters take for an
+#' output of the cell: a dashboard makes a card of a cell holding one, and
+#' leaves a cell whose output is only raw blocks loose, for its layout to
+#' gather with the loose cells next to it into one card.
+#'
+#' @param x Markdown of the figure
+#' @return Character string of Markdown
+#' @keywords internal
+#' @noRd
+quarto_output_display <- function(x) {
+  paste0("\n\n::: {.cell-output-display}\n\n", x, "\n\n:::\n\n")
 }
 
 #' A chart as the figure Quarto makes of a figure of a `fig-` chunk
@@ -270,7 +294,7 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
 #' chunk has several figures. The caption is the figure's `fig-subcap` when
 #' the chunk gives sub-captions, its `fig-cap` otherwise, and Markdown in it
 #' is read. The float is in a `.cell-output-display` div, as each figure
-#' Quarto's plot hook writes is.
+#' Quarto's plot hook writes is (`quarto_output_display()`).
 #'
 #' @param block The chart's raw HTML block
 #' @param options The figure's chunk options
@@ -287,12 +311,12 @@ quarto_figure_float <- function(block, options, index, caption) {
       id <- paste0(id, "-", index)
     }
   }
-  paste0(
-    "\n\n::: {.cell-output-display}\n\n::: {#", id, "}\n\n",
+  quarto_output_display(paste0(
+    "::: {#", id, "}\n\n",
     block, "\n\n",
     if (!is.null(caption)) paste0(caption, "\n\n"),
-    ":::\n\n:::\n\n"
-  )
+    ":::"
+  ))
 }
 
 #' The id Quarto's plot hook gives a figure of a `fig-` chunk

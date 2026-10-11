@@ -51,6 +51,12 @@ kept as its description.
 \item A chart in place of a figure of a \verb{fig-} chunk in Quarto is given to
 Quarto as the figure it numbers and captions (\code{quarto_figure_float()});
 every other chart is captioned here.
+\item Any other chart in place of a figure in Quarto is in a
+\code{.cell-output-display} div (\code{quarto_output_display()}), as Quarto's
+plot hook writes each figure, but in a \code{results = "asis"} chunk, where
+it writes none. A dashboard makes a card of a chunk whose output is in
+such a div, and none of one whose output is only raw blocks: it gathered
+such chunks, one after another, into one card, titled by the first.
 \item \code{fig.align} aligns the chart, and an \code{out.width} the author sets (not
 the one knitr derives for a retina figure) sets the wrapper's width,
 which the chart shrinks to. The chart itself was drawn at the chunk's

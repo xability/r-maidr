@@ -416,6 +416,29 @@ test_that("bookdown labels a captioned chart, and Quarto writes the caption itse
   testthat::expect_match(figure, "```\\s*Right\\s*:::")
 })
 
+test_that("in Quarto a chart in place of a figure is a cell output, as Quarto writes one", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  withr::defer(knitr::opts_knit$delete("quarto.version"))
+  options <- list(label = "unnamed-chunk-2")
+  bare <- "^\n\n\n```+ \\{=html\\}\n<div class=\"maidr-knitr\">"
+
+  testthat::expect_match(maidr:::knitr_inline_chart(svg, options, figure = TRUE), bare)
+  knitr::opts_knit$set(quarto.version = "1.7.32")
+  # In a .cell-output-display div, as Quarto's plot hook writes each
+  # figure: a dashboard makes a card of a chunk whose output is in one.
+  out <- maidr:::knitr_inline_chart(svg, options, figure = TRUE)
+  testthat::expect_match(
+    out, "^\n\n::: \\{\\.cell-output-display\\}\n\n\n```+ \\{=html\\}\n<div class=\"maidr-knitr\">"
+  )
+  testthat::expect_match(out, "</div>\n```+\n\n:::\n\n$")
+  # Not in a results = "asis" chunk, where Quarto's hook writes no div, nor
+  # for a chart knit_print() returns, which Quarto puts in one itself.
+  asis <- maidr:::knitr_inline_chart(svg, c(options, results = "asis"), figure = TRUE)
+  testthat::expect_match(asis, bare)
+  testthat::expect_match(maidr:::knitr_inline_chart(svg, options), bare)
+})
+
 test_that("fig.align and the author's out.width lay the chart out", {
   skip_if_no_render()
   svg <- bar_chart_svg()
@@ -1525,10 +1548,7 @@ test_that("a Quarto dashboard keeps every chart in a card", {
   # Quarto's dashboard filter lifts out of its card a cell output it takes
   # for a bslib component, by the text 'bslib-' in it. knitr-inline.js,
   # which names bslib's cards, is a dependency in the page's head, so no
-  # cell carries it, and every chart stays in a card. The cards are not
-  # counted: two chunks in a row whose only output is a chart share the
-  # first one's card, a bug in how the chart's output is written that
-  # predates the script.
+  # cell carries it, and every chart stays in a card.
   has_class <- function(class) {
     sprintf("contains(concat(' ', normalize-space(@class), ' '), ' %s ')", class)
   }
@@ -1538,6 +1558,23 @@ test_that("a Quarto dashboard keeps every chart in a card", {
     testthat::expect_gt(
       length(xml2::xml_find_all(chart, sprintf("ancestor::div[%s]", has_class("bslib-card")))),
       0L
+    )
+  }
+  # Each chunk is a card of its own, titled by it, as a chunk whose figure
+  # is knitr's image is. The dashboard makes a card of a cell whose output
+  # is in a .cell-output-display div; a chart's raw block outside one left
+  # the cell loose, and the dashboard gathered the loose cells in a row into
+  # one card, titled by the first.
+  cards <- xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("bslib-card")))
+  titles <- vapply(cards, function(card) {
+    title <- xml2::xml_find_first(card, sprintf(".//div[%s]", has_class("card-title")))
+    trimws(xml2::xml_text(title))
+  }, character(1))
+  testthat::expect_identical(titles, c("Cylinders", "Gears"))
+  for (card in cards) {
+    testthat::expect_length(
+      xml2::xml_find_all(card, sprintf(".//div[%s]", has_class("maidr-knitr"))),
+      1L
     )
   }
   testthat::expect_length(

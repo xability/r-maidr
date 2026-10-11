@@ -4,9 +4,8 @@
 // `quarto-smoke.R` renders the pages with the Quarto CLI. Here each is
 // loaded in headless Chromium and checked the way a reader would find it:
 //
-//   * `dash.html`, a dashboard: every chart is in one of its cards (not one
-//     card each: two chunks in a row whose only output is a chart share the
-//     first one's card, a bug of how the chart's output is written). With a
+//   * `dash.html`, a dashboard: each chart is in a card of its own, titled
+//     by its chunk, in the chunks' order, as a chunk's image is. With a
 //     card shown full screen, Escape pressed in its chart -- on the chart,
 //     or to close maidr's help -- leaves the card full screen, whether the
 //     card was shown full screen before the chart had the focus or after,
@@ -115,6 +114,18 @@ const open = async (name, charts, viewport) => {
   check(
     inCards.length === 2 && inCards.every(Boolean),
     `dash.html: every chart is in a card (${JSON.stringify(inCards)})`,
+  );
+  // One card per chunk, titled by it: the title, and how many charts it holds.
+  const cards = await page.evaluate(() => Array.from(
+    document.querySelectorAll('.bslib-card'),
+    card => {
+      const title = card.querySelector('.card-title');
+      return [title ? title.textContent.trim() : null, card.querySelectorAll('.maidr-knitr').length];
+    },
+  ));
+  check(
+    JSON.stringify(cards) === JSON.stringify([['Cylinders', 1], ['Gears', 1]]),
+    `dash.html: each chunk's chart is in a card of its own, titled by the chunk (${JSON.stringify(cards)})`,
   );
 
   const fullScreen = () => page.evaluate(
