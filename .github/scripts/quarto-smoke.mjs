@@ -12,13 +12,14 @@
 //     turned on in a chart, paints the chart dark and leaves the page in its
 //     own colours, read from what the page shows whatever paints it.
 //   * `deck.html`, a reveal.js deck, in a window large enough for reveal.js
-//     to scale its slides up: in the chart alone on its second slide, Right
+//     to scale its slides up: in the chart on its second slide, Right
 //     Arrow is maidr's and leaves the slide where it is, and Ctrl+Shift+F
 //     leaves the deck's search shut; maidr's help, opened from it, stays
-//     within the window on a slide reveal.js scales up; Shift+Tab, with
-//     nothing on the slide before the chart, puts the focus on the slide,
-//     where Right Arrow moves the deck on. The text reveal.js reads aloud as
-//     each of the two slides is shown holds none of its chart's tick labels.
+//     within the window on a slide reveal.js scales up; Shift+Tab, with no
+//     tab stop before the chart -- only a link taken out of the tab order --
+//     puts the focus on the slide, where Right Arrow moves the deck on. The
+//     text reveal.js reads aloud as each of the two slides is shown holds
+//     none of its chart's tick labels.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures.
 //
@@ -266,6 +267,11 @@ const open = async (name, charts, viewport) => {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(settle);
 
+  // The link before the chart, which a reader cannot tab to, is no tab
+  // stop to leave the chart for.
+  const passedOver = await page.evaluate(() => Array.from(
+    document.querySelectorAll('#a-chart a[href][tabindex="-1"]'),
+  ).some(link => link.textContent.trim() === 'The end' && !link.closest('[aria-hidden="true"]')));
   await chart.focus();
   await page.waitForTimeout(settle);
   await page.keyboard.press('Shift+Tab');
@@ -278,8 +284,10 @@ const open = async (name, charts, viewport) => {
   await page.waitForTimeout(settle * 2);
   const after = await slideNow();
   check(
-    landed === 'the slide' && after === 2,
-    `deck.html: Shift+Tab from the chart puts the focus on its slide (${landed}), where Right Arrow moves the deck on (slide ${after})`,
+    passedOver && landed === 'the slide' && after === 2,
+    'deck.html: Shift+Tab from the chart, past a link out of the tab order'
+      + `${passedOver ? '' : ' (not on the slide)'}, puts the focus on its slide (${landed}),`
+      + ` where Right Arrow moves the deck on (slide ${after})`,
   );
   quiet('slide of a figure', await announced(), ['gear3', 'gear4', 'gear5']);
 

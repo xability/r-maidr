@@ -540,7 +540,10 @@
     'select:not([disabled]),textarea:not([disabled]),iframe,audio[controls],video[controls],' +
     '[contenteditable]:not([contenteditable="false"]),[tabindex]:not([tabindex^="-"])';
 
+  // A link or a field with a negative tabindex is out of the tab order, as
+  // pandoc's anchors for the lines of a code block are.
   function reachable(element) {
+    if (parseInt(element.getAttribute('tabindex'), 10) < 0) return false;
     if (element.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
     var style = getComputedStyle(element);
     return style.display !== 'none' && style.visibility !== 'hidden';

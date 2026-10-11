@@ -10,8 +10,10 @@
 #
 #   * `dash.qmd`, a dashboard of two R charts, each with a title of its own:
 #     Quarto puts them in a bslib card, which a reader can show full screen;
-#   * `deck.qmd`, a reveal.js deck with a chart alone on its second slide,
-#     a chart in a captioned figure on its third, and a slide after them;
+#   * `deck.qmd`, a reveal.js deck with a chart on its second slide, after
+#     a link taken out of the tab order, as pandoc takes the anchors of a
+#     code block's lines; a chart in a captioned figure on its third; and a
+#     slide after them;
 #   * `fig.qmd`, an HTML page with a chart in a captioned figure narrower
 #     than the page's column, which Quarto centres unless told otherwise.
 #
@@ -69,6 +71,8 @@ documents <- list(
     "",
     setup,
     "## A chart",
+    "",
+    "[The end](#the-end){tabindex=\"-1\"}",
     "",
     "```{r}",
     "slide <- data.frame(kind = c(\"slide1\", \"slide2\", \"slide3\"), n = c(21, 22, 23))",
