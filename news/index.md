@@ -27,10 +27,12 @@
   and `fig.height`, so `fig.asp`, `fig.dim`, YAML `fig_width` and
   `fig_height` and Quarto’s `fig-width` and `fig-height` set it too.
   `html_document` and Quarto’s HTML draw figures at 7 x 5 in, so their
-  charts keep the size they had. A format with a figure size of its own
-  now draws its charts at it: `html_vignette` at 3 x 3 in, where a Base
-  R chart shows fewer tick labels, ioslides at 7.5 x 4.5 in, slidy at 8
-  x 6 in ([\#355](https://github.com/xability/r-maidr/issues/355)).
+  charts are drawn at the size they had, and are now shown at the size
+  of the figure (see R Markdown and Quarto under Bug Fixes). A format
+  with a figure size of its own now draws its charts at it:
+  `html_vignette` at 3 x 3 in, where a Base R chart shows fewer tick
+  labels, ioslides at 7.5 x 4.5 in, slidy at 8 x 6 in
+  ([\#355](https://github.com/xability/r-maidr/issues/355)).
 - A candlestick chart is still never drawn smaller than 12 x 6 in, and a
   smaller size asked for is enlarged with a message naming the size
   used. In a document that is a size the chunk sets itself, and the
@@ -638,6 +640,65 @@
   still read first, then maidr’s instructions. With the bundled 4.14.0
   nothing changes
   ([\#370](https://github.com/xability/r-maidr/issues/370)).
+- Such a chart is shown at the size of the figure it stands for, as
+  knitr shows the chunk’s figure: `fig.width` times `dpi` over
+  `fig.retina` pixels wide, which is 96 pixels to the inch in R
+  Markdown’s and Quarto’s HTML, so `dpi` and Quarto’s `fig-dpi` change
+  it as they change a figure. It was shown at 72 pixels to the inch
+  whatever the `dpi`, three quarters of the size of the figure it
+  replaced. In a chunk whose figures are svg files it is the size the
+  device’s file is: 96 pixels to the inch for ‘svglite’, 72 for R’s
+  [`svg()`](https://rdrr.io/r/grDevices/cairo.html) with Cairo 1.18, as
+  Quarto’s `fig-format: svg` draws. The chart is drawn on the same
+  canvas as before, which its `viewBox` keeps, and maidr reads out the
+  same; [`show()`](https://r.maidr.ai/reference/show.md),
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) and the
+  widgets still show a chart at 72 pixels to the inch. A chunk given
+  `dpi = 72` shows its chart at the size it had before.
+- `out.width` makes such a chart as wide as it says, wider than its own
+  size too, as it makes an image: the chart shrank to an `out.width` but
+  never grew to one, so `out-width: 100%` left a small chart small.
+  `out.height`, which was not read, sets its height, and the chart keeps
+  its shape where an image is stretched to it. A chart given an
+  `out.width` is aligned by `fig.align`, and a chart in a Quarto `fig-`
+  figure by the chunk’s `fig-align`, which Quarto keeps from the figure;
+  the first stood at the left, the second in the middle. A chart Quarto
+  captions outside a `fig-` figure is centred, with its caption at the
+  start of the column, as Quarto shows such a figure. In a Quarto
+  `layout` a percentage `out-width` is the cell’s, which the chart
+  fills, and `column: screen` and its kin stretch a chart across the
+  screen, as Quarto does both for an image. A chart still shrinks to a
+  column narrower than itself, keeping its shape, even where Quarto’s
+  `fig-responsive: false` keeps an image from shrinking, so that a
+  reader on a phone or with the page magnified need not scroll sideways
+  through it.
+- In a Quarto reveal.js deck, a chart alone on a slide is stretched to
+  the room left on the slide, as Quarto stretches a lone figure, less
+  the room maidr’s instructions, or a line of its text and its braille
+  field, take below it, so that they stay on the slide; it stayed at its
+  own size. A slide marked `.nostretch`, a deck whose front matter turns
+  `auto-stretch` off (a project’s `_quarto.yml` is not read), a chart
+  given an `out-height`, one in columns, a panel or a fragment, and
+  reveal.js’s scroll view on a phone leave a chart at its size, as they
+  leave an image; a div marked `.r-stretch` around the chunk stretches
+  it. A chart is kept within 95% of its box, as reveal.js keeps an
+  image, and the text maidr shows below it no longer takes a slide
+  paragraph’s margins. An ioslides chart, which the larger size above
+  made as large as its slide, is made smaller where it would leave
+  maidr’s instructions and braille field below the slide, which ioslides
+  cuts off.
+- In a Quarto dashboard, such a chart fills its card, centred, as Quarto
+  fills a card with an image, less a line kept below it for maidr’s
+  text: in a fill or flow card, a scrolling dashboard, a sidebar, on a
+  phone and in a card shown full screen. It stood at its own size at the
+  card’s left, shrunk to the card only when taller than it. The card
+  scrolls to maidr’s braille and review fields, and keeps the room for
+  its scrollbar, so the chart keeps its size and place while a reader
+  uses it, and a pointer finds the point under it. A ‘flexdashboard’
+  still shrinks a chart to its box when it is taller.
+- A captioned chart given an `out.width` and aligned right or centre is
+  placed as knitr places its image under Bootstrap 4 and 5 too, which
+  make a figure an inline block; it stood at the left of the column.
 
 #### ggplot2
 

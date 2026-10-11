@@ -77,13 +77,28 @@ Character string of Markdown
   titled by the first; and it lifts an output that is only a raw block
   out of its card when the text `bsli` is in it.
 
-- `fig.align` aligns the chart, and an `out.width` the author sets (not
-  the one knitr derives for a retina figure) sets the wrapper's width,
-  which the chart shrinks to. The chart itself was drawn at the chunk's
-  `fig.width` and `fig.height` (`knitr_chart_size()`), which set the
-  room it is laid out in, not the width it is shown at. The charts in
+- The chart was drawn at the chunk's `fig.width` and `fig.height`
+  (`knitr_chart_size()`), which set the room it is laid out in, on a
+  canvas of 72 pixels to the inch that its `viewBox` keeps. It is shown
+  at the size knitr shows the chunk's figure at: its svg's `width` and
+  `height` are the figure's (`knitr_chart_ppi()`).
+
+- An `out.width` the author sets (not the one knitr derives for a retina
+  figure) is the wrapper's width, which the chart fills, wider than its
+  own size or narrower; in a panel Quarto lays out, a percentage is the
+  cell's, as Quarto makes an image's. An `out.height` sets the chart's
+  height, and its width keeps its shape. `fig.align` aligns the chart,
+  and the wrapper too when it is narrower than its column. A chart
+  Quarto captions outside a float is centred unless the chunk says
+  otherwise, as Quarto centres such a figure. Every chart still shrinks
+  to a column narrower than itself, keeping its shape. The charts in
   place of figures `fig.show = "hold"` holds, at such a width and not
   aligned, sit side by side, as knitr's images do.
+
+- In a Quarto reveal.js deck that keeps `auto-stretch`, a chart not
+  given a height is marked `maidr-knitr-stretch`, and `knitr-inline.js`
+  stretches it when it stands alone on its slide, as Quarto stretches a
+  lone figure (`quarto_auto_stretch()`).
 
 A figure's options hold its own caption and alt text alone; of several,
 as a chart `knit_print()` is asked for with a chunk's options may see,

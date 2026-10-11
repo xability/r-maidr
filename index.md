@@ -176,7 +176,8 @@ after its strip.
 
 A chart is drawn at 7 x 5 inches unless you give it a size, in inches as
 [`ggplot2::ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html)
-takes one, and its SVG is 72 pixels to the inch. The size is the room
+takes one, and its SVG is 72 pixels to the inch (in a knitted page it is
+shown at the size of the chunk’s figure instead). The size is the room
 the chart is laid out in; the data, titles and axis labels a reader
 hears are the same at every size. Only a lattice chart conditioned on
 one variable with no `layout =` changes for a reader: lattice arranges
@@ -281,9 +282,21 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   Quarto’s `fig-width`/`fig-height`), in inches, as knitr draws figures:
   7 x 5 in in `html_document` and Quarto’s HTML, but 3 x 3 in in
   `html_vignette`, small enough that a Base R chart shows fewer tick
-  labels unless a chunk sets a larger size. `out.width` still sets the
-  width a chart is shown at, and a chart wider than the page shrinks to
-  fit it. See [Chart size](#chart-size) for what the size changes.
+  labels unless a chunk sets a larger size. It is shown at the size
+  knitr shows the chunk’s figure: `fig.width` times `dpi` over
+  `fig.retina` pixels wide, which is 96 pixels to the inch in R
+  Markdown’s and Quarto’s HTML, so `dpi` (Quarto’s `fig-dpi`) changes it
+  as it changes a figure. `out.width` sets the width a chart is shown
+  at, wider or narrower than its own, and `out.height` its height,
+  keeping its shape; `fig.align` aligns it. In a Quarto reveal.js deck a
+  chart alone on a slide is stretched as Quarto stretches a lone figure
+  (`auto-stretch`, read from the document’s own front matter), and in a
+  Quarto dashboard a chart fills its card as an image does, each less
+  the room maidr’s text takes below the chart. A chart wider than the
+  page still shrinks to fit it, even where Quarto’s
+  `fig-responsive: false` keeps an image from shrinking, so that a
+  reader on a phone or with the page magnified need not scroll sideways
+  through it. See [Chart size](#chart-size) for what the size changes.
 - **Cache and animations.** A chunk cached with `cache = TRUE` brings
   its charts back; one cached with `cache = 1` or `cache = 2` shows
   knitr’s static figures when it is rendered again from the cache.

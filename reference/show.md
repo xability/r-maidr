@@ -190,16 +190,18 @@ way, from the calls on its own page.
 A chart is drawn at a size in inches, as
 [`ggplot2::ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html)
 and knitr's `fig.width` and `fig.height` size a figure, and its SVG is
-72 pixels to the inch: a 10 x 4 in chart is 720 pixels wide and 288
-high. The size is the room the chart is laid out in – how far apart its
-ticks and labels are, how lattice arranges its panels, where Base R puts
-its titles – and not what maidr reads out: the data, titles and axis
-labels a reader hears are the same at every size. Only how a reader
-moves between panels can change: lattice arranges the panels of a chart
-conditioned on one variable with no `layout =` for the shape of the
-page, 1 x 2 at 7 x 5 in and 2 x 1 at 5 x 8 in for two panels, and the
-subplot grid a reader moves through follows; give `layout =` to keep it.
-The size is set by `width` and `height` in `show()` and
+72 pixels to the inch: a 10 x 4 in chart is 720 pixels wide and 288 high
+(a knitted page shows it at the size of its chunk's figure instead: see
+[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md)). The size is
+the room the chart is laid out in – how far apart its ticks and labels
+are, how lattice arranges its panels, where Base R puts its titles – and
+not what maidr reads out: the data, titles and axis labels a reader
+hears are the same at every size. Only how a reader moves between panels
+can change: lattice arranges the panels of a chart conditioned on one
+variable with no `layout =` for the shape of the page, 1 x 2 at 7 x 5 in
+and 2 x 1 at 5 x 8 in for two panels, and the subplot grid a reader
+moves through follows; give `layout =` to keep it. The size is set by
+`width` and `height` in `show()` and
 [`save_html()`](https://r.maidr.ai/reference/save_html.md), by
 `fig_width` and `fig_height` in
 [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md), and by

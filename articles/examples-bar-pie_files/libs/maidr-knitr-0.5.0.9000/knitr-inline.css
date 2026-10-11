@@ -39,6 +39,36 @@
 .quarto-figure-right .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
   margin-left: auto;
 }
+/* The fig.align a chunk sets wins over the Quarto figure the chart is in:
+ * Quarto centres the float of a fig- chunk whatever the chunk says, and
+ * keeps the chunk's alignment in data-fig-align. */
+.maidr-knitr.maidr-knitr-left > .maidr-knitr-svg,
+.maidr-knitr.maidr-knitr-left figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: 0;
+  margin-right: auto;
+}
+.maidr-knitr.maidr-knitr-center > .maidr-knitr-svg,
+.maidr-knitr.maidr-knitr-center figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: auto;
+  margin-right: auto;
+}
+.maidr-knitr.maidr-knitr-right > .maidr-knitr-svg,
+.maidr-knitr.maidr-knitr-right figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: auto;
+  margin-right: 0;
+}
+/* A wrapper narrower than its column -- given an out.width, or held to
+ * reveal.js's 95% -- is placed in it as the chart is. */
+.maidr-knitr.maidr-knitr-center,
+.quarto-figure-center .maidr-knitr:not(.maidr-knitr-left):not(.maidr-knitr-right) {
+  margin-left: auto;
+  margin-right: auto;
+}
+.maidr-knitr.maidr-knitr-right,
+.quarto-figure-right .maidr-knitr:not(.maidr-knitr-left):not(.maidr-knitr-center) {
+  margin-left: auto;
+  margin-right: 0;
+}
 .maidr-knitr-center > .maidr-knitr-caption {
   text-align: center;
 }
@@ -47,6 +77,56 @@
 }
 .maidr-knitr > .maidr-knitr-caption {
   margin-top: 0.5em;
+}
+
+/* Quarto: a chart it captions outside a float is a block the width of the
+ * column, as Quarto's figure is, rather than the inline block Bootstrap
+ * makes a .figure, so that it has room to be aligned in; its caption
+ * starts at the start of the column, however the chart is aligned. A
+ * float's caption is half a line below its chart. */
+.cell-output-display .maidr-knitr.figure.maidr-knitr-left,
+.cell-output-display .maidr-knitr.figure.maidr-knitr-center,
+.cell-output-display .maidr-knitr.figure.maidr-knitr-right {
+  display: block;
+}
+.cell-output-display .maidr-knitr > .maidr-knitr-caption {
+  text-align: start;
+}
+/* Bootstrap 4 and 5 make a .figure an inline block, which a margin does
+ * not place: a captioned chart given an out.width and aligned is a block,
+ * as narrow as it was given, placed in its column as knitr's image is. */
+.maidr-knitr.figure.maidr-knitr-sized.maidr-knitr-center,
+.maidr-knitr.figure.maidr-knitr-sized.maidr-knitr-right {
+  display: block;
+}
+.quarto-float .maidr-knitr {
+  margin-bottom: 0.5em;
+}
+
+/* out.width: the chart fills the width its wrapper is given, as an image
+ * fills the width it is given, larger than its own size or smaller. maidr.js
+ * sizes its focusable element to fit its content, inline. */
+.maidr-knitr-sized .maidr-knitr-svg {
+  width: 100%;
+}
+.maidr-knitr-sized figure[id^="maidr-figure"] > [tabindex] {
+  min-width: 100%;
+}
+
+/* Quarto stretches an image in a column: screen... to the column's width
+ * (img.img-fluid.column-screen and the like); the chunk's output, which
+ * holds the chart, takes the column's class. And it leaves an image in a
+ * panel's cell the margin of the paragraph it is in (.quarto-layout-cell >
+ * p); an aligned one is in a figure, which has none. */
+.cell-output-display[class*="column-screen"] .maidr-knitr .maidr-knitr-svg {
+  width: 100%;
+}
+.cell-output-display[class*="column-screen"] .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
+  min-width: 100%;
+}
+.quarto-layout-cell > .maidr-knitr:not(.maidr-knitr-left):not(.maidr-knitr-center):not(.maidr-knitr-right) {
+  margin-left: 0.2em;
+  margin-right: 0.2em;
 }
 
 /* The charts of figures knitr holds, at a width the author set, sit side by
@@ -210,10 +290,50 @@ html.maidr-knitr-contrast body {
 
 /* Dashboards size their boxes to the window and hide what does not fit:
  * flexdashboard's .chart-shim, and the fill items of a Quarto dashboard's
- * cards. knitr-inline.js shrinks a chart to the height of such a box when
- * it does not fit, and the box scrolls rather than clip maidr's braille and
- * review fields below the chart. */
+ * cards. knitr-inline.js shrinks a chart to the height of a .chart-shim
+ * when it does not fit, and sizes one in a Quarto dashboard's card as
+ * Quarto sizes an image there; either box scrolls rather than clip
+ * maidr's braille and review fields below the chart. */
 .chart-shim:has(> .maidr-knitr),
 .html-fill-item:has(> .maidr-knitr) {
   overflow: auto;
+}
+/* A chart in a Quarto dashboard's card is centred across it, as Quarto
+ * centres an image, and knitr-inline.js centres it down the card. Its
+ * size is the card's, never what maidr's text and fields below it leave
+ * of the card, which only scroll it; and a card the chart fills
+ * (maidr-knitr-filled) keeps the room for its scrollbar, shown or not,
+ * which would otherwise narrow the chart as those fields came and went. */
+.html-fill-container > .maidr-knitr.html-fill-item {
+  margin-bottom: 0;
+}
+.html-fill-container > .maidr-knitr.html-fill-item figure[id^="maidr-figure"] > [tabindex],
+.html-fill-container > .maidr-knitr.html-fill-item .maidr-knitr-svg {
+  margin-left: auto;
+  margin-right: auto;
+}
+.html-fill-container > .html-fill-item:has(> .maidr-knitr-filled) {
+  scrollbar-gutter: stable;
+}
+
+/* reveal.js keeps an image within 95% of its box (.reveal img); a chart's
+ * wrapper is kept to the same, and placed in its box as the chart is. A
+ * chart knitr-inline.js stretched has the room it measured for it, with
+ * no margin below, whatever width an out.width gave its wrapper: reveal.js
+ * sizes a stretched image over the width it was given too. */
+.reveal .maidr-knitr {
+  max-width: 95%;
+}
+.reveal .maidr-knitr.maidr-knitr-stretched {
+  width: auto !important;
+  max-width: none;
+  margin-bottom: 0;
+}
+.reveal .maidr-knitr-stretched figure[id^="maidr-figure"] > [tabindex] {
+  min-width: 0;
+}
+/* The line of text maidr shows below a chart is none of the slide's
+ * paragraphs, whose margins would push it off a stretched chart's slide. */
+.reveal .maidr-knitr [id^="maidr-text-container"] p {
+  margin: 0;
 }
