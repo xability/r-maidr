@@ -10,11 +10,15 @@
 #
 #   * `dash.qmd`, a dashboard of two R charts, each with a title of its own:
 #     Quarto puts each in a bslib card of its own, titled by its chunk,
-#     which a reader can show full screen;
-#   * `deck.qmd`, a reveal.js deck with a chart on its second slide, after
-#     a link taken out of the tab order, as pandoc takes the anchors of a
-#     code block's lines; a chart in a captioned figure on its third; and a
-#     slide after them;
+#     which a reader can show full screen; and beside them a grid drawing
+#     maidr does not read, an image Quarto fills its card with, which the
+#     charts fill theirs as;
+#   * `deck.qmd`, a reveal.js deck with a 4 x 3 in chart on its second
+#     slide, after a link taken out of the tab order, as pandoc takes the
+#     anchors of a code block's lines; a chart in a captioned figure on its
+#     third; a 4 x 3 in grid drawing on its fourth, after a line of text,
+#     which Quarto stretches as the lone figure of its slide, as the chart
+#     of the second is stretched; and a slide after them;
 #   * `fig.qmd`, an HTML page with a chart in a captioned figure narrower
 #     than the page's column, which Quarto centres unless told otherwise;
 #     then a chart and a grid drawing at Quarto's 7 x 5 in, and a chart and
@@ -70,6 +74,11 @@ documents <- list(
     "```{r}",
     "#| title: Gears",
     "barplot(c(gear3 = 15, gear4 = 12, gear5 = 5))",
+    "```",
+    "",
+    "```{r}",
+    "#| title: Picture",
+    drawing,
     "```"
   ),
   deck = c(
@@ -84,6 +93,8 @@ documents <- list(
     "[The end](#the-end){tabindex=\"-1\"}",
     "",
     "```{r}",
+    "#| fig-width: 4",
+    "#| fig-height: 3",
     "slide <- data.frame(kind = c(\"slide1\", \"slide2\", \"slide3\"), n = c(21, 22, 23))",
     "ggplot(slide, aes(kind, n)) + geom_col()",
     "```",
@@ -94,6 +105,16 @@ documents <- list(
     "#| label: fig-gears",
     "#| fig-cap: Gears",
     "barplot(c(gear3 = 15, gear4 = 12, gear5 = 5))",
+    "```",
+    "",
+    "## A picture",
+    "",
+    "A grey circle.",
+    "",
+    "```{r}",
+    "#| fig-width: 4",
+    "#| fig-height: 3",
+    drawing,
     "```",
     "",
     "## The end",

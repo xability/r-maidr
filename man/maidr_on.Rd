@@ -105,6 +105,15 @@ shrinks to fit a page narrower than itself, keeping its shape: Quarto's
 read, so that a reader on a phone or with the page magnified need not
 scroll sideways through a chart.
 
+In a Quarto reveal.js deck a chart alone on a slide is stretched to the
+room left on the slide, as Quarto stretches a lone figure, less a line
+for the text maidr shows below it. \code{auto-stretch} is read from the
+document's own front matter, not from a project's \verb{_quarto.yml}; a slide
+marked \code{.nostretch}, a chart given an \code{out-height}, one in columns, a
+panel or a fragment, and a phone's scroll view are left alone, as Quarto
+leaves an image. In a Quarto dashboard a chart fills its card as an image
+does.
+
 A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 maths and \verb{\\@ref()} in \code{fig.cap} are shown as written, and a bookdown text
 reference (\code{fig.cap = "(ref:label)"}) brings them in. \code{fig.show = "animate"} stays knitr's animation.

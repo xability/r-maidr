@@ -726,6 +726,46 @@ test_that("in Quarto a captioned chart is centred and a panel's cell takes a per
   )
 })
 
+test_that("a Quarto deck that keeps auto-stretch marks its charts to be stretched", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  testthat::local_mocked_bindings(
+    chunk_sets_option = function(options, name) TRUE,
+    .package = "maidr"
+  )
+  withr::defer(knitr::opts_knit$delete(c("quarto.version", "rmarkdown.pandoc.to")))
+  marked <- function(options = list(label = "unnamed-chunk-2")) {
+    grepl("maidr-knitr-stretch", maidr:::knitr_inline_chart(svg, options, figure = TRUE))
+  }
+
+  knitr::opts_knit$set(quarto.version = "1.7.32", rmarkdown.pandoc.to = "revealjs")
+  testthat::local_mocked_bindings(metadata = list(title = "deck"), .package = "rmarkdown")
+  testthat::expect_true(marked())
+  # Quarto stretches an image given a width, and leaves one given a height.
+  testthat::expect_true(marked(list(label = "unnamed-chunk-2", out.width = "50%")))
+  testthat::expect_false(marked(list(label = "unnamed-chunk-2", out.height = "300px")))
+  # Not in a deck that turns auto-stretch off, at the top of its front
+  # matter or for reveal.js.
+  testthat::local_mocked_bindings(metadata = list(`auto-stretch` = FALSE), .package = "rmarkdown")
+  testthat::expect_false(marked())
+  testthat::local_mocked_bindings(
+    metadata = list(format = list(revealjs = list(`auto-stretch` = FALSE))),
+    .package = "rmarkdown"
+  )
+  testthat::expect_false(marked())
+  testthat::local_mocked_bindings(
+    metadata = list(`auto-stretch` = FALSE, format = list(revealjs = list(`auto-stretch` = TRUE))),
+    .package = "rmarkdown"
+  )
+  testthat::expect_true(marked())
+  # Nor outside a deck, nor outside Quarto.
+  knitr::opts_knit$set(rmarkdown.pandoc.to = "html")
+  testthat::expect_false(marked())
+  knitr::opts_knit$set(rmarkdown.pandoc.to = "revealjs")
+  knitr::opts_knit$delete("quarto.version")
+  testthat::expect_false(marked())
+})
+
 test_that("a chart that cannot be shown inline goes in an iframe, with one warning", {
   skip_if_no_render()
   local_knitr_state()
@@ -1841,6 +1881,89 @@ test_that("a Quarto dashboard keeps every chart in a card", {
   testthat::expect_length(
     xml2::xml_find_all(doc, "//head/script[contains(@src, 'knitr-inline.js')]"),
     1L
+  )
+})
+
+test_that("a Quarto deck shows its charts at its figures' size, marked to be stretched", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("withr")
+  quarto <- Sys.which("quarto")
+  testthat::skip_if(!nzchar(quarto), "Quarto is not installed")
+  withr::local_envvar(QUARTO_R = R.home("bin"))
+  dir <- withr::local_tempdir("maidr-qdeck-")
+  has_class <- function(class) {
+    sprintf("contains(concat(' ', normalize-space(@class), ' '), ' %s ')", class)
+  }
+  render_deck <- function(name, yaml) {
+    qmd <- file.path(dir, paste0(name, ".qmd"))
+    writeLines(c(
+      "---", "title: deck", yaml, "---",
+      "```{r}",
+      "#| include: false",
+      sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+      maidr_loader(),
+      "library(ggplot2)",
+      "```",
+      "",
+      "## A chart",
+      "",
+      "```{r}",
+      "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+      "```",
+      "",
+      "## A chart given a height",
+      "",
+      "```{r}",
+      "#| out-height: 300px",
+      "barplot(c(a = 1, b = 2))",
+      "```"
+    ), qmd)
+    out <- suppressWarnings(system2(
+      quarto, c("render", shQuote(qmd), "--quiet"),
+      stdout = TRUE, stderr = TRUE, timeout = 300
+    ))
+    status <- attr(out, "status")
+    testthat::expect_identical(
+      if (is.null(status)) 0L else status, 0L,
+      info = paste(out, collapse = "\n")
+    )
+    page <- file.path(dir, paste0(name, ".html"))
+    testthat::skip_if_not(file.exists(page))
+    xml2::read_html(page)
+  }
+
+  doc <- render_deck("stretched", "format: revealjs")
+  charts <- xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]")
+  testthat::expect_length(charts, 2L)
+  # A deck's figures are 10 x 5 in, shown at fig-dpi, 96 pixels to the inch;
+  # the canvas is 72. The chart given a height keeps its shape.
+  testthat::expect_identical(
+    vapply(charts, function(chart) {
+      paste(
+        xml2::xml_attr(chart, "width"), xml2::xml_attr(chart, "height"),
+        xml2::xml_attr(chart, "viewbox")
+      )
+    }, character(1)),
+    rep("960px 480px 0 0 720 360", 2L)
+  )
+  testthat::expect_identical(xml2::xml_attr(charts[[2]], "style"), "width: 600px;")
+  # Quarto stretches a slide's lone image, but one given a height: the
+  # chart in its place is marked for knitr-inline.js to stretch alike.
+  stretched <- xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("maidr-knitr-stretch")))
+  testthat::expect_length(stretched, 1L)
+  testthat::expect_length(xml2::xml_find_all(stretched[[1]], ".//svg[@data-maidr-knitr]"), 1L)
+  testthat::expect_true(is.na(xml2::xml_attr(
+    xml2::xml_find_first(stretched[[1]], ".//svg[@data-maidr-knitr]"), "style"
+  )))
+
+  # A deck that turns auto-stretch off in its front matter has none.
+  doc <- render_deck("unstretched", c("format:", "  revealjs:", "    auto-stretch: false"))
+  testthat::expect_length(xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]"), 2L)
+  testthat::expect_length(
+    xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("maidr-knitr-stretch"))),
+    0L
   )
 })
 

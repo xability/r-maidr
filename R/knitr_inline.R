@@ -170,6 +170,10 @@ warn_inline_fallback <- function(error) {
 #'   to a column narrower than itself, keeping its shape. The charts in
 #'   place of figures `fig.show = "hold"` holds, at such a width and not
 #'   aligned, sit side by side, as knitr's images do.
+#' * In a Quarto reveal.js deck that keeps `auto-stretch`, a chart not
+#'   given a height is marked `maidr-knitr-stretch`, and `knitr-inline.js`
+#'   stretches it when it stands alone on its slide, as Quarto stretches a
+#'   lone figure (`quarto_auto_stretch()`).
 #'
 #' A figure's options hold its own caption and alt text alone; of several,
 #' as a chart `knit_print()` is asked for with a chunk's options may see,
@@ -243,12 +247,18 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   # no alignment, as images in a row; Quarto puts each in a block of its
   # own. Such charts float in a row, and the last of them ends it.
   side_by_side <- held && !quarto && !is.null(width) && is.null(align)
+  # A reveal.js slide's one figure is stretched to the room left on the
+  # slide (Quarto's auto-stretch); knitr-inline.js stretches a chart that
+  # stands where such a figure would, but one given a height, as Quarto
+  # leaves an image given one.
+  stretch <- is.null(height) && quarto_stretches_figures()
   wrapper_class <- c(
     if (!is.null(caption)) "figure",
     "maidr-knitr",
     if (side_by_side) "maidr-knitr-row",
     if (!is.null(align)) paste0("maidr-knitr-", align),
-    if (!is.null(width)) "maidr-knitr-sized"
+    if (!is.null(width)) "maidr-knitr-sized",
+    if (stretch) "maidr-knitr-stretch"
   )
 
   wrapper <- sprintf(
@@ -571,6 +581,40 @@ inline_width_for_height <- function(root, height) {
     return(format_px(pixels * ratio))
   }
   sprintf("calc(%s * %s)", height, format(round(ratio, 4), scientific = FALSE))
+}
+
+#' Whether Quarto stretches the lone figure of a slide of this document
+#'
+#' In a reveal.js deck that keeps `auto-stretch` (`quarto_auto_stretch()`).
+#'
+#' @return Logical
+#' @keywords internal
+#' @noRd
+quarto_stretches_figures <- function() {
+  !is.null(knitr::opts_knit$get("quarto.version")) &&
+    identical(knitr::pandoc_to(), "revealjs") && quarto_auto_stretch()
+}
+
+#' Whether Quarto stretches a reveal.js slide's lone figure
+#'
+#' Quarto's `auto-stretch`, on unless the document's own front matter turns
+#' it off, at its top level or under `format: revealjs:`. A project's
+#' `_quarto.yml` is not seen from R.
+#'
+#' @return Logical
+#' @keywords internal
+#' @noRd
+quarto_auto_stretch <- function() {
+  meta <- tryCatch(rmarkdown::metadata, error = function(e) list())
+  if (!is.list(meta)) {
+    return(TRUE)
+  }
+  value <- meta[["auto-stretch"]]
+  revealjs <- if (is.list(meta[["format"]])) meta[["format"]][["revealjs"]]
+  if (is.list(revealjs) && !is.null(revealjs[["auto-stretch"]])) {
+    value <- revealjs[["auto-stretch"]]
+  }
+  !isFALSE(value)
 }
 
 #' HTML as a raw block of Markdown

@@ -78,6 +78,10 @@ otherwise, as Quarto centres such a figure. Every chart still shrinks
 to a column narrower than itself, keeping its shape. The charts in
 place of figures \code{fig.show = "hold"} holds, at such a width and not
 aligned, sit side by side, as knitr's images do.
+\item In a Quarto reveal.js deck that keeps \code{auto-stretch}, a chart not
+given a height is marked \code{maidr-knitr-stretch}, and \code{knitr-inline.js}
+stretches it when it stands alone on its slide, as Quarto stretches a
+lone figure (\code{quarto_auto_stretch()}).
 }
 
 A figure's options hold its own caption and alt text alone; of several,

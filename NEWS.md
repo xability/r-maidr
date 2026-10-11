@@ -520,6 +520,22 @@
   `fig-responsive: false` keeps an image from shrinking, so that a reader
   on a phone or with the page magnified need not scroll sideways through
   it.
+* In a Quarto reveal.js deck, a chart alone on a slide is stretched to the
+  room left on the slide, as Quarto stretches a lone figure, less a line
+  for the text maidr shows below it; it stayed at its own size. A slide
+  marked `.nostretch`, a deck whose front matter turns `auto-stretch` off
+  (a project's `_quarto.yml` is not read), a chart given an `out-height`,
+  one in columns, a panel or a fragment, and reveal.js's scroll view on a
+  phone leave a chart at its size, as they leave an image; a div marked
+  `.r-stretch` around the chunk stretches it. A chart is kept within 95%
+  of its box, as reveal.js keeps an image, and the text maidr shows below
+  it no longer takes a slide paragraph's margins.
+* In a Quarto dashboard, such a chart fills its card, centred, as Quarto
+  fills a card with an image: in a fill or flow card, a scrolling
+  dashboard, a sidebar, on a phone and in a card shown full screen. It
+  stood at its own size at the card's left, shrunk to the card only when
+  taller than it. A 'flexdashboard' still shrinks a chart to its box when
+  it is taller.
 
 ### ggplot2
 

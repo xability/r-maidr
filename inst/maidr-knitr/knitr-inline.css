@@ -57,8 +57,8 @@
   margin-left: auto;
   margin-right: 0;
 }
-/* A wrapper narrower than its column, given an out.width, is placed in it
- * as the chart is. */
+/* A wrapper narrower than its column -- given an out.width, or held to
+ * reveal.js's 95% -- is placed in it as the chart is. */
 .maidr-knitr.maidr-knitr-center,
 .quarto-figure-center .maidr-knitr:not(.maidr-knitr-left):not(.maidr-knitr-right) {
   margin-left: auto;
@@ -281,12 +281,61 @@ html.maidr-knitr-contrast body {
   margin: 0 !important;
 }
 
+/* A Quarto dashboard shows an image in a card as large as the card's body
+ * holds it (.quarto-dashboard-img-contain: width and height 100%,
+ * object-fit: contain), and so in a flow or scrolling layout, or on a
+ * phone, as wide as the card. A chart takes the same room: its svg fills
+ * the box, and its viewBox keeps its shape and centres it, as contain does
+ * an image. maidr's boxes around the svg hand the room down, and the text
+ * maidr shows below the chart takes its line from it. Any other bslib fill
+ * item is filled the same way. */
+.html-fill-container > .maidr-knitr.html-fill-item article[id^="maidr-article-"],
+.html-fill-container > .maidr-knitr.html-fill-item figure[id^="maidr-figure"],
+.html-fill-container > .maidr-knitr.html-fill-item figure[id^="maidr-figure"] > [tabindex] {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 100%;
+}
+.html-fill-container > .maidr-knitr.html-fill-item .maidr-knitr-svg {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+.html-fill-container > .maidr-knitr.html-fill-item {
+  margin-bottom: 0;
+}
+
 /* Dashboards size their boxes to the window and hide what does not fit:
  * flexdashboard's .chart-shim, and the fill items of a Quarto dashboard's
- * cards. knitr-inline.js shrinks a chart to the height of such a box when
- * it does not fit, and the box scrolls rather than clip maidr's braille and
- * review fields below the chart. */
+ * cards. knitr-inline.js shrinks a chart to the height of a .chart-shim
+ * when it does not fit, and either box scrolls rather than clip maidr's
+ * braille and review fields below the chart. */
 .chart-shim:has(> .maidr-knitr),
 .html-fill-item:has(> .maidr-knitr) {
   overflow: auto;
+}
+
+/* reveal.js keeps an image within 95% of its box (.reveal img); a chart's
+ * wrapper is kept to the same, and placed in its box as the chart is. A
+ * chart knitr-inline.js stretched has the room it measured for it, with
+ * no margin below, whatever width an out.width gave its wrapper: reveal.js
+ * sizes a stretched image over the width it was given too. */
+.reveal .maidr-knitr {
+  max-width: 95%;
+}
+.reveal .maidr-knitr.maidr-knitr-stretched {
+  width: auto !important;
+  max-width: none;
+  margin-bottom: 0;
+}
+.reveal .maidr-knitr-stretched figure[id^="maidr-figure"] > [tabindex] {
+  min-width: 0;
+}
+/* The line of text maidr shows below a chart is none of the slide's
+ * paragraphs, whose margins would push it off a stretched chart's slide. */
+.reveal .maidr-knitr [id^="maidr-text-container"] p {
+  margin: 0;
 }

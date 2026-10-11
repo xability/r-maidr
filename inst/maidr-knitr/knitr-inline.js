@@ -67,7 +67,10 @@
       svg.removeAttribute('aria-labelledby');
       svg.setAttribute('aria-hidden', 'true');
       describeAll();
-      if (wrapper) fitChart(wrapper);
+      if (wrapper) {
+        fitChart(wrapper);
+        stretchChart(wrapper);
+      }
       return;
     }
     if (attempt < 40) {
@@ -243,13 +246,14 @@
 
   // --- Dashboards ----------------------------------------------------------
 
-  // A dashboard sizes each box to the window: flexdashboard's .chart-shim, a
-  // Quarto dashboard's fill items. A chart taller than its box is shrunk to
-  // it, keeping its shape and a line for maidr's text below it. Whether a
-  // box is sized by the window or by its content cannot be read from it (a
-  // scrolling dashboard, a phone-width one), so a chart is only shrunk when
-  // its box is overflowing: a box sized by its content never is.
-  var FITTED = '.chart-shim > .maidr-knitr, .html-fill-item > .maidr-knitr';
+  // flexdashboard sizes each box to the window (.chart-shim). A chart taller
+  // than its box is shrunk to it, keeping its shape and a line for maidr's
+  // text below it. Whether a box is sized by the window or by its content
+  // cannot be read from it (a scrolling dashboard, a phone-width one), so a
+  // chart is only shrunk when its box is overflowing: a box sized by its
+  // content never is. A Quarto dashboard's cards size their charts as they
+  // size an image, in knitr-inline.css.
+  var FITTED = '.chart-shim > .maidr-knitr';
 
   function fitChart(wrapper) {
     var box = wrapper.parentElement;
@@ -293,6 +297,109 @@
       fitChart(wrappers[i]);
       if (observer) observer.observe(wrappers[i].parentElement);
     }
+  }
+
+  // --- reveal.js auto-stretch ----------------------------------------------
+
+  // Quarto stretches the one image of a slide to the room left on it
+  // (auto-stretch, reveal.js's .r-stretch): as large as fits the slide's
+  // width and the height its other content leaves, keeping its shape. A
+  // chart is an svg, not an image, so r-maidr marks each chart Quarto would
+  // stretch were it one (maidr-knitr-stretch: in a deck that keeps
+  // auto-stretch, not given a height), and it is stretched here on the
+  // terms Quarto stretches an image on, less a line for the text maidr
+  // shows below it. Not in reveal.js's scroll view, a phone's, where
+  // reveal.js's own stretch leaves an image no room at all: the chart keeps
+  // its size there.
+  var STRETCH = '.reveal .slides section .maidr-knitr.maidr-knitr-stretch';
+  // What Quarto leaves an image in unstretched.
+  var NO_STRETCH = '.column, .quarto-layout-panel, .fragment, .output-location-slide, [class*="panel-"]';
+
+  // The slide the chart stands alone on, as Quarto's applyStretch() finds an
+  // image to stretch, or null.
+  function stretchSlide(wrapper) {
+    var slide = wrapper.closest('section.slide, .slides > section, .slides > section > section');
+    if (!slide || slide.classList.contains('nostretch')) return null;
+    if (slide.querySelector('img') || slide.querySelectorAll('.maidr-knitr').length !== 1 ||
+        slide.querySelector('aside:not(.notes)')) {
+      return null;
+    }
+    var top = wrapper;
+    for (; top.parentElement && top.parentElement !== slide; top = top.parentElement) {
+      if (top.parentElement.matches(NO_STRETCH)) return null;
+    }
+    if (top.tagName !== 'DIV') return null;
+    // A div the author marked .r-stretch around the chunk: Quarto takes the
+    // class from such a div and gives it to the image the div holds, which
+    // reveal.js then sizes; left on the div, reveal.js sizes the div and
+    // not the chart.
+    if (top.classList.contains('r-stretch') || top.classList.contains('stretch')) {
+      top.classList.remove('r-stretch', 'stretch');
+      top.style.removeProperty('width');
+      top.style.removeProperty('height');
+      top.setAttribute('data-maidr-knitr-stretch', '');
+    }
+    if (!(top.classList.contains('cell') || top.classList.contains('quarto-figure') ||
+        top.hasAttribute('data-maidr-knitr-stretch'))) {
+      return null;
+    }
+    return slide;
+  }
+
+  function unstretch(wrapper, svg) {
+    svg.style.removeProperty('width');
+    svg.style.removeProperty('height');
+    wrapper.classList.remove('maidr-knitr-stretched');
+  }
+
+  function stretchChart(wrapper) {
+    var reveal = window.Reveal;
+    if (!reveal || !wrapper.matches(STRETCH)) return;
+    var svg = wrapper.querySelector('svg.maidr-knitr-svg');
+    var box = svg && svg.viewBox && svg.viewBox.baseVal;
+    if (!box || !(box.width > 0) || !(box.height > 0)) return;
+    var slide = stretchSlide(wrapper);
+    if (!slide || (typeof reveal.isScrollView === 'function' && reveal.isScrollView())) {
+      unstretch(wrapper, svg);
+      return;
+    }
+    // A slide reveal.js does not show has no height to measure; it is
+    // measured when it is shown.
+    if (!slide.offsetHeight) return;
+    var size = typeof reveal.getComputedSlideSize === 'function'
+      ? reveal.getComputedSlideSize() : reveal.getConfig();
+    if (!(size.width > 0) || !(size.height > 0)) return;
+    wrapper.classList.add('maidr-knitr-stretched');
+    var line = 1.5 * parseFloat(getComputedStyle(wrapper).fontSize);
+    // As reveal.js measures the room an .r-stretch element has: the slide's
+    // height less what the rest of the slide takes.
+    svg.style.width = '0px';
+    svg.style.height = '0px';
+    var height = slide.style.height;
+    slide.style.height = 'auto';
+    var room = size.height - slide.offsetHeight - line;
+    slide.style.height = height;
+    var scale = Math.min(size.width / box.width, Math.max(room, 96) / box.height);
+    svg.style.width = box.width * scale + 'px';
+    svg.style.height = box.height * scale + 'px';
+  }
+
+  function stretchCharts() {
+    var wrappers = document.querySelectorAll(STRETCH);
+    for (var i = 0; i < wrappers.length; i++) stretchChart(wrappers[i]);
+  }
+
+  function watchStretch() {
+    var reveal = window.Reveal;
+    if (watchStretch.done || !reveal || typeof reveal.on !== 'function' ||
+        !document.querySelector(STRETCH)) {
+      return;
+    }
+    watchStretch.done = true;
+    ['ready', 'resize', 'slidechanged', 'scrollviewchange'].forEach(function (name) {
+      reveal.on(name, stretchCharts);
+    });
+    if (typeof reveal.isReady !== 'function' || reveal.isReady()) stretchCharts();
   }
 
   // --- High contrast -------------------------------------------------------
@@ -702,6 +809,7 @@
       shimHosts();
       describeAll();
       fitCharts();
+      watchStretch();
       sizeAllDialogs();
     });
   }

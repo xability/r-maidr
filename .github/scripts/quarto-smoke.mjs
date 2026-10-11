@@ -5,7 +5,10 @@
 // loaded in headless Chromium and checked the way a reader would find it:
 //
 //   * `dash.html`, a dashboard: each chart is in a card of its own, titled
-//     by its chunk, in the chunks' order, as a chunk's image is. With a
+//     by its chunk, in the chunks' order, as a chunk's image is, and fills
+//     it as Quarto fills the card beside it with an image: as large, and
+//     centred in it, and as large as the card when it is shown full screen,
+//     larger than the chart's own size. With a
 //     card shown full screen, Escape pressed in its chart -- on the chart,
 //     or to close maidr's help -- leaves the card full screen, whether the
 //     card was shown full screen before the chart had the focus or after,
@@ -22,7 +25,9 @@
 //     Shift+Tab, with no tab stop before the chart -- only a link taken out
 //     of the tab order -- puts the focus on the slide, where Right Arrow
 //     moves the deck on. The text reveal.js reads aloud as each of the two
-//     slides is shown holds none of its chart's tick labels.
+//     slides is shown holds none of its chart's tick labels. The chart
+//     alone on its slide is stretched as Quarto stretches the picture alone
+//     on another, as large less the line kept for maidr's text below it.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures. A chart at
 //     Quarto's 7 x 5 in is shown as large as a picture is, and one at
@@ -156,9 +161,31 @@ const open = async (name, charts, viewport) => {
     },
   ));
   check(
-    JSON.stringify(cards) === JSON.stringify([['Cylinders', 1], ['Gears', 1]]),
+    JSON.stringify(cards) === JSON.stringify([['Cylinders', 1], ['Gears', 1], ['Picture', 0]]),
     `dash.html: each chunk's chart is in a card of its own, titled by the chunk (${JSON.stringify(cards)})`,
   );
+  // The three cards of the row are the same size: each chart is drawn as
+  // large as the picture, centred in its card's body.
+  const filled = await page.evaluate(() => {
+    const centred = element => {
+      const body = element.closest('.card-body').getBoundingClientRect();
+      const drawn = window.__maidrSmokeDrawn(element);
+      return Math.abs((drawn.left - body.left) - (body.right - drawn.left - drawn.width)) <= 1;
+    };
+    const picture = document.querySelector('.card-body img');
+    return {
+      charts: Array.from(document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg'), svg => ({
+        ...window.__maidrSmokeDrawn(svg), centred: centred(svg),
+      })),
+      picture: picture ? window.__maidrSmokeDrawn(picture) : null,
+    };
+  });
+  check(
+    filled.charts.length === 2 && filled.charts.every(chart => sameSize(chart, filled.picture) && chart.centred),
+    'dash.html: each chart fills its card, centred, as the picture beside them fills its own'
+      + ` (${JSON.stringify(filled)})`,
+  );
+
   const fullScreen = () => page.evaluate(
     () => document.querySelector('.maidr-knitr').closest('.bslib-card').getAttribute('data-full-screen'),
   );
@@ -189,6 +216,31 @@ const open = async (name, charts, viewport) => {
   await showFullScreen();
   await page.waitForTimeout(settle);
   check(await fullScreen() === 'true', 'dash.html: the first chart\'s card is shown full screen');
+  // A card shown full screen is larger than the chart's own size, and the
+  // chart grows with it, as an image does: as wide as the card's body or as
+  // high, and centred in it.
+  const grown = await page.evaluate(() => {
+    const svg = document.querySelector('.maidr-knitr svg.maidr-knitr-svg');
+    const body = svg.closest('.card-body');
+    const style = getComputedStyle(body);
+    const box = body.getBoundingClientRect();
+    const left = box.left + parseFloat(style.paddingLeft);
+    const right = box.right - parseFloat(style.paddingRight);
+    const width = right - left;
+    const height = box.height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const drawn = window.__maidrSmokeDrawn(svg);
+    return {
+      drawn,
+      body: [Math.round(width), Math.round(height)],
+      own: Number.parseFloat(svg.getAttribute('width')),
+      centred: Math.abs((drawn.left - left) - (right - drawn.left - drawn.width)) <= 2,
+    };
+  });
+  check(
+    (Math.abs(grown.drawn.width - grown.body[0]) <= 2 || Math.abs(grown.drawn.height - grown.body[1]) <= 2)
+      && grown.drawn.width > grown.own && grown.centred,
+    `dash.html: the chart grows to fill its card shown full screen, centred (${JSON.stringify(grown)})`,
+  );
   await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
   await page.waitForTimeout(settle);
   await page.keyboard.press('Escape');
@@ -412,6 +464,36 @@ const open = async (name, charts, viewport) => {
       `deck.html: ${key} out of a chart opens the deck's search and shuts it again (${opened}, then ${shut})`,
     );
   }
+
+  // The 4 x 3 in chart alone on its slide is stretched as Quarto stretches
+  // the 4 x 3 in picture alone on another, both below a line of text: as
+  // large, less at most the line kept below the chart for maidr's text. A
+  // slide's pixels, which reveal.js scales.
+  const onSlide = async index => {
+    await page.evaluate(index => window.Reveal.slide(index), index);
+    await page.waitForTimeout(settle);
+    return page.evaluate(() => {
+      const element = window.Reveal.getCurrentSlide().querySelector('svg.maidr-knitr-svg, img');
+      const scale = window.Reveal.getScale();
+      const drawn = window.__maidrSmokeDrawn(element);
+      const wrapper = element.closest('.maidr-knitr');
+      return {
+        width: Math.round(drawn.width / scale * 10) / 10,
+        height: Math.round(drawn.height / scale * 10) / 10,
+        line: wrapper ? 1.5 * parseFloat(getComputedStyle(wrapper).fontSize) : 0,
+      };
+    });
+  };
+  const stretchedChart = await onSlide(1);
+  const stretchedPicture = await onSlide(3);
+  check(
+    stretchedChart.height > 1.5 * 3 * 96
+      && stretchedChart.height <= stretchedPicture.height + 1
+      && stretchedChart.height >= stretchedPicture.height - stretchedChart.line - 1
+      && Math.abs(stretchedChart.width / stretchedChart.height - 4 / 3) < 0.01,
+    'deck.html: the chart alone on its slide is stretched as the picture alone on another is'
+      + ` (${JSON.stringify(stretchedChart)} and ${JSON.stringify(stretchedPicture)})`,
+  );
 
   check(errors.length === 0, `deck.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();
