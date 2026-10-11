@@ -586,10 +586,14 @@
   }
 
   // reveal.js's search plugin opens on Ctrl+Shift+F (Cmd on a Mac) from a
-  // listener of its own, which keyboardCondition does not reach. maidr.js
-  // binds no such key, so on a deck with that plugin it goes no further;
-  // anywhere else it is left to a reader who gave it to one of maidr's
-  // commands.
+  // listener of its own on the document, which keyboardCondition does not
+  // reach. The key is stopped on the root element as it bubbles up: after
+  // the React handlers inside the page have had it -- among them the
+  // recorder that takes a new shortcut in maidr's settings -- and before
+  // the document. maidr.js's own shortcuts listen on the document too, so
+  // the stopped key reaches them no more than the plugin, and it is stopped
+  // only on a deck that has the plugin: anywhere else it is left to a
+  // reader who gave it to one of maidr's commands.
   function keepSearchShut(event) {
     if (!(event.ctrlKey || event.metaKey) || !event.shiftKey ||
         (event.key !== 'F' && event.key !== 'f')) {
@@ -643,8 +647,10 @@
     shimHosts();
     shimPkgdownSearch(event);
     handOff(event);
-    keepSearchShut(event);
   }, true);
+  document.documentElement.addEventListener('keydown', function (event) {
+    if (focusInChart()) keepSearchShut(event);
+  }, false);
   document.addEventListener('focusin', function (event) {
     var target = event.target;
     if (inChart(target)) {

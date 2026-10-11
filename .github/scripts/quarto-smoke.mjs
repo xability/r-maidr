@@ -16,7 +16,8 @@
 //   * `deck.html`, a reveal.js deck, in a window large enough for reveal.js
 //     to scale its slides up: in the chart on its second slide, Right
 //     Arrow is maidr's and leaves the slide where it is, and Ctrl+Shift+F
-//     leaves the deck's search shut; maidr's help, opened from it, stays
+//     leaves the deck's search shut, and can still be recorded as a
+//     shortcut in maidr's settings; maidr's help, opened from it, stays
 //     within the window on a slide reveal.js scales up; Shift+Tab, with no
 //     tab stop before the chart -- only a link taken out of the tab order --
 //     puts the focus on the slide, where Right Arrow moves the deck on. The
@@ -235,13 +236,50 @@ const open = async (name, charts, viewport) => {
     `deck.html: Right Arrow in a chart is maidr's, and leaves the slide where it is ("${read}")`,
   );
 
-  await page.keyboard.press('Control+Shift+F');
-  await page.waitForTimeout(settle);
-  const search = await page.evaluate(() => {
+  // The search box the plugin shows: none until it is first opened.
+  const searchShown = () => page.evaluate(() => {
     const box = document.querySelector('.reveal .searchbox');
     return box ? getComputedStyle(box).display : 'none';
   });
+  await page.keyboard.press('Control+Shift+F');
+  await page.waitForTimeout(settle);
+  const search = await searchShown();
   check(search === 'none', `deck.html: Ctrl+Shift+F in a chart leaves the deck's search shut (${search})`);
+
+  // Recorded as a shortcut of maidr's in its settings, from the chart: the
+  // recorder, a React handler inside the chart, has the key, and the deck's
+  // search stays shut while it does and when it is pressed in the dialog
+  // again, with nothing recording it.
+  await chart.focus();
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('Control+Comma');
+  const recording = { recorded: null, searchWhile: null, searchAfter: null };
+  try {
+    await page.getByRole('tab', { name: 'Keyboard Shortcuts' }).click({ timeout: 5000 });
+    await page.getByRole('button', { name: 'Change shortcut for Toggle Text Mode' }).click({ timeout: 5000 });
+    await page.keyboard.press('Control+Shift+F');
+    const status = page.locator('.settings-shortcuts [role="status"]').filter({ hasText: 'Toggle Text Mode is now' });
+    await status.waitFor({ timeout: 5000 });
+    recording.recorded = (await status.innerText()).trim();
+  } catch (error) {
+    recording.recorded = null;
+  }
+  await page.waitForTimeout(settle);
+  recording.searchWhile = await searchShown();
+  await page.keyboard.press('Control+Shift+F');
+  await page.waitForTimeout(settle);
+  recording.searchAfter = await searchShown();
+  check(
+    /shift/i.test(recording.recorded || '') && recording.searchWhile === 'none' && recording.searchAfter === 'none',
+    'deck.html: Ctrl+Shift+F is recorded as a shortcut in maidr\'s settings, and the deck\'s search stays shut'
+      + ` (${JSON.stringify(recording)})`,
+  );
+  // Closed, whether the recorder still waits for a key or not.
+  const dialogOpen = () => page.evaluate(() => Boolean(document.querySelector('#a-chart .MuiDialog-paper')));
+  for (let tries = 0; tries < 3 && await dialogOpen(); tries++) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(settle);
+  }
 
   await chart.focus();
   await page.waitForTimeout(settle);
