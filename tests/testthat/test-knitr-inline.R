@@ -577,6 +577,26 @@ test_that("a chart's pixels to the inch are those knitr shows the chunk's figure
   testthat::expect_identical(ppi(list(dpi = "high")), 72)
 })
 
+test_that("an svg figure's file is found under knitr's base.dir", {
+  ppi <- maidr:::knitr_chart_ppi
+  base <- withr::local_tempdir("maidr-svg-base-")
+  writeLines(
+    c('<svg xmlns="http://www.w3.org/2000/svg" width="504pt" height="360pt">', "</svg>"),
+    file.path(base, "figure.svg")
+  )
+  # The plot hook names the file relative to base.dir, which need not be
+  # the working directory.
+  withr::local_dir(withr::local_tempdir("maidr-svg-cwd-"))
+  old <- knitr::opts_knit$get("base.dir")
+  withr::defer(knitr::opts_knit$set(base.dir = old))
+  knitr::opts_knit$set(base.dir = base)
+  options <- list(dpi = 150, fig.retina = 1, dev = "svg", fig.width = 7,
+                  maidr.figure.file = "figure.svg")
+
+  # Read from the file, in points; the device's own rule would give 72.
+  testthat::expect_equal(ppi(options), 96)
+})
+
 test_that("an svg figure is shown at the size its file gives itself", {
   ppi <- maidr:::knitr_chart_ppi
   dir <- withr::local_tempdir("maidr-svg-ppi-")

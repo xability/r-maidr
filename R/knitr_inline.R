@@ -608,6 +608,9 @@ quarto_stretches_figures <- function() {
 #' @keywords internal
 #' @noRd
 quarto_auto_stretch <- function() {
+  if (!requireNamespace("rmarkdown", quietly = TRUE)) {
+    return(TRUE)
+  }
   meta <- tryCatch(rmarkdown::metadata, error = function(e) list())
   if (!is.list(meta)) {
     return(TRUE)

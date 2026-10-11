@@ -504,7 +504,8 @@
   'svglite', 72 for R's `svg()` with Cairo 1.18, as Quarto's `fig-format:
   svg` draws. The chart is drawn on the same canvas as before, which its
   `viewBox` keeps, and maidr reads out the same; `show()`, `save_html()`
-  and the widgets still show a chart at 72 pixels to the inch.
+  and the widgets still show a chart at 72 pixels to the inch. A chunk
+  given `dpi = 72` shows its chart at the size it had before.
 * `out.width` makes such a chart as wide as it says, wider than its own
   size too, as it makes an image: the chart shrank to an `out.width` but
   never grew to one, so `out-width: 100%` left a small chart small.
