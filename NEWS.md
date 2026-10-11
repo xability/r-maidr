@@ -483,7 +483,7 @@
   one's title and options, and the others' titles were lost. On any Quarto
   page such a chart is now in that div, as Quarto's own figures are (but
   in an `output: asis` chunk, as theirs are not), so `column: margin` puts
-  the chart in the margin, and no longer its code with it (#NNN).
+  the chart in the margin, and no longer its code with it (#369).
 
 ### ggplot2
 
