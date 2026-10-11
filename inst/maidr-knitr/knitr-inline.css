@@ -39,6 +39,36 @@
 .quarto-figure-right .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
   margin-left: auto;
 }
+/* The fig.align a chunk sets wins over the Quarto figure the chart is in:
+ * Quarto centres the float of a fig- chunk whatever the chunk says, and
+ * keeps the chunk's alignment in data-fig-align. */
+.maidr-knitr.maidr-knitr-left > .maidr-knitr-svg,
+.maidr-knitr.maidr-knitr-left figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: 0;
+  margin-right: auto;
+}
+.maidr-knitr.maidr-knitr-center > .maidr-knitr-svg,
+.maidr-knitr.maidr-knitr-center figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: auto;
+  margin-right: auto;
+}
+.maidr-knitr.maidr-knitr-right > .maidr-knitr-svg,
+.maidr-knitr.maidr-knitr-right figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: auto;
+  margin-right: 0;
+}
+/* A wrapper narrower than its column, given an out.width, is placed in it
+ * as the chart is. */
+.maidr-knitr.maidr-knitr-center,
+.quarto-figure-center .maidr-knitr:not(.maidr-knitr-left):not(.maidr-knitr-right) {
+  margin-left: auto;
+  margin-right: auto;
+}
+.maidr-knitr.maidr-knitr-right,
+.quarto-figure-right .maidr-knitr:not(.maidr-knitr-left):not(.maidr-knitr-center) {
+  margin-left: auto;
+  margin-right: 0;
+}
 .maidr-knitr-center > .maidr-knitr-caption {
   text-align: center;
 }
@@ -47,6 +77,49 @@
 }
 .maidr-knitr > .maidr-knitr-caption {
   margin-top: 0.5em;
+}
+
+/* Quarto: a chart it captions outside a float is a block the width of the
+ * column, as Quarto's figure is, rather than the inline block Bootstrap
+ * makes a .figure, so that it has room to be aligned in; its caption
+ * starts at the start of the column, however the chart is aligned. A
+ * float's caption is half a line below its chart. */
+.cell-output-display .maidr-knitr.figure.maidr-knitr-left,
+.cell-output-display .maidr-knitr.figure.maidr-knitr-center,
+.cell-output-display .maidr-knitr.figure.maidr-knitr-right {
+  display: block;
+}
+.cell-output-display .maidr-knitr > .maidr-knitr-caption {
+  text-align: start;
+}
+.quarto-float .maidr-knitr {
+  margin-bottom: 0.5em;
+}
+
+/* out.width: the chart fills the width its wrapper is given, as an image
+ * fills the width it is given, larger than its own size or smaller. maidr.js
+ * sizes its focusable element to fit its content, inline. */
+.maidr-knitr-sized .maidr-knitr-svg {
+  width: 100%;
+}
+.maidr-knitr-sized figure[id^="maidr-figure"] > [tabindex] {
+  min-width: 100%;
+}
+
+/* Quarto stretches an image in a column: screen... to the column's width
+ * (img.img-fluid.column-screen and the like); the chunk's output, which
+ * holds the chart, takes the column's class. And it leaves an image in a
+ * panel's cell the margin of the paragraph it is in (.quarto-layout-cell >
+ * p); an aligned one is in a figure, which has none. */
+.cell-output-display[class*="column-screen"] .maidr-knitr .maidr-knitr-svg {
+  width: 100%;
+}
+.cell-output-display[class*="column-screen"] .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
+  min-width: 100%;
+}
+.quarto-layout-cell > .maidr-knitr:not(.maidr-knitr-left):not(.maidr-knitr-center):not(.maidr-knitr-right) {
+  margin-left: 0.2em;
+  margin-right: 0.2em;
 }
 
 /* The charts of figures knitr holds, at a width the author set, sit side by

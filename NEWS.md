@@ -503,6 +503,23 @@
   svg` draws. The chart is drawn on the same canvas as before, which its
   `viewBox` keeps, and maidr reads out the same; `show()`, `save_html()`
   and the widgets still show a chart at 72 pixels to the inch.
+* `out.width` makes such a chart as wide as it says, wider than its own
+  size too, as it makes an image: the chart shrank to an `out.width` but
+  never grew to one, so `out-width: 100%` left a small chart small.
+  `out.height`, which was not read, sets its height, and the chart keeps
+  its shape where an image is stretched to it. A chart given an
+  `out.width` is aligned by `fig.align`, and a chart in a Quarto `fig-`
+  figure by the chunk's `fig-align`, which Quarto keeps from the figure;
+  the first stood at the left, the second in the middle. A chart Quarto
+  captions outside a `fig-` figure is centred, with its caption at the
+  start of the column, as Quarto shows such a figure. In a Quarto `layout`
+  a percentage `out-width` is the cell's, which the chart fills, and
+  `column: screen` and its kin stretch a chart across the screen, as
+  Quarto does both for an image. A chart still shrinks to a column
+  narrower than itself, keeping its shape, even where Quarto's
+  `fig-responsive: false` keeps an image from shrinking, so that a reader
+  on a phone or with the page magnified need not scroll sideways through
+  it.
 
 ### ggplot2
 

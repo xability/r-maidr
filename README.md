@@ -260,8 +260,12 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   the chunk's figure: `fig.width` times `dpi` over `fig.retina` pixels
   wide, which is 96 pixels to the inch in R Markdown's and Quarto's HTML,
   so `dpi` (Quarto's `fig-dpi`) changes it as it changes a figure.
-  `out.width` still sets the width a chart is shown at, and a chart wider
-  than the page shrinks to fit it. See [Chart size](#chart-size) for what
+  `out.width` sets the width a chart is shown at, wider or narrower than
+  its own, and `out.height` its height, keeping its shape; `fig.align`
+  aligns it. A chart wider than the page still shrinks to
+  fit it, even where Quarto's `fig-responsive: false` keeps an image from
+  shrinking, so that a reader on a phone or with the page magnified need
+  not scroll sideways through it. See [Chart size](#chart-size) for what
   the size changes.
 - **Cache and animations.** A chunk cached with `cache = TRUE` brings its
   charts back; one cached with `cache = 1` or `cache = 2` shows knitr's

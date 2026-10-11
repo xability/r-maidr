@@ -23,9 +23,13 @@
 #     Base R 2 x 2 `par(mfrow)` grid in one of `fig.width = 10,
 #     fig.height = 4`, whose short panels R thins the tick labels of: the
 #     others are at html_document's own 7 x 5 in;
+#   * a ggplot2 bar chart in a chunk of `out.width = "100%"`, wider than
+#     its own size;
 #   * a ggplot2 bar chart in the second tab of a {.tabset}, hidden when the
 #     page loads;
-#   * a grid drawing maidr does not read, which stays knitr's own figure.
+#   * a grid drawing maidr does not read, which stays knitr's own figure,
+#     and the same drawing at `out.width = "100%"`: the size a chart is
+#     shown at is checked against them.
 #
 # A second, smaller page, `mixed.html`, holds a 'plotly' widget that maidr
 # binds in the page itself, followed by an inline chart, so that a reader
@@ -125,6 +129,11 @@ writeLines(c(
   "}",
   "```",
   "",
+  "```{r full-width, out.width = \"100%\"}",
+  "full <- data.frame(part = c(\"full1\", \"full2\", \"full3\"), n = c(151, 152, 153))",
+  "ggplot(full, aes(part, n)) + geom_col() + labs(title = \"Full width chart\")",
+  "```",
+  "",
   "## Tabs {.tabset}",
   "",
   "### Shown",
@@ -141,6 +150,11 @@ writeLines(c(
   "## A drawing maidr does not read",
   "",
   "```{r static, fig.alt = \"A plain grey circle\"}",
+  "grid::grid.newpage()",
+  "grid::grid.circle(gp = grid::gpar(fill = \"grey\"))",
+  "```",
+  "",
+  "```{r static-wide, fig.alt = \"A wide grey circle\", out.width = \"100%\"}",
   "grid::grid.newpage()",
   "grid::grid.circle(gp = grid::gpar(fill = \"grey\"))",
   "```"

@@ -17,7 +17,8 @@
 //     tick labels of each axis stand apart;
 //   * a chart is shown the size of knitr's own figure for the same chunk
 //     options: one at html_document's 7 x 5 in as large as the drawing
-//     maidr does not read;
+//     maidr does not read, and one at out.width = "100%" as wide as that
+//     drawing at the same width, wider than its own size;
 //   * for each chart in turn -- its tab opened first when it is hidden --
 //     one Tab from the last tab stop before it lands on the chart, and that
 //     stop is outside the chart, and is the chart before it when one comes
@@ -86,6 +87,7 @@ const charts = [
   { name: 'Wide bar chart', announces: /\bwide1\b.*\b101\b/, size: [10, 4] },
   { name: 'Tall bar chart', announces: /\btall1\b.*\b111\b/, size: [5, 8] },
   { name: 'Base grid chart', announces: /\b121\b/, subplots: true, size: [10, 4] },
+  { name: 'Full width chart', announces: /\bfull1\b.*\b151\b/ },
   { name: 'Hidden tab chart', announces: /\bhid1\b.*\b91\b/ },
 ].map(chart => ({ size: [7, 5], ...chart }));
 
@@ -237,7 +239,8 @@ check(
 );
 
 // A chart is shown the size knitr shows a figure of the same chunk options
-// at: the drawing maidr does not read is one, at html_document's 7 x 5 in.
+// at: the drawing maidr does not read is one, at html_document's 7 x 5 in,
+// and again at out.width = "100%", which is wider than its own size.
 const shown = await page.evaluate(() => {
   const box = element => {
     if (!element) {
@@ -250,6 +253,8 @@ const shown = await page.evaluate(() => {
   return {
     chart: box(svgs[0]),
     figure: box(document.querySelector('img[alt="A plain grey circle"]')),
+    wideChart: box(svgs.find(svg => /\bfull1\b/.test(svg.textContent))),
+    wideFigure: box(document.querySelector('img[alt="A wide grey circle"]')),
   };
 });
 const sameBox = (a, b) => Boolean(a && b)
@@ -258,6 +263,11 @@ check(
   sameBox(shown.chart, shown.figure) && shown.chart.width === 672,
   `a 7 x 5 in chart is shown the size of knitr's 7 x 5 in figure (${JSON.stringify(shown.chart)}`
     + ` and ${JSON.stringify(shown.figure)})`,
+);
+check(
+  sameBox(shown.wideChart, shown.wideFigure) && shown.wideChart.width > 672,
+  'a chart given out.width = "100%" is as wide as a figure given it, wider than its own size'
+    + ` (${JSON.stringify(shown.wideChart)} and ${JSON.stringify(shown.wideFigure)})`,
 );
 
 // Show chart i -- open the tab that hides it -- and put the focus on the

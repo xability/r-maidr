@@ -82,9 +82,18 @@
 #' The size is the room the chart is laid out in, not what a reader hears:
 #' its data, titles and axes are the same at every size, though a lattice
 #' chart conditioned on one variable with no `layout =` arranges its panels,
-#' and the grid a reader moves through, for it (see [show()]). Nor is it the
-#' width the chart is shown at, which `out.width` sets: a chart shrinks to
-#' fit a page narrower than itself, keeping its shape.
+#' and the grid a reader moves through, for it (see [show()]).
+#'
+#' `out.width` sets the width a chart is shown at, wider or narrower than
+#' its own size, as it does a figure's, and `out.height` its height, though
+#' a chart keeps its shape where an image is stretched; `fig.align` aligns
+#' it. In Quarto a captioned chart is centred unless the chunk aligns it, a
+#' percentage `out-width` in a `layout` panel is its cell's, and `column:
+#' screen` and its kin stretch a chart across the screen. A chart always
+#' shrinks to fit a page narrower than itself, keeping its shape: Quarto's
+#' `fig-responsive: false`, which keeps an image from shrinking, is not
+#' read, so that a reader on a phone or with the page magnified need not
+#' scroll sideways through a chart.
 #'
 #' A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 #' maths and `\@ref()` in `fig.cap` are shown as written, and a bookdown text

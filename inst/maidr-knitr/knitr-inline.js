@@ -256,8 +256,10 @@
     // Not there while maidr mounts the chart, which fits it once mounted.
     var svg = wrapper.querySelector('svg.maidr-knitr-svg');
     if (!box || !svg || !wrapper.matches(FITTED)) return;
+    // The width r-maidr gave a chart for its out.height, put back.
+    if (svg.__maidrKnitrWidth === undefined) svg.__maidrKnitrWidth = svg.style.width;
     svg.style.maxHeight = '';
-    svg.style.width = '';
+    svg.style.width = svg.__maidrKnitrWidth;
     var over = box.scrollHeight - box.clientHeight;
     if (over <= 1) return;
     var line = 2.5 * parseFloat(getComputedStyle(wrapper).fontSize);

@@ -466,12 +466,13 @@ test_that("fig.align and the author's out.width lay the chart out", {
   )
   centred <- maidr:::knitr_inline_chart(svg, list(fig.align = "center", out.width = "50%"))
   testthat::expect_match(
-    centred, '<div class="maidr-knitr maidr-knitr-center" style="width: 50%;">',
+    centred,
+    '<div class="maidr-knitr maidr-knitr-center maidr-knitr-sized" style="width: 50%;">',
     fixed = TRUE
   )
   testthat::expect_match(
     maidr:::knitr_inline_chart(svg, list(fig.align = "default", out.width = 300)),
-    '<div class="maidr-knitr" style="width: 300px;">', fixed = TRUE
+    '<div class="maidr-knitr maidr-knitr-sized" style="width: 300px;">', fixed = TRUE
   )
   testthat::expect_match(
     maidr:::knitr_inline_chart(svg, list(out.width = "\\linewidth")),
@@ -483,7 +484,7 @@ test_that("fig.align and the author's out.width lay the chart out", {
   held <- list(fig.show = "hold", fig.align = "default", out.width = "50%", fig.num = 2L)
   first <- maidr:::knitr_inline_chart(svg, c(held, fig.cur = 1L), figure = TRUE)
   last <- maidr:::knitr_inline_chart(svg, c(held, fig.cur = 2L), index = 2L, figure = TRUE)
-  row <- '<div class="maidr-knitr maidr-knitr-row" style="width: 50%;">'
+  row <- '<div class="maidr-knitr maidr-knitr-row maidr-knitr-sized" style="width: 50%;">'
   testthat::expect_match(first, row, fixed = TRUE)
   testthat::expect_false(grepl("maidr-knitr-row-end", first, fixed = TRUE))
   testthat::expect_match(last, row, fixed = TRUE)
@@ -517,11 +518,11 @@ test_that("an out.width the chunk sets, in either spelling, is its chart's width
     "```{r none}", "barplot(c(a = 1))", "```"
   ), dir)
   testthat::expect_identical(
-    regmatches(page, gregexpr('<div class="maidr-knitr"[^>]*>', page))[[1]],
+    regmatches(page, gregexpr('<div class="maidr-knitr[ "][^>]*>', page))[[1]],
     c(
-      '<div class="maidr-knitr" style="width: 50%;">',
-      '<div class="maidr-knitr" style="width: 40%;">',
-      '<div class="maidr-knitr" style="width: 30%;">',
+      '<div class="maidr-knitr maidr-knitr-sized" style="width: 50%;">',
+      '<div class="maidr-knitr maidr-knitr-sized" style="width: 40%;">',
+      '<div class="maidr-knitr maidr-knitr-sized" style="width: 30%;">',
       '<div class="maidr-knitr">'
     )
   )
@@ -636,6 +637,92 @@ test_that("a chart is shown at the size knitr shows the chunk's figure, its canv
   testthat::expect_identical(
     dpi150[c("width", "height", "viewBox")],
     c(width = "1050px", height = "750px", viewBox = "0 0 504 360")
+  )
+})
+
+test_that("out.height sets a chart's height and keeps its shape", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  height_of <- function(value) {
+    inline_root_size(maidr:::knitr_inline_chart(svg, list(out.height = value)))[["style"]]
+  }
+  # A 7 x 5 in chart is 1.4 times as wide as it is high.
+  testthat::expect_identical(height_of("200px"), "width: 280px;")
+  testthat::expect_identical(height_of(200), "width: 280px;")
+  testthat::expect_identical(height_of("2in"), "width: 268.8px;")
+  testthat::expect_identical(height_of("10em"), "width: calc(10em * 1.4);")
+  # A percentage of a box as high as what it holds is no height, as for an
+  # image; nor is LaTeX's.
+  testthat::expect_identical(height_of("50%"), NA_character_)
+  testthat::expect_identical(height_of("\\textheight"), NA_character_)
+  # Given both, the chart is no wider than out.width and no higher than
+  # out.height.
+  testthat::local_mocked_bindings(
+    chunk_sets_option = function(options, name) TRUE,
+    .package = "maidr"
+  )
+  both <- maidr:::knitr_inline_chart(svg, list(out.width = "50%", out.height = "150px"))
+  testthat::expect_identical(inline_root_size(both)[["style"]], "width: 210px;")
+  testthat::expect_match(
+    both, '<div class="maidr-knitr maidr-knitr-sized" style="width: 50%;">', fixed = TRUE
+  )
+})
+
+test_that("in Quarto a captioned chart is centred and a panel's cell takes a percentage width", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  testthat::local_mocked_bindings(
+    chunk_sets_option = function(options, name) TRUE,
+    .package = "maidr"
+  )
+  withr::defer(knitr::opts_knit$delete("quarto.version"))
+  captioned <- list(label = "unnamed-chunk-2", fig.cap = "Bars")
+
+  # Outside Quarto knitr leaves a figure where it is.
+  wrapper_of <- function(out) regmatches(out, regexpr('<div class="[^"]*maidr-knitr[^>]*>', out))
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, captioned, figure = TRUE)),
+    '<div class="figure maidr-knitr">'
+  )
+  knitr::opts_knit$set(quarto.version = "1.7.32")
+  # Quarto centres a figure it captions unless the chunk says otherwise.
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, captioned, figure = TRUE)),
+    '<div class="figure maidr-knitr maidr-knitr-center">'
+  )
+  right <- c(captioned, fig.align = "right")
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, right, figure = TRUE)),
+    '<div class="figure maidr-knitr maidr-knitr-right">'
+  )
+  # The float of a fig- chunk is Quarto's to align, and the chunk's own
+  # alignment is the chart's.
+  float <- list(label = "fig-bars", fig.cap = "Bars", fig.num = 1L, fig.cur = 1L)
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, float, figure = TRUE)),
+    '<div class="maidr-knitr">'
+  )
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, c(float, fig.align = "left"), figure = TRUE)),
+    '<div class="maidr-knitr maidr-knitr-left">'
+  )
+
+  # In a panel a percentage width is the cell's; the chart fills the cell.
+  panel <- list(label = "unnamed-chunk-3", `layout-ncol` = 2L, out.width = "80%")
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, panel, figure = TRUE)),
+    '<div class="maidr-knitr">'
+  )
+  pixels <- utils::modifyList(panel, list(out.width = "200px"))
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, pixels, figure = TRUE)),
+    '<div class="maidr-knitr maidr-knitr-sized" style="width: 200px;">'
+  )
+  # Outside a panel the width is the chart's.
+  single <- list(label = "unnamed-chunk-4", out.width = "80%")
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, single, figure = TRUE)),
+    '<div class="maidr-knitr maidr-knitr-sized" style="width: 80%;">'
   )
 })
 
@@ -1596,8 +1683,13 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   )
   testthat::expect_false(grepl(">Cars by cylinder</p>", html, fixed = TRUE))
   testthat::expect_match(html, ">Base bars</p>", fixed = TRUE)
-  # Quarto's spelling of out.width sizes the chart.
-  testthat::expect_match(html, '<div class="figure maidr-knitr" style="width: 50%;">', fixed = TRUE)
+  # Quarto's spelling of out.width sizes the chart, which Quarto centres as
+  # it centres a figure it captions.
+  testthat::expect_match(
+    html,
+    '<div class="figure maidr-knitr maidr-knitr-center maidr-knitr-sized" style="width: 50%;">',
+    fixed = TRUE
+  )
   # Every chart is shown at fig-dpi, 96 pixels to the inch, as Quarto shows
   # its figures; its canvas is 72.
   sizes <- vapply(charts, function(chart) {

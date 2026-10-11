@@ -25,7 +25,9 @@
 //     slides is shown holds none of its chart's tick labels.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures. A chart at
-//     Quarto's 7 x 5 in is shown as large as a picture is.
+//     Quarto's 7 x 5 in is shown as large as a picture is, and one at
+//     `out-width: 100%` as wide as a picture given it, wider than its own
+//     size.
 //
 //     node .github/scripts/quarto-smoke.mjs <dir-rendered-by-quarto-smoke.R>
 //
@@ -418,7 +420,7 @@ const open = async (name, charts, viewport) => {
 // --- A Quarto figure -----------------------------------------------------------
 
 {
-  const { page, errors } = await open('fig.html', 2, { width: 1200, height: 900 });
+  const { page, errors } = await open('fig.html', 3, { width: 1200, height: 900 });
   const gaps = await page.evaluate(() => {
     const svg = document.querySelector('.maidr-knitr svg').getBoundingClientRect();
     const figure = document.querySelector('.maidr-knitr').closest('figure').getBoundingClientRect();
@@ -428,19 +430,27 @@ const open = async (name, charts, viewport) => {
     gaps.left > 10 && Math.abs(gaps.left - gaps.right) <= 2,
     `fig.html: the chart stands in the middle of its figure (${gaps.left}px to its left, ${gaps.right}px to its right)`,
   );
-  // Quarto shows a 7 x 5 in figure at fig-dpi, 96 pixels to the inch.
+  // Quarto shows a 7 x 5 in figure at fig-dpi, 96 pixels to the inch, and
+  // one given out-width: 100% as wide as the column.
   const sizes = await page.evaluate(() => {
     const charts = document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg');
     const drawn = element => (element ? window.__maidrSmokeDrawn(element) : null);
     return {
       chart: drawn(charts[1]),
       picture: drawn(document.querySelector('img[alt="A plain grey circle"]')),
+      wideChart: drawn(charts[2]),
+      widePicture: drawn(document.querySelector('img[alt="A wide grey circle"]')),
     };
   });
   check(
     sameSize(sizes.chart, sizes.picture) && sizes.chart.width === 672 && sizes.chart.left === sizes.picture.left,
     `fig.html: a 7 x 5 in chart is shown as large as a 7 x 5 in picture, where it is (${JSON.stringify(sizes.chart)}`
       + ` and ${JSON.stringify(sizes.picture)})`,
+  );
+  check(
+    sameSize(sizes.wideChart, sizes.widePicture) && sizes.wideChart.width > 672,
+    'fig.html: a chart given out-width: 100% is as wide as a picture given it, wider than its own size'
+      + ` (${JSON.stringify(sizes.wideChart)} and ${JSON.stringify(sizes.widePicture)})`,
   );
   check(errors.length === 0, `fig.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();

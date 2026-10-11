@@ -17,7 +17,8 @@
 #     slide after them;
 #   * `fig.qmd`, an HTML page with a chart in a captioned figure narrower
 #     than the page's column, which Quarto centres unless told otherwise;
-#     then a chart and a grid drawing at Quarto's 7 x 5 in.
+#     then a chart and a grid drawing at Quarto's 7 x 5 in, and a chart and
+#     a drawing at `out-width: 100%`, wider than their own size.
 #
 #     Rscript .github/scripts/quarto-smoke.R <out-dir>
 
@@ -120,6 +121,17 @@ documents <- list(
     "",
     "```{r}",
     "#| fig-alt: A plain grey circle",
+    drawing,
+    "```",
+    "",
+    "```{r}",
+    "#| out-width: 100%",
+    "ggplot(mtcars, aes(factor(carb))) + geom_bar()",
+    "```",
+    "",
+    "```{r}",
+    "#| fig-alt: A wide grey circle",
+    "#| out-width: 100%",
     drawing,
     "```"
   )

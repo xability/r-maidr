@@ -67,11 +67,17 @@ card when the text \code{bsli} is in it.
 canvas of 72 pixels to the inch that its \code{viewBox} keeps. It is shown at
 the size knitr shows the chunk's figure at: its svg's \code{width} and
 \code{height} are the figure's (\code{knitr_chart_ppi()}).
-\item \code{fig.align} aligns the chart, and an \code{out.width} the author sets (not
-the one knitr derives for a retina figure) sets the wrapper's width,
-which the chart shrinks to. The charts in place of figures
-\code{fig.show = "hold"} holds, at such a width and not aligned, sit side
-by side, as knitr's images do.
+\item An \code{out.width} the author sets (not the one knitr derives for a retina
+figure) is the wrapper's width, which the chart fills, wider than its
+own size or narrower; in a panel Quarto lays out, a percentage is the
+cell's, as Quarto makes an image's. An \code{out.height} sets the chart's
+height, and its width keeps its shape. \code{fig.align} aligns the chart,
+and the wrapper too when it is narrower than its column. A chart
+Quarto captions outside a float is centred unless the chunk says
+otherwise, as Quarto centres such a figure. Every chart still shrinks
+to a column narrower than itself, keeping its shape. The charts in
+place of figures \code{fig.show = "hold"} holds, at such a width and not
+aligned, sit side by side, as knitr's images do.
 }
 
 A figure's options hold its own caption and alt text alone; of several,
