@@ -20,17 +20,35 @@
 //     just before, so no stray tab stop sits between them; Right Arrow
 //     announces that chart's own first value, inside the chart, and draws
 //     its highlight inside that chart's own svg and viewBox, and Shift+Tab
-//     leaves it;
+//     leaves it -- from the first, which nothing comes before, for the
+//     browser, as on any page that is not a slide deck;
+//   * Ctrl+Shift+F pressed in a chart reaches the page, which has no deck
+//     search to keep it from: a reader may give it to a command of maidr's;
+//   * / in braille mode resets the autoplay speed, on this page and with a
+//     'pkgdown' search box added to it, which takes / from anywhere and
+//     then still neither takes the focus nor a / typed into maidr's command
+//     palette;
 //   * maidr's help, opened from a chart on this Bootstrap 3 page, whose
 //     root font size is 10px, shows its text and its title at their own
 //     sizes, neither shrunk by the page nor enlarged twice, nor sized by
-//     the page's rule for its paragraphs, within the window.
+//     the page's rule for its paragraphs, within the window;
+//   * in a phone's column, 360 pixels wide, maidr's braille field, set for
+//     an 80-cell display, and its review field, both wider than the chart
+//     left to their own widths, keep to the chart's width and the page does
+//     not scroll sideways, while the fields of maidr's settings keep their
+//     own height;
+//   * high contrast, turned on in a chart, paints the chart dark and leaves
+//     the page in its own colours, and leaving the chart leaves nothing
+//     painted; on a second page, `mixed.html`, the same holds for a 'plotly'
+//     widget maidr binds in the page itself and for the inline chart a
+//     reader tabs to from it with high contrast still on. What is checked is
+//     what the page shows -- computed colours -- whatever paints them.
 //
 // A chart whose ids clashed with another's, or that was bound to another's
 // data, announces or highlights the wrong chart; a page that loaded the
 // bundle once per chart runs maidr.js more than once.
 //
-//     node .github/scripts/knitr-smoke.mjs <dir-with-charts.html>
+//     node .github/scripts/knitr-smoke.mjs <dir-with-charts.html-and-mixed.html>
 //
 // Needs the `playwright` package and its Chromium; `MAIDR_SMOKE_CHROMIUM`
 // names an executable to use instead of the one Playwright installed.
@@ -119,6 +137,17 @@ await page.addInitScript(() => {
   });
 });
 
+// Count the Ctrl+Shift+F (Cmd+Shift+F) presses that reach the document, as
+// reveal.js's search plugin would see them.
+await page.addInitScript(() => {
+  window.__maidrSmokeSearchKeys = 0;
+  document.addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.key === 'F' || event.key === 'f')) {
+      window.__maidrSmokeSearchKeys += 1;
+    }
+  });
+});
+
 // A box on the page, in the user units of the svg it is drawn in: the page
 // may show a chart smaller than its own size.
 await page.addInitScript(() => {
@@ -133,6 +162,31 @@ await page.addInitScript(() => {
     };
   };
 });
+
+// The colours a reader sees around a chart: the page's body, and the
+// nearest box from the chart's plot out to `container` -- its wrapper, or
+// the widget maidr mounted it in -- that has a background of its own; null
+// when none has.
+const coloursScript = () => {
+  window.__maidrSmokeColours = container => {
+    const body = getComputedStyle(document.body);
+    const plot = container.querySelector('figure[id^="maidr-figure"] > [tabindex="0"]');
+    let backdrop = null;
+    for (let at = plot; at && !backdrop; at = at === container ? null : at.parentElement) {
+      const colour = getComputedStyle(at).backgroundColor;
+      if (colour !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(colour)) {
+        backdrop = colour;
+      }
+    }
+    return { body: [body.backgroundColor, body.color], backdrop };
+  };
+};
+await page.addInitScript(coloursScript);
+// A colour no channel of which is lighter than a quarter: maidr's default
+// dark colour for high contrast is black.
+const dark = colour => Boolean(colour)
+  && Math.max(...colour.match(/[\d.]+/g).slice(0, 3).map(Number)) <= 64;
+const sameColours = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 await page.goto('file://' + file, { waitUntil: 'load' });
 await page.waitForFunction(count => {
@@ -388,6 +442,10 @@ for (const [i, chart] of charts.entries()) {
   await page.keyboard.press('Shift+Tab');
   await page.waitForTimeout(settle);
   check(!(await focus(i)).inChart, `${chart.name}: Shift+Tab leaves the chart`);
+  if (i === 0) {
+    const left = await page.evaluate(() => document.activeElement.tagName.toLowerCase());
+    check(left === 'body', `${chart.name}: Shift+Tab, with nothing before it, leaves the page for the browser (${left})`);
+  }
 }
 
 // maidr's help, from the first chart. Its text is sized in rem, which this
@@ -432,7 +490,258 @@ check(
 await page.keyboard.press('Escape');
 await page.waitForTimeout(settle);
 
+// Ctrl+Shift+F, from the first chart: a key like any other on a page with
+// no deck search to keep it from.
+await page.locator('.maidr-knitr figure[id^="maidr-figure"] > [tabindex="0"]').first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('Control+Shift+F');
+await page.waitForTimeout(settle);
+const searchKeys = await page.evaluate(() => window.__maidrSmokeSearchKeys);
+check(searchKeys === 1, `Ctrl+Shift+F pressed in a chart reaches the page (${searchKeys} time(s))`);
+
+// High contrast, from the first chart. maidr.js paints the page's body for
+// it, which inline is the whole page around the chart. Checked after the
+// rest, since maidr keeps the setting for the next chart a reader enters.
+const plotOf = 'figure[id^="maidr-figure"] > [tabindex="0"]';
+const coloursOf = (target, selector) => target.evaluate(
+  selector => window.__maidrSmokeColours(document.querySelector(selector)),
+  selector,
+);
+const plain = await coloursOf(page, '.maidr-knitr');
+await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('c');
+await page.waitForTimeout(settle);
+const contrasted = await coloursOf(page, '.maidr-knitr');
+check(
+  sameColours(contrasted.body, plain.body) && dark(contrasted.backdrop),
+  'high contrast paints the chart dark and leaves the page in its own colours'
+    + ` (page ${contrasted.body.join(' on ')}, was ${plain.body.join(' on ')}; chart ${contrasted.backdrop})`,
+);
+await page.keyboard.press('Shift+Tab');
+await page.waitForTimeout(settle);
+const left = await coloursOf(page, '.maidr-knitr');
+check(
+  sameColours(left.body, plain.body) && left.backdrop === plain.backdrop,
+  `leaving a chart in high contrast leaves nothing painted (page ${left.body.join(' on ')}; chart ${left.backdrop})`,
+);
+await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('c');
+await page.waitForTimeout(settle);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(settle);
+const off = await coloursOf(page, '.maidr-knitr');
+check(
+  sameColours(off.body, plain.body) && off.backdrop === plain.backdrop,
+  `high contrast turned off in the chart leaves nothing painted (page ${off.body.join(' on ')}; chart ${off.backdrop})`,
+);
+
+// / in braille mode is maidr's "reset speed", which it reads from the
+// document. A 'pkgdown' site's search box takes / from anywhere on the
+// page; with one on it, a / typed into maidr's command palette is kept from
+// the page, and one in braille mode still resets the speed, the box taking
+// no focus.
+const said = () => page.evaluate(() => {
+  const text = document.querySelector('.maidr-knitr #maidr-text-container');
+  return text ? text.textContent.trim() : '';
+});
+const slashInBraille = async () => {
+  await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('b');
+  await page.waitForTimeout(settle);
+  await page.keyboard.press('/');
+  await page.waitForTimeout(settle);
+  const result = await page.evaluate(() => ({
+    braille: Boolean(document.activeElement.closest('.maidr-knitr'))
+      && document.activeElement.matches('textarea[id^="maidr-braille-textarea"]'),
+  }));
+  result.text = await said();
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(settle);
+  return result;
+};
+const plainSlash = await slashInBraille();
+check(
+  plainSlash.braille && /reset speed/i.test(plainSlash.text),
+  `/ in braille mode resets the autoplay speed ("${plainSlash.text}")`,
+);
+await page.evaluate(() => {
+  const search = document.createElement('input');
+  search.id = 'search-input';
+  document.body.prepend(search);
+  window.__maidrSmokeSearchSlashes = 0;
+  document.addEventListener('keydown', event => {
+    if (event.key === '/') {
+      window.__maidrSmokeSearchSlashes += 1;
+      event.preventDefault();
+      search.focus();
+    }
+  });
+});
+const pkgdownSlash = await slashInBraille();
+check(
+  pkgdownSlash.braille && /reset speed/i.test(pkgdownSlash.text),
+  `/ in braille mode resets the autoplay speed on a page with pkgdown's search, which takes no focus ("${pkgdownSlash.text}")`,
+);
+await page.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await page.waitForTimeout(settle);
+await page.keyboard.press('Control+Shift+P');
+await page.waitForTimeout(settle);
+const before = await page.evaluate(() => window.__maidrSmokeSearchSlashes);
+await page.keyboard.press('/');
+await page.waitForTimeout(settle);
+const palette = await page.evaluate(() => ({
+  value: document.activeElement.value,
+  inChart: Boolean(document.activeElement.closest('.maidr-knitr')),
+  slashes: window.__maidrSmokeSearchSlashes,
+}));
+check(
+  palette.inChart && palette.value === '/' && palette.slashes === before,
+  `/ typed into maidr's command palette stays there on a page with pkgdown's search (${JSON.stringify(palette)})`,
+);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(settle);
+
 check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
+
+// The same page in a phone's column. maidr's braille field is as wide as
+// the reader's braille display, which fits the column at maidr's default
+// of 32 cells and is set here to an 80-cell one, and its review field is
+// 50 characters wide: both are wider than the chart. They keep to the
+// chart's width, and the page does not scroll sideways. The fields of
+// maidr's settings, which MUI sizes, keep their own box and height.
+const phone = await browser.newPage({ viewport: { width: 360, height: 740 } });
+await phone.addInitScript(() => {
+  localStorage.setItem('maidr-settings', JSON.stringify({
+    general: {
+      brailleDisplayKind: 'single',
+      brailleDisplayPresetId: 'focus-80-blue-5g',
+      brailleDisplaySize: 80,
+      brailleDisplayLines: 1,
+    },
+  }));
+});
+await phone.goto('file://' + file, { waitUntil: 'load' });
+await phone.waitForFunction(
+  () => document.querySelector('.maidr-knitr article[id^="maidr-article-"]'),
+  null,
+  { timeout: 15000 },
+).catch(() => {});
+await phone.waitForTimeout(settle);
+// How far past the chart's right edge each of maidr's braille and review
+// fields shown ends, and would end left to its own width, and how wide the
+// page is. A field that would not run past the chart checks nothing.
+const column = () => phone.evaluate(() => {
+  const wrapper = document.querySelector('.maidr-knitr');
+  const edge = wrapper.getBoundingClientRect().right;
+  const fields = Array.from(
+    wrapper.querySelectorAll('textarea[id^="maidr-braille-textarea"], input[id^="maidr-review-input"]'),
+    field => {
+      const ends = Math.round(field.getBoundingClientRect().right - edge);
+      field.style.setProperty('max-width', 'none', 'important');
+      const own = Math.round(field.getBoundingClientRect().right - edge);
+      field.style.removeProperty('max-width');
+      return { ends, own };
+    },
+  );
+  return { scroll: document.documentElement.scrollWidth, width: window.innerWidth, fields };
+});
+const keptToColumn = (mode, at) => check(
+  at.fields.length === 1 && at.fields[0].own > 1 && at.fields[0].ends <= 1 && at.scroll <= at.width,
+  `in a phone's column maidr's ${mode} field keeps to the chart's width`
+    + ` (page ${at.scroll} wide in ${at.width}; field ends`
+    + ` ${at.fields.map(field => `${field.ends} px past the chart, ${field.own} px at its own width`).join('; ')})`,
+);
+await phone.locator(`.maidr-knitr ${plotOf}`).first().focus();
+await phone.waitForTimeout(settle);
+await phone.keyboard.press('b');
+await phone.waitForTimeout(settle);
+keptToColumn('braille', await column());
+await phone.keyboard.press('r');
+await phone.waitForTimeout(settle);
+keptToColumn('review', await column());
+// Back to braille mode, and out of it onto the chart.
+await phone.keyboard.press('r');
+await phone.waitForTimeout(settle);
+await phone.keyboard.press('Escape');
+await phone.waitForTimeout(settle);
+await phone.keyboard.press('Control+Comma');
+await phone.waitForTimeout(settle * 2);
+const setting = await phone.evaluate(() => {
+  const field = Array.from(document.querySelectorAll('.maidr-knitr [role="dialog"] input.MuiInputBase-input'))
+    .find(input => input.getBoundingClientRect().width > 0);
+  return field
+    ? { sizing: getComputedStyle(field).boxSizing, height: Math.round(field.getBoundingClientRect().height) }
+    : null;
+});
+check(
+  setting !== null && setting.sizing === 'content-box' && setting.height >= 30,
+  'the fields of maidr\'s settings keep their own size'
+    + (setting ? ` (${setting.sizing}, ${setting.height}px tall)` : ': no settings field shown'),
+);
+await phone.keyboard.press('Escape');
+await phone.close();
+
+// A 'plotly' widget maidr binds in the page itself, then an inline chart.
+// High contrast, turned on in the widget, is on in the chart a reader tabs
+// to from it, before maidr has given the widget's colours back: each is
+// painted in turn, and the page never is.
+const widget = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+const widgetErrors = [];
+widget.on('pageerror', error => widgetErrors.push(String(error)));
+await widget.addInitScript(coloursScript);
+await widget.goto('file://' + path.resolve(dir, 'mixed.html'), { waitUntil: 'load' });
+await widget.waitForFunction(
+  () => document.querySelectorAll('article[id^="maidr-article-"]').length === 2,
+  null,
+  { timeout: 15000 },
+).catch(() => {});
+await widget.waitForTimeout(settle * 2);
+const mounted = await widget.evaluate(plotOf => ({
+  widget: Boolean(document.querySelector(`.html-widget ${plotOf}`)),
+  inline: Boolean(document.querySelector(`.maidr-knitr ${plotOf}`)),
+}), plotOf);
+check(mounted.widget && mounted.inline, `the widget and the inline chart are both bound (${JSON.stringify(mounted)})`);
+if (mounted.widget && mounted.inline) {
+  const widgetPlain = await coloursOf(widget, '.html-widget');
+  const inlinePlain = await coloursOf(widget, '.maidr-knitr');
+  await widget.locator(`.html-widget ${plotOf}`).focus();
+  await widget.waitForTimeout(settle);
+  await widget.keyboard.press('c');
+  await widget.waitForTimeout(settle);
+  const inWidget = await coloursOf(widget, '.html-widget');
+  check(
+    sameColours(inWidget.body, widgetPlain.body) && dark(inWidget.backdrop),
+    'high contrast paints a widget maidr binds in the page, and leaves the page in its own colours'
+      + ` (page ${inWidget.body.join(' on ')}, was ${widgetPlain.body.join(' on ')}; widget ${inWidget.backdrop})`,
+  );
+  await widget.keyboard.press('Tab');
+  await widget.waitForTimeout(settle);
+  const moved = await widget.evaluate(plotOf => document.activeElement
+    === document.querySelector(`.maidr-knitr ${plotOf}`), plotOf);
+  const inInline = await coloursOf(widget, '.maidr-knitr');
+  const widgetAfter = await coloursOf(widget, '.html-widget');
+  check(
+    moved && sameColours(inInline.body, inlinePlain.body) && dark(inInline.backdrop)
+      && widgetAfter.backdrop === widgetPlain.backdrop,
+    'Tab from the widget to the inline chart paints the chart, not the page, and leaves the widget unpainted'
+      + ` (on the chart: ${moved}; page ${inInline.body.join(' on ')}; chart ${inInline.backdrop};`
+      + ` widget ${widgetAfter.backdrop})`,
+  );
+  await widget.keyboard.press('c');
+  await widget.waitForTimeout(settle);
+  const widgetOff = await coloursOf(widget, '.maidr-knitr');
+  check(
+    sameColours(widgetOff.body, inlinePlain.body) && widgetOff.backdrop === inlinePlain.backdrop,
+    `high contrast turned off leaves nothing painted (page ${widgetOff.body.join(' on ')}; chart ${widgetOff.backdrop})`,
+  );
+}
+check(
+  widgetErrors.length === 0,
+  `no page errors on the widget's page${widgetErrors.length ? ': ' + widgetErrors.join(' | ') : ''}`,
+);
 
 await browser.close();
 if (failures.length > 0) {
