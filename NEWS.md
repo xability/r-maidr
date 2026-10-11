@@ -435,13 +435,13 @@
   whole page turned black. A chart made with `maidr_htmlwidget()` on such a
   page, which maidr binds in the page itself, is painted in place of the
   page as well, and the page keeps its colours when the reader tabs from
-  one kind of chart to the other (#NNN).
+  one kind of chart to the other (#368).
 * Escape pressed in such a chart in a card of a Quarto dashboard shown full
   screen closes maidr's own modes, its help and its braille and review
   modes among them, and leaves the card full screen. The card listens for
   Escape on the whole page, so the key that closed maidr's help also took
   the card out of full screen. Pressed anywhere else, Escape still does
-  (#NNN).
+  (#368).
 * In a slide deck -- reveal.js, from Quarto or 'revealjs', ioslides or
   slidy -- Shift+Tab from such a chart that nothing on the page comes
   before, as on a slide whose first tab stop it is, puts the focus on the
@@ -451,29 +451,29 @@
   Ctrl+Shift+F (Cmd+Shift+F on a Mac) pressed in a chart no longer opens
   the deck's search, nor does Ctrl+F with Caps Lock on, which the plugin
   opens on too; on any other page the key is left to maidr, for a reader
-  who gives it to one of maidr's commands (#NNN).
+  who gives it to one of maidr's commands (#368).
 * Such a chart in a Quarto figure is centred, as Quarto centres its
   figures unless `fig-align` says otherwise; it stood at the figure's left.
   maidr's review field, 50 characters wide, and its braille field, as wide
   as the reader's braille display, keep to the chart's width in a column
   narrower than they are, as on a phone, where they ran past it and the
-  page scrolled sideways (#NNN).
+  page scrolled sideways (#368).
 * maidr's dialogs, opened from such a chart on a slide of a Quarto deck,
   stay within the window. Quarto's reveal.js 5 scales its slides up with a
   transform on a large window, and scales the dialogs with them: maidr's
   help ran off the top and bottom of the window. Their text, captions,
   headings and lists keep the sizes maidr gives them whatever the deck's
-  rules for its own text (#NNN).
+  rules for its own text (#368).
 * A reveal.js deck, Quarto's among them, no longer reads such a chart's tick
   labels and axis titles aloud when it shows the chart's slide. reveal.js
   reads a slide's text when it is shown, all but what is hidden, and the
   chart's drawing, which maidr names as a whole once it has loaded, was not
-  hidden (#NNN).
+  hidden (#368).
 * `/` pressed in braille mode in such a chart resets the autoplay speed.
   The script that keeps a 'pkgdown' site's search key from maidr's fields
   kept it from maidr's braille field too, on every page, so the key did
   nothing there. It now acts only on a page with pkgdown's search box, and
-  leaves maidr's braille and review fields alone (#NNN).
+  leaves maidr's braille and review fields alone (#368).
 
 ### ggplot2
 
