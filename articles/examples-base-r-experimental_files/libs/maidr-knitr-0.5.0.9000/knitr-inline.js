@@ -121,6 +121,14 @@
   // description: the hidden alt text r-maidr writes, then the caption --
   // r-maidr's own, or the figcaption of a Quarto figure, which Quarto names
   // in an aria-describedby on the figure's content.
+  //
+  // maidr.js describes the element too, by its keyboard instructions, under
+  // ids that start with maidr-instruction- (xability/maidr#1384). Those are
+  // kept, after the author's: a reader hears what the chart shows before how
+  // to use it, and maidr adds and takes away its own as the reader enters and
+  // uses the chart.
+  var MAIDR_INSTRUCTION = 'maidr-instruction-';
+
   function describe(plot) {
     var wrapper = plot.closest('.maidr-knitr');
     if (!wrapper) return;
@@ -135,8 +143,13 @@
     } else if (host && !inChart(host)) {
       ids.push(host.getAttribute('aria-describedby'));
     }
-    var value = ids.join(' ');
-    if (value && plot.getAttribute('aria-describedby') !== value) {
+    if (!ids.length) return;
+    var current = plot.getAttribute('aria-describedby') || '';
+    var maidrIds = current.split(/\s+/).filter(function (id) {
+      return id.indexOf(MAIDR_INSTRUCTION) === 0;
+    });
+    var value = ids.concat(maidrIds).join(' ');
+    if (current !== value) {
       plot.setAttribute('aria-describedby', value);
     }
   }
