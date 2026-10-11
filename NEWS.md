@@ -484,6 +484,14 @@
   page such a chart is now in that div, as Quarto's own figures are (but
   in an `output: asis` chunk, as theirs are not), so `column: margin` puts
   the chart in the margin, and no longer its code with it (#369).
+* Such a chart with `fig.alt` or a caption keeps the description maidr.js
+  gives it. The page described the chart by its alt text and caption alone,
+  in place of whatever maidr.js had described it by. From the maidr.js
+  release after 4.14.0, which describes every chart by its keyboard
+  instructions before the reader enters it (xability/maidr#1384), that
+  would have kept the instructions from a reader until they entered the
+  chart. The alt text and caption are still read first, then maidr's
+  instructions. With the bundled 4.14.0 nothing changes (#NNN).
 
 ### ggplot2
 
