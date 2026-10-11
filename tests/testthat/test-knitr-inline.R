@@ -421,21 +421,39 @@ test_that("in Quarto a chart in place of a figure is a cell output, as Quarto wr
   svg <- bar_chart_svg()
   withr::defer(knitr::opts_knit$delete("quarto.version"))
   options <- list(label = "unnamed-chunk-2")
-  bare <- "^\n\n\n```+ \\{=html\\}\n<div class=\"maidr-knitr\">"
+  fence <- "\n```+ \\{=html\\}\n"
+  bare <- paste0("^\n\n", fence, "<div class=\"maidr-knitr\">")
+  display <- "^\n\n::: \\{\\.cell-output-display\\}\n\n"
 
   testthat::expect_match(maidr:::knitr_inline_chart(svg, options, figure = TRUE), bare)
   knitr::opts_knit$set(quarto.version = "1.7.32")
   # In a .cell-output-display div, as Quarto's plot hook writes each
-  # figure: a dashboard makes a card of a chunk whose output is in one.
+  # figure, its wrapper Markdown that pandoc reads as a div: Quarto's
+  # dashboard makes no card of a cell whose output is only a raw block, and
+  # lifts an output that is only one out of its card when it holds 'bsli'.
   out <- maidr:::knitr_inline_chart(svg, options, figure = TRUE)
-  testthat::expect_match(
-    out, "^\n\n::: \\{\\.cell-output-display\\}\n\n\n```+ \\{=html\\}\n<div class=\"maidr-knitr\">"
-  )
-  testthat::expect_match(out, "</div>\n```+\n\n:::\n\n$")
-  # Not in a results = "asis" chunk, where Quarto's hook writes no div, nor
-  # for a chart knit_print() returns, which Quarto puts in one itself.
+  testthat::expect_match(out, paste0(display, "<div class=\"maidr-knitr\">\n\n", fence, "<svg "))
+  testthat::expect_match(out, "</svg>\n```+\n\n</div>\n\n:::\n\n$")
+  # Not in a .cell-output-display in a results = "asis" chunk, where
+  # Quarto's hook writes none, but in a div of no class, which a layout
+  # around the chunk makes its cell.
   asis <- maidr:::knitr_inline_chart(svg, c(options, results = "asis"), figure = TRUE)
-  testthat::expect_match(asis, bare)
+  testthat::expect_match(
+    asis, paste0("^\n\n<div>\n\n<div class=\"maidr-knitr\">\n\n", fence, "<svg ")
+  )
+  testthat::expect_match(asis, "</svg>\n```+\n\n</div>\n\n</div>\n\n$")
+  # In a chunk Quarto lays out as a panel, which makes a div of each output
+  # a cell of its own, the wrapper is part of the raw block, which Quarto
+  # puts in a div of the cell's.
+  layouts <- list(list(`layout-ncol` = 2L), list(layout = "[[1, 1]]"), list(fig.ncol = 2L))
+  for (layout in layouts) {
+    panel <- maidr:::knitr_inline_chart(svg, c(options, layout), figure = TRUE)
+    testthat::expect_match(panel, paste0(display, fence, "<div class=\"maidr-knitr\">"))
+    panel_asis <- c(options, layout, results = "asis")
+    testthat::expect_match(maidr:::knitr_inline_chart(svg, panel_asis, figure = TRUE), bare)
+  }
+  # A chart knit_print() returns is left to Quarto, which puts it in a
+  # .cell-output-display itself.
   testthat::expect_match(maidr:::knitr_inline_chart(svg, options), bare)
 })
 
@@ -1531,6 +1549,33 @@ test_that("a Quarto dashboard keeps every chart in a card", {
     "```{r}",
     "#| title: Gears",
     "barplot(table(mtcars$gear))",
+    "```",
+    "",
+    "## Row",
+    "",
+    "```{r}",
+    "#| title: Packages",
+    "pkgs <- data.frame(pkg = c('shiny', 'bslib', 'htmltools'), n = c(11, 7, 14))",
+    "ggplot(pkgs, aes(pkg, n)) + geom_col()",
+    "```",
+    "",
+    "```{r}",
+    "#| title: Slices",
+    "barplot(c(subslice = 1, other = 2))",
+    "```",
+    "",
+    "## Row",
+    "",
+    "```{r}",
+    "#| title: As is",
+    "#| output: asis",
+    "barplot(c(a = 1, b = 2))",
+    "```",
+    "",
+    "```{r}",
+    "#| title: As is too",
+    "#| output: asis",
+    "barplot(c(c = 1, d = 2))",
     "```"
   ), qmd)
 
@@ -1545,15 +1590,17 @@ test_that("a Quarto dashboard keeps every chart in a card", {
   testthat::skip_if_not(file.exists(page))
   doc <- xml2::read_html(page)
 
-  # Quarto's dashboard filter lifts out of its card a cell output it takes
-  # for a bslib component, by the text 'bslib-' in it. knitr-inline.js,
-  # which names bslib's cards, is a dependency in the page's head, so no
-  # cell carries it, and every chart stays in a card.
+  # Quarto's dashboard filter lifts out of its card a cell output that is
+  # only a raw HTML block, which it takes for a bslib component, by the text
+  # 'bsli' in it: its pattern 'bslib-' is a Lua pattern, whose 'b-' matches
+  # no b at all. A chart's output is more than a raw block, so a chart of a
+  # 'bslib' or 'subslice' bar stays in its card; and knitr-inline.js, which
+  # names bslib's cards, is a dependency in the page's head, not an output.
   has_class <- function(class) {
     sprintf("contains(concat(' ', normalize-space(@class), ' '), ' %s ')", class)
   }
   charts <- xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("maidr-knitr")))
-  testthat::expect_length(charts, 2L)
+  testthat::expect_length(charts, 6L)
   for (chart in charts) {
     testthat::expect_gt(
       length(xml2::xml_find_all(chart, sprintf("ancestor::div[%s]", has_class("bslib-card")))),
@@ -1561,16 +1608,17 @@ test_that("a Quarto dashboard keeps every chart in a card", {
     )
   }
   # Each chunk is a card of its own, titled by it, as a chunk whose figure
-  # is knitr's image is. The dashboard makes a card of a cell whose output
-  # is in a .cell-output-display div; a chart's raw block outside one left
-  # the cell loose, and the dashboard gathered the loose cells in a row into
-  # one card, titled by the first.
+  # is knitr's image is, an output: asis one too. The dashboard makes no
+  # card of a cell whose output is only a raw block, and gathered the loose
+  # cells in a row into one card, titled by the first.
   cards <- xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("bslib-card")))
   titles <- vapply(cards, function(card) {
     title <- xml2::xml_find_first(card, sprintf(".//div[%s]", has_class("card-title")))
     trimws(xml2::xml_text(title))
   }, character(1))
-  testthat::expect_identical(titles, c("Cylinders", "Gears"))
+  testthat::expect_identical(
+    titles, c("Cylinders", "Gears", "Packages", "Slices", "As is", "As is too")
+  )
   for (card in cards) {
     testthat::expect_length(
       xml2::xml_find_all(card, sprintf(".//div[%s]", has_class("maidr-knitr"))),
