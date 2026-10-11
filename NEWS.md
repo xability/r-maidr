@@ -531,11 +531,14 @@
   of its box, as reveal.js keeps an image, and the text maidr shows below
   it no longer takes a slide paragraph's margins.
 * In a Quarto dashboard, such a chart fills its card, centred, as Quarto
-  fills a card with an image: in a fill or flow card, a scrolling
-  dashboard, a sidebar, on a phone and in a card shown full screen. It
-  stood at its own size at the card's left, shrunk to the card only when
-  taller than it. A 'flexdashboard' still shrinks a chart to its box when
-  it is taller.
+  fills a card with an image, less a line kept below it for maidr's text:
+  in a fill or flow card, a scrolling dashboard, a sidebar, on a phone and
+  in a card shown full screen. It stood at its own size at the card's
+  left, shrunk to the card only when taller than it. The card scrolls to
+  maidr's braille and review fields, and keeps the room for its scrollbar,
+  so the chart keeps its size and place while a reader uses it, and a
+  pointer finds the point under it. A 'flexdashboard' still shrinks a
+  chart to its box when it is taller.
 
 ### ggplot2
 

@@ -6,9 +6,16 @@
 //
 //   * `dash.html`, a dashboard: each chart is in a card of its own, titled
 //     by its chunk, in the chunks' order, as a chunk's image is, and fills
-//     it as Quarto fills the card beside it with an image: as large, and
-//     centred in it, and as large as the card when it is shown full screen,
-//     larger than the chart's own size. With a
+//     it as Quarto fills the card beside it with an image, larger than the
+//     chart's own size: as large, less the line kept below the chart for
+//     maidr's text and the room the card keeps for its scrollbar, and
+//     centred in it; and as large as the card when it is shown full screen.
+//     The chart keeps its size and place while the reader uses it -- on the
+//     focus, a key, braille turned on and off, and when the focus leaves --
+//     in a card too short for maidr's braille field too, which the card
+//     scrolls into view, and a pointer moved from point to point of a
+//     scatter plot there, once the reader has clicked into it, hears each
+//     point it is on. With a
 //     card shown full screen, Escape pressed in its chart -- on the chart,
 //     or to close maidr's help -- leaves the card full screen, whether the
 //     card was shown full screen before the chart had the focus or after,
@@ -87,6 +94,29 @@ const drawnScript = () => {
 };
 const sameSize = (a, b, slack = 1) => Boolean(a && b)
   && Math.abs(a.width - b.width) <= slack && Math.abs(a.height - b.height) <= slack;
+const near = (a, b, slack = 1) => Math.abs(a - b) <= slack;
+
+// Where a chart's svg is in the box it scrolls with, and how large: the
+// same whatever the box is scrolled to.
+const placeScript = () => {
+  window.__maidrSmokePlace = svg => {
+    const box = svg.closest('.maidr-knitr').parentElement;
+    const r = svg.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    const round = value => Math.round(value * 10) / 10;
+    return [round(r.left - b.left), round(r.top - b.top + box.scrollTop), round(r.width), round(r.height)];
+  };
+};
+// The JSON of every chart, read before knitr-inline.js hands it to maidr.js
+// and takes it away.
+const jsonScript = () => {
+  window.__maidrSmokeJson = [];
+  document.addEventListener('DOMContentLoaded', () => {
+    for (const svg of document.querySelectorAll('svg[data-maidr-knitr]')) {
+      window.__maidrSmokeJson.push(JSON.parse(svg.getAttribute('data-maidr-knitr')));
+    }
+  });
+};
 
 // The colours a reader sees around a chart: the page's body, and the
 // nearest box from the chart's plot out to its wrapper that has a
@@ -128,6 +158,8 @@ const open = async (name, charts, viewport) => {
   page.on('pageerror', error => errors.push(String(error)));
   await page.addInitScript(coloursScript);
   await page.addInitScript(drawnScript);
+  await page.addInitScript(placeScript);
+  await page.addInitScript(jsonScript);
   await page.goto('file://' + path.resolve(dir, name), { waitUntil: 'load' });
   await page.waitForFunction(count => {
     const wrappers = document.querySelectorAll('.maidr-knitr');
@@ -143,13 +175,13 @@ const open = async (name, charts, viewport) => {
 // --- A dashboard -------------------------------------------------------------
 
 {
-  const { page, errors } = await open('dash.html', 2, { width: 1200, height: 900 });
+  const { page, errors } = await open('dash.html', 4, { width: 1200, height: 900 });
   const inCards = await page.evaluate(() => Array.from(
     document.querySelectorAll('.maidr-knitr'),
     wrapper => Boolean(wrapper.closest('.bslib-card')),
   ));
   check(
-    inCards.length === 2 && inCards.every(Boolean),
+    inCards.length === 4 && inCards.every(Boolean),
     `dash.html: every chart is in a card (${JSON.stringify(inCards)})`,
   );
   // One card per chunk, titled by it: the title, and how many charts it holds.
@@ -161,29 +193,144 @@ const open = async (name, charts, viewport) => {
     },
   ));
   check(
-    JSON.stringify(cards) === JSON.stringify([['Cylinders', 1], ['Gears', 1], ['Picture', 0]]),
+    JSON.stringify(cards) === JSON.stringify([
+      ['Cylinders', 1], ['Gears', 1], ['Picture', 0], ['Points', 1], ['Counts', 1],
+    ]),
     `dash.html: each chunk's chart is in a card of its own, titled by the chunk (${JSON.stringify(cards)})`,
   );
-  // The three cards of the row are the same size: each chart is drawn as
-  // large as the picture, centred in its card's body.
+  // The three cards of the first row are the same size, larger than a
+  // 3 x 2 in figure: each chart is drawn as large as the picture, less the
+  // line kept below it for maidr's text where the card's height is the
+  // limit, or the room the card keeps for its scrollbar where its width is
+  // -- none where the scrollbar takes none -- and centred across what the
+  // card leaves it.
   const filled = await page.evaluate(() => {
-    const centred = element => {
-      const body = element.closest('.card-body').getBoundingClientRect();
+    const measure = element => {
+      const box = (element.closest('.maidr-knitr') || element).parentElement;
+      const style = getComputedStyle(box);
+      const rect = box.getBoundingClientRect();
+      const left = rect.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+      const right = left + box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
       const drawn = window.__maidrSmokeDrawn(element);
-      return Math.abs((drawn.left - body.left) - (body.right - drawn.left - drawn.width)) <= 1;
+      return {
+        ...drawn,
+        gutter: box.offsetWidth - box.clientWidth
+          - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth),
+        centred: Math.abs((drawn.left - left) - (right - drawn.left - drawn.width)) <= 1,
+      };
     };
     const picture = document.querySelector('.card-body img');
     return {
       charts: Array.from(document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg'), svg => ({
-        ...window.__maidrSmokeDrawn(svg), centred: centred(svg),
-      })),
-      picture: picture ? window.__maidrSmokeDrawn(picture) : null,
+        ...measure(svg),
+        own: Number.parseFloat(svg.getAttribute('width')),
+        line: parseFloat(getComputedStyle(svg.closest('.maidr-knitr')).lineHeight),
+      })).slice(0, 2),
+      picture: picture ? measure(picture) : null,
     };
   });
   check(
-    filled.charts.length === 2 && filled.charts.every(chart => sameSize(chart, filled.picture) && chart.centred),
-    'dash.html: each chart fills its card, centred, as the picture beside them fills its own'
-      + ` (${JSON.stringify(filled)})`,
+    filled.charts.length === 2 && filled.picture && filled.charts.every(chart => chart.centred
+      && chart.width > chart.own + 10
+      && chart.width <= filled.picture.width + 1 && chart.height <= filled.picture.height + 1
+      && (near(chart.width, filled.picture.width - chart.gutter)
+        || near(chart.height, filled.picture.height - chart.line))),
+    'dash.html: each chart fills its card, centred, as the picture beside them fills its own,'
+      + ` less a line or the scrollbar's room, larger than its own size (${JSON.stringify(filled)})`,
+  );
+
+  // The chart keeps its size and place in its card while the reader uses
+  // it, in a card as tall as the first row's and in one too short for the
+  // braille field, which the card scrolls into view.
+  for (const [index, name] of [[0, 'Cylinders'], [3, 'Counts']]) {
+    const place = () => page.evaluate(
+      index => window.__maidrSmokePlace(document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg')[index]),
+      index,
+    );
+    const plot = page.locator(`.maidr-knitr ${plotOf}`).nth(index);
+    const places = { load: await place() };
+    await plot.focus();
+    await page.waitForTimeout(settle);
+    places.focus = await place();
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(settle);
+    places.key = await place();
+    await page.keyboard.press('b');
+    await page.waitForTimeout(settle);
+    places.braille = await place();
+    const field = await page.evaluate(index => {
+      const wrapper = document.querySelectorAll('.maidr-knitr')[index];
+      const textarea = wrapper.querySelector('textarea[id^="maidr-braille-textarea"]');
+      if (!textarea) {
+        return null;
+      }
+      const box = wrapper.parentElement.getBoundingClientRect();
+      const r = textarea.getBoundingClientRect();
+      // A field taller than its card from its first line, where the braille is.
+      return {
+        focused: document.activeElement === textarea,
+        inView: r.height > box.height
+          ? Math.abs(r.top - box.top) <= 1
+          : r.top >= box.top - 1 && r.bottom <= box.bottom + 1,
+      };
+    }, index);
+    await page.keyboard.press('b');
+    await page.waitForTimeout(settle);
+    places.off = await place();
+    await page.evaluate(() => document.activeElement.blur());
+    await page.waitForTimeout(settle);
+    places.blur = await place();
+    const steady = Object.values(places).every(at => JSON.stringify(at) === JSON.stringify(places.load));
+    check(
+      steady && places.load[3] > 0 && field && field.focused && field.inView,
+      `dash.html: the ${name} chart keeps its size and place in its card as the reader uses it,`
+        + ` and its card scrolls the braille field into view (${JSON.stringify({ places, field })})`,
+    );
+  }
+  check(
+    await page.evaluate(() => {
+      const box = document.querySelectorAll('.maidr-knitr')[3].parentElement;
+      return box.clientHeight < 200;
+    }),
+    'dash.html: the Counts card is too short for the braille field below its chart',
+  );
+
+  // A pointer moved from point to point of the scatter plot, once the
+  // reader has clicked into it, hears each point it is on: maidr.js
+  // measures the points once, and the chart has not moved since.
+  const pointAt = mark => page.evaluate(mark => {
+    const svg = document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg')[2];
+    const layer = window.__maidrSmokeJson[2].subplots[0][0].layers[0];
+    const selector = Array.isArray(layer.selectors) ? layer.selectors[0] : layer.selectors;
+    // Not the copies maidr.js draws its highlight with.
+    const point = Array.from(svg.querySelectorAll(selector))
+      .filter(element => !element.hasAttribute('data-maidr-owned'))[mark];
+    const box = point.getBBox();
+    const at = svg.createSVGPoint();
+    at.x = box.x + box.width / 2;
+    at.y = box.y + box.height / 2;
+    const screen = at.matrixTransform(point.getScreenCTM());
+    return [screen.x, screen.y];
+  }, mark);
+  const heard = () => page.evaluate(() => {
+    const text = document.querySelectorAll('.maidr-knitr')[2].querySelector('[id^="maidr-text-container"]');
+    return text ? text.textContent.trim() : '';
+  });
+  const pointed = [];
+  const first = await pointAt(0);
+  await page.mouse.click(first[0], first[1]);
+  await page.waitForTimeout(settle);
+  for (const mark of [1, 2, 0]) {
+    const [x, y] = await pointAt(mark);
+    await page.mouse.move(x, y, { steps: 5 });
+    await page.waitForTimeout(settle);
+    pointed.push(await heard());
+  }
+  await page.evaluate(() => document.activeElement.blur());
+  await page.mouse.move(0, 0);
+  check(
+    /\b2\b.*\b12\b/.test(pointed[0]) && /\b3\b.*\b23\b/.test(pointed[1]) && /\b1\b.*\b31\b/.test(pointed[2]),
+    `dash.html: a pointer moved over each point of a scatter plot clicked into hears that point (${JSON.stringify(pointed)})`,
   );
 
   const fullScreen = () => page.evaluate(
@@ -217,27 +364,28 @@ const open = async (name, charts, viewport) => {
   await page.waitForTimeout(settle);
   check(await fullScreen() === 'true', 'dash.html: the first chart\'s card is shown full screen');
   // A card shown full screen is larger than the chart's own size, and the
-  // chart grows with it, as an image does: as wide as the card's body or as
-  // high, and centred in it.
+  // chart grows with it, as an image does: as wide as the card's body, less
+  // the room it keeps for its scrollbar, or as high, less the line kept for
+  // maidr's text, and centred across it.
   const grown = await page.evaluate(() => {
     const svg = document.querySelector('.maidr-knitr svg.maidr-knitr-svg');
-    const body = svg.closest('.card-body');
-    const style = getComputedStyle(body);
-    const box = body.getBoundingClientRect();
-    const left = box.left + parseFloat(style.paddingLeft);
-    const right = box.right - parseFloat(style.paddingRight);
-    const width = right - left;
-    const height = box.height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const box = svg.closest('.maidr-knitr').parentElement;
+    const style = getComputedStyle(box);
+    const rect = box.getBoundingClientRect();
+    const left = rect.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+    const width = box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const height = box.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
     const drawn = window.__maidrSmokeDrawn(svg);
     return {
       drawn,
-      body: [Math.round(width), Math.round(height)],
+      box: [Math.round(width), Math.round(height)],
+      line: parseFloat(getComputedStyle(svg.closest('.maidr-knitr')).lineHeight),
       own: Number.parseFloat(svg.getAttribute('width')),
-      centred: Math.abs((drawn.left - left) - (right - drawn.left - drawn.width)) <= 2,
+      centred: Math.abs((drawn.left - left) - (left + width - drawn.left - drawn.width)) <= 2,
     };
   });
   check(
-    (Math.abs(grown.drawn.width - grown.body[0]) <= 2 || Math.abs(grown.drawn.height - grown.body[1]) <= 2)
+    (near(grown.drawn.width, grown.box[0], 2) || near(grown.drawn.height, grown.box[1] - grown.line, 2))
       && grown.drawn.width > grown.own && grown.centred,
     `dash.html: the chart grows to fill its card shown full screen, centred (${JSON.stringify(grown)})`,
   );

@@ -102,7 +102,9 @@
 #' marked `.nostretch`, a chart given an `out-height`, one in columns, a
 #' panel or a fragment, and a phone's scroll view are left alone, as Quarto
 #' leaves an image. In a Quarto dashboard a chart fills its card as an image
-#' does.
+#' does, less a line for maidr's text below it; the card scrolls to maidr's
+#' braille and review fields, and the chart keeps its size while a reader
+#' uses it.
 #'
 #' A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 #' maths and `\@ref()` in `fig.cap` are shown as written, and a bookdown text

@@ -251,25 +251,103 @@
   // text below it. Whether a box is sized by the window or by its content
   // cannot be read from it (a scrolling dashboard, a phone-width one), so a
   // chart is only shrunk when its box is overflowing: a box sized by its
-  // content never is. A Quarto dashboard's cards size their charts as they
-  // size an image, in knitr-inline.css.
+  // content never is.
   var FITTED = '.chart-shim > .maidr-knitr';
+  // A Quarto dashboard's cards, and any other bslib fill item.
+  var FILLED = '.html-fill-container > .maidr-knitr.html-fill-item';
+
+  // The width r-maidr gave a chart for its out.height, or ''.
+  function heightWidth(svg) {
+    if (svg.__maidrKnitrWidth === undefined) svg.__maidrKnitrWidth = svg.style.width;
+    return svg.__maidrKnitrWidth;
+  }
 
   function fitChart(wrapper) {
+    if (wrapper.matches(FILLED)) {
+      fillChart(wrapper);
+      return;
+    }
     var box = wrapper.parentElement;
     // Not there while maidr mounts the chart, which fits it once mounted.
     var svg = wrapper.querySelector('svg.maidr-knitr-svg');
     if (!box || !svg || !wrapper.matches(FITTED)) return;
-    // The width r-maidr gave a chart for its out.height, put back.
-    if (svg.__maidrKnitrWidth === undefined) svg.__maidrKnitrWidth = svg.style.width;
     svg.style.maxHeight = '';
-    svg.style.width = svg.__maidrKnitrWidth;
+    svg.style.width = heightWidth(svg);
     var over = box.scrollHeight - box.clientHeight;
     if (over <= 1) return;
     var line = 2.5 * parseFloat(getComputedStyle(wrapper).fontSize);
     var height = svg.getBoundingClientRect().height - over - line;
     svg.style.width = 'auto';
     svg.style.maxHeight = Math.max(height, 96) + 'px';
+  }
+
+  // The height of a line of maidr's text, which takes the wrapper's.
+  function textLine(wrapper) {
+    var style = getComputedStyle(wrapper);
+    var line = parseFloat(style.lineHeight);
+    return line > 0 ? line : 1.5 * parseFloat(style.fontSize);
+  }
+
+  // A Quarto dashboard shows an image in a card as large as the card's body
+  // holds it, keeping its shape, centred in it (.quarto-dashboard-img-contain:
+  // width and height 100%, object-fit: contain); and as wide as the card
+  // where the card takes its height from what it holds: a flow or scrolling
+  // layout, a phone's. A chart is given the same size and place, less a line
+  // kept below it for the text maidr shows there, but is not made shorter
+  // than an inch for that line unless the card is. A chart given an
+  // out.height keeps the size r-maidr gave it.
+  //
+  // The size is the card's, never what maidr's text, braille and review
+  // fields leave of it: a chart that changed size as they came and went
+  // would jump under the reader's eyes, and maidr.js would hover its marks
+  // where they were before, since it measures them once the reader is in
+  // the chart and again only when the window scrolls or resizes. What does
+  // not fit below the chart scrolls the card (knitr-inline.css).
+  function fillChart(wrapper) {
+    var box = wrapper.parentElement;
+    var svg = wrapper.querySelector('svg.maidr-knitr-svg');
+    var view = svg && svg.viewBox && svg.viewBox.baseVal;
+    if (!box || !view || !(view.width > 0) || !(view.height > 0) || heightWidth(svg)) return;
+    // A card not shown, as a tab not chosen, is filled when it is.
+    if (!box.clientWidth) return;
+    var size = svg.style;
+    var place = wrapper.style;
+    // Where the box and the page around it are scrolled to: a box measured
+    // empty can be shorter than the scroll it had.
+    var scrolled = [];
+    for (var node = box; node; node = node.parentElement) {
+      if (node.scrollTop) scrolled.push([node, node.scrollTop]);
+    }
+    size.width = '0px';
+    size.height = '0px';
+    place.paddingTop = '';
+    // The height the card gives the box, whatever the chart and maidr's
+    // fields below it take: a card that sizes the box keeps it whatever the
+    // box holds; one that takes it from what the box holds has none to
+    // give but a least height of its own (a row of a scrolling layout).
+    place.height = '4000px';
+    var tall = box.clientHeight;
+    place.height = '0px';
+    var least = box.clientHeight;
+    place.height = '';
+    var sized = Math.abs(tall - least) < 1;
+    // Only a card that sizes the box scrolls to maidr's fields, and keeps
+    // the room for its scrollbar (knitr-inline.css).
+    wrapper.classList.toggle('maidr-knitr-filled', sized);
+    var style = getComputedStyle(box);
+    // As wide as the wrapper, which an out.width can make narrower than
+    // the card.
+    var width = wrapper.clientWidth;
+    var inner = least - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    var room = inner - textLine(wrapper);
+    var scale = width / view.width;
+    if (sized) scale = Math.min(scale, Math.max(room, Math.min(inner, 96)) / view.height);
+    var height = view.height * scale;
+    size.width = view.width * scale + 'px';
+    size.height = height + 'px';
+    // Centred down the card, with the line for maidr's text below it.
+    if (room > height) place.paddingTop = (room - height) / 2 + 'px';
+    for (var i = 0; i < scrolled.length; i++) scrolled[i][0].scrollTop = scrolled[i][1];
   }
 
   // A box is fitted in the frame after it resized: fitting it in the
@@ -285,7 +363,7 @@
   }
 
   function fitCharts() {
-    var wrappers = document.querySelectorAll(FITTED);
+    var wrappers = document.querySelectorAll(FITTED + ', ' + FILLED);
     if (!wrappers.length) return;
     var observer = window.ResizeObserver && new ResizeObserver(function (entries) {
       for (var i = 0; i < entries.length; i++) {
@@ -297,6 +375,30 @@
       fitChart(wrappers[i]);
       if (observer) observer.observe(wrappers[i].parentElement);
     }
+  }
+
+  // maidr's braille and review fields open below a chart that fills its
+  // card, where the card scrolls to them. The browser scrolls a field into
+  // view as it takes the focus only when the field is out of view then,
+  // and leaves one that is partly in view, as a field that opens at the
+  // card's edge is, partly out of it. A field taller than the card is
+  // shown from its first line, where maidr writes the braille.
+  function keepInView(target) {
+    if (!target.matches(MODE_FIELD)) return;
+    var wrapper = target.closest(FILLED);
+    if (!wrapper || !wrapper.classList.contains('maidr-knitr-filled')) return;
+    requestAnimationFrame(function () {
+      if (document.activeElement !== target) return;
+      var box = wrapper.parentElement;
+      var field = target.getBoundingClientRect();
+      var top = box.getBoundingClientRect().top + box.clientTop;
+      var bottom = top + box.clientHeight;
+      if (field.top < top || field.height > box.clientHeight) {
+        box.scrollTop += field.top - top;
+      } else if (field.bottom > bottom) {
+        box.scrollTop += field.bottom - bottom;
+      }
+    });
   }
 
   // --- reveal.js auto-stretch ----------------------------------------------
@@ -792,7 +894,10 @@
     // The page may have zoomed since (a deck resized to its window), and a
     // dialog takes the focus when it is shown.
     var wrapper = target && target.closest && target.closest('.maidr-knitr');
-    if (wrapper) sizeDialogs(wrapper);
+    if (wrapper) {
+      sizeDialogs(wrapper);
+      keepInView(target);
+    }
   }, true);
 
   function onReady() {

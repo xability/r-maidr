@@ -8,11 +8,13 @@
 # an author does; `quarto-smoke.mjs` then uses the charts from the keyboard
 # in headless Chromium:
 #
-#   * `dash.qmd`, a dashboard of two R charts, each with a title of its own:
-#     Quarto puts each in a bslib card of its own, titled by its chunk,
-#     which a reader can show full screen; and beside them a grid drawing
-#     maidr does not read, an image Quarto fills its card with, which the
-#     charts fill theirs as;
+#   * `dash.qmd`, a dashboard of R charts at 3 x 2 in, smaller than their
+#     cards, each with a title of its own: Quarto puts each in a bslib card
+#     of its own, titled by its chunk, which a reader can show full screen;
+#     beside the first two a grid drawing maidr does not read, an image
+#     Quarto fills its card with, which the charts fill theirs as; and below
+#     them, in a row too short for maidr's braille field below a chart, a
+#     scatter plot and a bar plot;
 #   * `deck.qmd`, a reveal.js deck with a 4 x 3 in chart on its second
 #     slide, after a link taken out of the tab order, as pandoc takes the
 #     anchors of a code block's lines; a chart in a captioned figure on its
@@ -60,6 +62,8 @@ documents <- list(
     "---",
     "title: \"maidr dashboard smoke\"",
     "format: dashboard",
+    "fig-width: 3",
+    "fig-height: 2",
     "---",
     "",
     setup,
@@ -79,6 +83,19 @@ documents <- list(
     "```{r}",
     "#| title: Picture",
     drawing,
+    "```",
+    "",
+    "## Row {height=20%}",
+    "",
+    "```{r}",
+    "#| title: Points",
+    "points <- data.frame(x = c(1, 2, 3), y = c(31, 12, 23))",
+    "ggplot(points, aes(x, y)) + geom_point(size = 3)",
+    "```",
+    "",
+    "```{r}",
+    "#| title: Counts",
+    "barplot(c(short1 = 4, short2 = 5, short3 = 6))",
     "```"
   ),
   deck = c(
