@@ -9,7 +9,8 @@
 # in headless Chromium:
 #
 #   * `dash.qmd`, a dashboard of two R charts, each with a title of its own:
-#     Quarto puts them in a bslib card, which a reader can show full screen;
+#     Quarto puts each in a bslib card of its own, titled by its chunk,
+#     which a reader can show full screen;
 #   * `deck.qmd`, a reveal.js deck with a chart on its second slide, after
 #     a link taken out of the tab order, as pandoc takes the anchors of a
 #     code block's lines; a chart in a captioned figure on its third; and a

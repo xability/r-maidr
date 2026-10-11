@@ -143,6 +143,17 @@ warn_inline_fallback <- function(error) {
 #' * A chart in place of a figure of a `fig-` chunk in Quarto is given to
 #'   Quarto as the figure it numbers and captions (`quarto_figure_float()`);
 #'   every other chart is captioned here.
+#' * Any other chart in place of a figure in Quarto is in a
+#'   `.cell-output-display` div (`quarto_output_display()`), as Quarto's
+#'   plot hook writes each figure, but in a `results = "asis"` chunk, where
+#'   it writes none; and its wrapper is Markdown around the raw block, which
+#'   pandoc reads as a div (`quarto_chart()`), but in a chunk Quarto lays
+#'   out as a panel (`quarto_lays_out()`). A dashboard makes a card of each
+#'   such chunk, as of a chunk whose output is an image, and leaves the
+#'   chart in it: of a chunk whose output is only a raw block, it made none,
+#'   and gathered such chunks, one after another, into one card, titled by
+#'   the first; and it lifts an output that is only a raw block out of its
+#'   card when the text `bsli` is in it.
 #' * `fig.align` aligns the chart, and an `out.width` the author sets (not
 #'   the one knitr derives for a retina figure) sets the wrapper's width,
 #'   which the chart shrinks to. The chart itself was drawn at the chunk's
@@ -227,12 +238,12 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
     if (aligned) paste0("maidr-knitr-", align)
   )
 
-  html <- c(
-    sprintf(
-      '<div class="%s"%s>',
-      paste(wrapper_class, collapse = " "),
-      if (is.null(width)) "" else sprintf(' style="width: %s;"', width)
-    ),
+  wrapper <- sprintf(
+    '<div class="%s"%s>',
+    paste(wrapper_class, collapse = " "),
+    if (is.null(width)) "" else sprintf(' style="width: %s;"', width)
+  )
+  chart <- c(
     inline_svg_markup(doc),
     if (!is.null(description)) {
       sprintf(
@@ -247,15 +258,105 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
         bookdown_figure_label(options, index),
         htmltools::htmlEscape(caption)
       )
-    },
+    }
+  )
+  if (figure && quarto && !float && !quarto_lays_out(options)) {
+    return(quarto_chart(wrapper, chart, options))
+  }
+  block <- raw_html_block(c(
+    wrapper,
+    chart,
     "</div>",
     if (side_by_side && last_held) '<div class="maidr-knitr-row-end"></div>'
-  )
-  block <- paste(xfun::fenced_block(html, attrs = "=html"), collapse = "\n")
+  ))
   if (float) {
     return(quarto_figure_float(block, options, index, float_caption))
   }
+  if (figure && quarto && !identical(options$results, "asis")) {
+    return(quarto_output_display(block))
+  }
   paste0("\n\n", block, "\n\n")
+}
+
+#' HTML as a raw block of Markdown
+#'
+#' @param html Lines of HTML
+#' @return Character string of Markdown
+#' @keywords internal
+#' @noRd
+raw_html_block <- function(html) {
+  paste(xfun::fenced_block(html, attrs = "=html"), collapse = "\n")
+}
+
+#' A chart in place of a figure in Quarto
+#'
+#' The `.maidr-knitr` wrapper is Markdown around the raw block of the
+#' chart, which pandoc reads as a div, rather than part of the block: the
+#' page is the same, but Quarto's dashboard reads a div there. It makes no
+#' card of a chunk whose output is only raw blocks, and gathers such
+#' chunks, one after another, into one card titled by the first. And it
+#' takes a `.cell-output-display` holding only a raw HTML block with the
+#' text `bsli` in it for a bslib component, and lifts it out of its card:
+#' its pattern `'bslib-'` is a Lua pattern, whose `b-` matches as few b's
+#' as it can, none. A chart with a `bslib` or `subslice` bar would be in no
+#' card at all. The wrapper is an HTML tag, not a fenced div, which pandoc
+#' reads as a div in a chunk indented beyond the list item it is in, too.
+#'
+#' The chart is in a `.cell-output-display` div, as Quarto's plot hook
+#' writes a figure (`quarto_output_display()`), but in a `results = "asis"`
+#' chunk, where it writes none. There it is in a div of no class instead:
+#' a layout around the chunk (`::: {layout-ncol=2}`) makes a div it holds
+#' a cell of its own, given the cell's class and style in place of the
+#' div's own, and puts a raw block it holds in a div of no class.
+#'
+#' @param wrapper The wrapper's opening tag
+#' @param chart Lines of HTML: the chart, its alt text and its caption
+#' @param options The figure's chunk options
+#' @return Character string of Markdown
+#' @keywords internal
+#' @noRd
+quarto_chart <- function(wrapper, chart, options) {
+  block <- paste0(wrapper, "\n\n", raw_html_block(chart), "\n\n</div>")
+  if (identical(options$results, "asis")) {
+    return(paste0("\n\n<div>\n\n", block, "\n\n</div>\n\n"))
+  }
+  quarto_output_display(block)
+}
+
+#' Whether Quarto lays a chunk's figures out as a panel
+#'
+#' Quarto makes a panel of a chunk with a `layout`, `layout-ncol` or
+#' `layout-nrow` (`layout.ncol`, `layout.nrow` while knitr turned the dash
+#' into a dot) or of one with a `fig.ncol` or `fig.sep`, from which its
+#' chunk hook makes one. Each block of a `.cell-output-display` div of the
+#' chunk is then a cell of the panel; a div is the cell itself, given the
+#' cell's class and its style in place of its own. A chart's wrapper keeps
+#' its own when it is part of the raw block, which Quarto puts in a div of
+#' the cell's.
+#'
+#' @param options The figure's chunk options
+#' @return Logical
+#' @keywords internal
+#' @noRd
+quarto_lays_out <- function(options) {
+  keys <- c(
+    "layout", "layout-ncol", "layout-nrow", "layout.ncol", "layout.nrow",
+    "fig.ncol", "fig.sep"
+  )
+  any(vapply(keys, function(key) !is.null(options[[key]]), logical(1)))
+}
+
+#' A figure's output as Quarto's plot hook writes it
+#'
+#' In a `.cell-output-display` div, which Quarto's filters take for an
+#' output of the cell.
+#'
+#' @param x Markdown of the figure
+#' @return Character string of Markdown
+#' @keywords internal
+#' @noRd
+quarto_output_display <- function(x) {
+  paste0("\n\n::: {.cell-output-display}\n\n", x, "\n\n:::\n\n")
 }
 
 #' A chart as the figure Quarto makes of a figure of a `fig-` chunk
@@ -270,7 +371,7 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
 #' chunk has several figures. The caption is the figure's `fig-subcap` when
 #' the chunk gives sub-captions, its `fig-cap` otherwise, and Markdown in it
 #' is read. The float is in a `.cell-output-display` div, as each figure
-#' Quarto's plot hook writes is.
+#' Quarto's plot hook writes is (`quarto_output_display()`).
 #'
 #' @param block The chart's raw HTML block
 #' @param options The figure's chunk options
@@ -287,12 +388,12 @@ quarto_figure_float <- function(block, options, index, caption) {
       id <- paste0(id, "-", index)
     }
   }
-  paste0(
-    "\n\n::: {.cell-output-display}\n\n::: {#", id, "}\n\n",
+  quarto_output_display(paste0(
+    "::: {#", id, "}\n\n",
     block, "\n\n",
     if (!is.null(caption)) paste0(caption, "\n\n"),
-    ":::\n\n:::\n\n"
-  )
+    ":::"
+  ))
 }
 
 #' The id Quarto's plot hook gives a figure of a `fig-` chunk
