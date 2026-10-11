@@ -20,7 +20,9 @@
 #     anchors of a code block's lines; a chart in a captioned figure on its
 #     third; a 4 x 3 in grid drawing on its fourth, after a line of text,
 #     which Quarto stretches as the lone figure of its slide, as the chart
-#     of the second is stretched; and a slide after them;
+#     of the second is stretched; a slide after them; and two slides where
+#     Quarto stretches no figure, a 4 x 3 in chart below a line of text on
+#     a slide marked `.nostretch` and one in the left of two columns;
 #   * `fig.qmd`, an HTML page with a chart in a captioned figure narrower
 #     than the page's column, which Quarto centres unless told otherwise;
 #     then a chart and a grid drawing at Quarto's 7 x 5 in, and a chart and
@@ -136,7 +138,34 @@ documents <- list(
     "",
     "## The end",
     "",
-    "Thanks."
+    "Thanks.",
+    "",
+    "## Not stretched {.nostretch}",
+    "",
+    "A line of text.",
+    "",
+    "```{r}",
+    "#| fig-width: 4",
+    "#| fig-height: 3",
+    "ggplot(slide, aes(kind, n)) + geom_col()",
+    "```",
+    "",
+    "## In a column",
+    "",
+    ":::: {.columns}",
+    "::: {.column width=\"50%\"}",
+    "",
+    "```{r}",
+    "#| fig-width: 4",
+    "#| fig-height: 3",
+    "ggplot(slide, aes(kind, n)) + geom_col()",
+    "```",
+    "",
+    ":::",
+    "::: {.column width=\"50%\"}",
+    "Beside the chart.",
+    ":::",
+    "::::"
   ),
   fig = c(
     "---",

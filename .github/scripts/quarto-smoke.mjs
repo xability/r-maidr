@@ -37,7 +37,9 @@
 //     on another, larger than its own size and as large, less no more than
 //     the room maidr's instructions, text and braille and review fields
 //     take below it, which stay on the slide; and it keeps its size and
-//     place while the reader uses it.
+//     place while the reader uses it. A chart on a slide marked
+//     `.nostretch`, and one in a column, keep their own size, as Quarto
+//     stretches no picture there.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
 //     in the middle of the figure, as Quarto centres its figures. A chart at
 //     Quarto's 7 x 5 in is shown as large as a picture is, and one at
@@ -456,7 +458,7 @@ const open = async (name, charts, viewport) => {
 // --- A reveal.js deck ---------------------------------------------------------
 
 {
-  const { page, errors } = await open('deck.html', 2, { width: 1600, height: 900 });
+  const { page, errors } = await open('deck.html', 4, { width: 1600, height: 900 });
   const slideNow = () => page.evaluate(() => window.Reveal.getIndices().h);
   // What reveal.js reads aloud as the slide shown: its text, all but what
   // is hidden.
@@ -694,6 +696,19 @@ const open = async (name, charts, viewport) => {
     'deck.html: the stretched chart keeps its size and place as the reader uses it, and maidr\'s'
       + ` instructions, text and braille and review fields stay on the slide (${JSON.stringify(states)})`,
   );
+
+  // Quarto stretches no picture on a slide marked .nostretch or in a
+  // column, and no chart is stretched there either: each keeps its size.
+  for (const [index, where] of [[5, 'a slide marked .nostretch'], [6, 'a column']]) {
+    await page.evaluate(i => window.Reveal.slide(i), index);
+    await page.waitForTimeout(settle);
+    const kept = await slideState();
+    check(
+      kept.own !== null && Math.abs(kept.width - kept.own) <= 1,
+      `deck.html: the chart on ${where} keeps its own size, as Quarto stretches no picture there`
+        + ` (${JSON.stringify(kept)})`,
+    );
+  }
 
   check(errors.length === 0, `deck.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();
