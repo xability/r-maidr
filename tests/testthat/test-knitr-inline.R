@@ -527,6 +527,118 @@ test_that("an out.width the chunk sets, in either spelling, is its chart's width
   )
 })
 
+# ==============================================================================
+# The size a chart is shown at
+# ==============================================================================
+
+#' The width, height and viewBox of the first chart in an inline chart's
+#' Markdown, and its inline style
+inline_root_size <- function(out) {
+  start <- regmatches(out, regexpr("<svg[^>]*>", out))
+  attr_of <- function(name) {
+    found <- regmatches(start, regexec(sprintf('\\s%s="([^"]*)"', name), start))[[1]]
+    if (length(found) == 2L) found[[2L]] else NA_character_
+  }
+  c(
+    width = attr_of("width"), height = attr_of("height"), viewBox = attr_of("viewBox"),
+    style = attr_of("style")
+  )
+}
+
+test_that("a chart's pixels to the inch are those knitr shows the chunk's figure at", {
+  ppi <- maidr:::knitr_chart_ppi
+  # A retina figure is shown fig.width * dpi pixels wide, and a plot hook
+  # sees its dpi multiplied by fig.retina: Quarto's HTML formats and R
+  # Markdown's set dpi 96 and fig.retina 2.
+  testthat::expect_identical(ppi(list(dpi = 192, fig.retina = 2, dev = "png")), 96)
+  testthat::expect_identical(ppi(list(dpi = 300, fig.retina = 2, dev = "png")), 150)
+  testthat::expect_identical(ppi(list(dpi = 144, fig.retina = 2, dev = "png")), 72)
+  # knitr gives an svg at fig.retina 2 the same out.width.
+  testthat::expect_identical(ppi(list(dpi = 192, fig.retina = 2, dev = "svg")), 96)
+  # At fig.retina 1 a bitmap is shown a pixel to a dot.
+  testthat::expect_identical(ppi(list(dpi = 96, fig.retina = 1, dev = "png")), 96)
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "png")), 150)
+  testthat::expect_identical(ppi(list(dpi = 50, dev = "ragg_png")), 50)
+  # An svg device without its file: svglite writes points, 96 to the inch,
+  # the others pixels, 72.
+  chunk <- knitr::opts_chunk$get()
+  withr::defer(knitr::opts_chunk$restore(chunk))
+  knitr::opts_chunk$set(dev = "svglite")
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "svglite")), 96)
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "svg")), 72)
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "CairoSVG")), 72)
+  # The svglite maidr records on in place of a document's png, in a chunk
+  # that names no device of its own, is shown as that png would be.
+  knitr::opts_chunk$set(dev = "png")
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "svglite")), 150)
+  # Options that carry no dpi, outside a knit: the canvas's own.
+  testthat::expect_identical(ppi(list()), 72)
+  testthat::expect_identical(ppi(list(dpi = "high")), 72)
+})
+
+test_that("an svg figure is shown at the size its file gives itself", {
+  ppi <- maidr:::knitr_chart_ppi
+  dir <- withr::local_tempdir("maidr-svg-ppi-")
+  options <- function(file, dev = "svg") {
+    list(dpi = 150, fig.retina = 1, dev = dev, fig.width = 7, maidr.figure.file = file)
+  }
+  svg_file <- function(width) {
+    file <- tempfile(fileext = ".svg", tmpdir = dir)
+    writeLines(c(
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      sprintf('<svg xmlns="http://www.w3.org/2000/svg" width="%s" height="360">', width),
+      "</svg>"
+    ), file)
+    file
+  }
+  # Pixels, as R's svg() writes with Cairo 1.18; points, as svglite and an
+  # older Cairo write; and the other absolute units.
+  testthat::expect_identical(ppi(options(svg_file("504"))), 72)
+  testthat::expect_identical(ppi(options(svg_file("504px"))), 72)
+  testthat::expect_equal(ppi(options(svg_file("504pt"))), 96)
+  testthat::expect_equal(ppi(options(svg_file("7in"))), 96)
+  testthat::expect_equal(ppi(options(svg_file("17.78cm"))), 96)
+  # svglite's own file, read the same way.
+  testthat::skip_if_not_installed("svglite")
+  written <- file.path(dir, "svglite.svg")
+  svglite::svglite(written, width = 7, height = 5)
+  graphics::plot.new()
+  grDevices::dev.off()
+  testthat::expect_equal(ppi(options(written, dev = "svglite")), 96)
+  # A unit that is not absolute, or no file to read: the device decides.
+  testthat::expect_identical(ppi(options(svg_file("40em"))), 72)
+  testthat::expect_identical(ppi(options(file.path(dir, "missing.svg"))), 72)
+  testthat::expect_identical(
+    ppi(options(file.path(dir, "missing.svg"), dev = "svglite")), 96
+  )
+})
+
+test_that("a chart is shown at the size knitr shows the chunk's figure, its canvas kept", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  drawn <- inline_root_size(maidr:::knitr_inline_chart(svg, list()))
+  testthat::expect_identical(
+    drawn[c("width", "height", "viewBox")],
+    c(width = "504px", height = "360px", viewBox = "0 0 504 360")
+  )
+  # Quarto's HTML and R Markdown's show a 7 x 5 in figure 672 x 480: the
+  # svg is that size, and its viewBox the 7 x 5 in canvas maidr drew on.
+  shown <- inline_root_size(
+    maidr:::knitr_inline_chart(svg, list(dpi = 192, fig.retina = 2, dev = "png"))
+  )
+  testthat::expect_identical(
+    shown[c("width", "height", "viewBox")],
+    c(width = "672px", height = "480px", viewBox = "0 0 504 360")
+  )
+  dpi150 <- inline_root_size(
+    maidr:::knitr_inline_chart(svg, list(dpi = 300, fig.retina = 2, dev = "png"))
+  )
+  testthat::expect_identical(
+    dpi150[c("width", "height", "viewBox")],
+    c(width = "1050px", height = "750px", viewBox = "0 0 504 360")
+  )
+})
+
 test_that("a chart that cannot be shown inline goes in an iframe, with one warning", {
   skip_if_no_render()
   local_knitr_state()
@@ -1486,6 +1598,15 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   testthat::expect_match(html, ">Base bars</p>", fixed = TRUE)
   # Quarto's spelling of out.width sizes the chart.
   testthat::expect_match(html, '<div class="figure maidr-knitr" style="width: 50%;">', fixed = TRUE)
+  # Every chart is shown at fig-dpi, 96 pixels to the inch, as Quarto shows
+  # its figures; its canvas is 72.
+  sizes <- vapply(charts, function(chart) {
+    paste(
+      xml2::xml_attr(chart, "width"), xml2::xml_attr(chart, "height"),
+      xml2::xml_attr(chart, "viewbox")
+    )
+  }, character(1))
+  testthat::expect_identical(unique(sizes), "672px 480px 0 0 504 360")
   testthat::expect_identical(
     unname(chart_names(page)),
     c(

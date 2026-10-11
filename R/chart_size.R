@@ -2,14 +2,19 @@
 #'
 #' Every chart is drawn on a canvas measured in inches, as [ggplot2::ggsave()]
 #' and knitr's `fig.width` measure one, and exported at 72 pixels to the inch:
-#' a 7 x 5 in chart is an SVG 504 px wide and 360 px high. The size sets the
-#' room the chart is laid out in -- how far apart its ticks and labels are,
-#' how much text fits beside a panel -- and not what a reader hears: the
-#' data, axes and titles maidr announces are the same at every size. The one
-#' thing it changes for a reader is the grid of a lattice chart conditioned
-#' on one variable with no `layout =`, whose panels lattice arranges for the
-#' page's shape, and so the order a reader moves through them in. A page
-#' still shrinks a chart wider than itself to fit.
+#' a 7 x 5 in chart is an SVG 504 px wide and 360 px high, the size `show()`,
+#' `save_html()` and the widgets show it at. A knitted page shows it at the
+#' size knitr shows the chunk's figure instead, 96 pixels to the inch in R
+#' Markdown's and Quarto's HTML: the SVG's `width` and `height` are made
+#' that size, and its `viewBox` keeps the canvas (`knitr_chart_ppi()`). The
+#' size sets the room the chart is laid out in -- how far apart its ticks
+#' and labels are, how much text fits beside a panel -- and not what a
+#' reader hears: the data, axes and titles maidr announces are the same at
+#' every size. The one thing it changes for a reader is the grid of a
+#' lattice chart conditioned on one variable with no `layout =`, whose
+#' panels lattice arranges for the page's shape, and so the order a reader
+#' moves through them in. A page still shrinks a chart wider than itself to
+#' fit.
 #'
 #' @noRd
 NULL

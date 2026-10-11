@@ -16,7 +16,8 @@
 #     code block's lines; a chart in a captioned figure on its third; and a
 #     slide after them;
 #   * `fig.qmd`, an HTML page with a chart in a captioned figure narrower
-#     than the page's column, which Quarto centres unless told otherwise.
+#     than the page's column, which Quarto centres unless told otherwise;
+#     then a chart and a grid drawing at Quarto's 7 x 5 in.
 #
 #     Rscript .github/scripts/quarto-smoke.R <out-dir>
 
@@ -41,6 +42,12 @@ setup <- c(
   "library(ggplot2)",
   "```",
   ""
+)
+# A drawing maidr does not read, which stays Quarto's own figure, for the
+# size a chart is shown at to be checked against.
+drawing <- c(
+  "grid::grid.newpage()",
+  "grid::grid.circle(gp = grid::gpar(fill = \"grey\"))"
 )
 
 documents <- list(
@@ -105,6 +112,15 @@ documents <- list(
     "#| fig-width: 4",
     "#| fig-height: 3",
     "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+    "```",
+    "",
+    "```{r}",
+    "ggplot(mtcars, aes(factor(gear))) + geom_bar()",
+    "```",
+    "",
+    "```{r}",
+    "#| fig-alt: A plain grey circle",
+    drawing,
     "```"
   )
 )

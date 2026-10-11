@@ -47,13 +47,24 @@ nothing in the page.
 A chart is drawn at its chunk's \code{fig.width} and \code{fig.height}, in inches,
 as knitr draws the chunk's figures: \code{fig.asp} and \code{fig.dim} set them as
 they do for a figure, and so do R Markdown's \code{fig_width} and \code{fig_height}
-and Quarto's \code{fig-width} and \code{fig-height}. Its SVG is 72 pixels to the
-inch. \code{html_document} and Quarto's HTML formats draw figures at 7 x 5 in,
-maidr's own size outside a document. A format with a figure size of its
-own draws its charts at that size: \code{rmarkdown::html_vignette} at 3 x 3
-in, small enough that a Base R chart shows fewer tick labels, ioslides at
-7.5 x 4.5 in, slidy at 8 x 6 in and \code{knitr::knit()} on its own at 7 x 7
-in. Set \code{fig.width} and \code{fig.height} to draw a chart at another size.
+and Quarto's \code{fig-width} and \code{fig-height}. \code{html_document} and Quarto's
+HTML formats draw figures at 7 x 5 in, maidr's own size outside a
+document. A format with a figure size of its own draws its charts at
+that size: \code{rmarkdown::html_vignette} at 3 x 3 in, small enough that a
+Base R chart shows fewer tick labels, ioslides at 7.5 x 4.5 in, slidy at
+8 x 6 in and \code{knitr::knit()} on its own at 7 x 7 in. Set \code{fig.width} and
+\code{fig.height} to draw a chart at another size.
+
+A chart is shown at the size knitr shows the chunk's figure: \code{fig.width}
+times \code{dpi} over \code{fig.retina} pixels wide for a retina figure, 96 pixels
+to the inch in R Markdown's and Quarto's HTML, where knitr's figures are
+\code{png} at \code{dpi = 96} and \code{fig.retina = 2}; a pixel to a dot for any other
+bitmap; and at the size its file gives an svg figure, 96 pixels to the
+inch for svglite's and 72 for R's \code{svg()} with Cairo 1.18 (Quarto's
+\code{fig-format: svg}). So \code{dpi}, Quarto's \code{fig-dpi}, changes it as it
+changes a figure. Its SVG's \code{viewBox} is still 72 to the inch, the
+canvas it was drawn on, and what maidr reads out is the same at any
+size. \code{show()} and \code{save_html()} show a chart at 72 pixels to the inch.
 
 A candlestick chart is drawn at least 12 x 6 in. A chunk that sets a
 smaller size of its own is told so in a message (see \code{\link[=show]{show()}}): among the
@@ -84,7 +95,7 @@ its data, titles and axes are the same at every size, though a lattice
 chart conditioned on one variable with no \verb{layout =} arranges its panels,
 and the grid a reader moves through, for it (see \code{\link[=show]{show()}}). Nor is it the
 width the chart is shown at, which \code{out.width} sets: a chart shrinks to
-fit a page narrower than itself, keeping its shape. \code{dpi} is not read.
+fit a page narrower than itself, keeping its shape.
 
 A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 maths and \verb{\\@ref()} in \code{fig.cap} are shown as written, and a bookdown text

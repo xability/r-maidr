@@ -24,7 +24,8 @@
 //     moves the deck on. The text reveal.js reads aloud as each of the two
 //     slides is shown holds none of its chart's tick labels.
 //   * `fig.html`, a page with a chart in a Quarto figure: the chart stands
-//     in the middle of the figure, as Quarto centres its figures.
+//     in the middle of the figure, as Quarto centres its figures. A chart at
+//     Quarto's 7 x 5 in is shown as large as a picture is.
 //
 //     node .github/scripts/quarto-smoke.mjs <dir-rendered-by-quarto-smoke.R>
 //
@@ -51,6 +52,34 @@ const check = (ok, what) => {
 
 // The element maidr makes focusable around a chart's svg.
 const plotOf = 'figure[id^="maidr-figure"] > [tabindex="0"]';
+
+// What a reader sees of a chart or a picture, in the page's pixels: an
+// image as object-fit shows it in its box, an svg as its viewBox does (its
+// default preserveAspectRatio, as contain does an image), and where.
+const drawnScript = () => {
+  window.__maidrSmokeDrawn = element => {
+    const box = element.getBoundingClientRect();
+    let [width, height] = [box.width, box.height];
+    const [own, ownHeight] = element.tagName === 'IMG'
+      ? [element.naturalWidth, element.naturalHeight]
+      : [element.viewBox.baseVal.width, element.viewBox.baseVal.height];
+    const fitted = element.tagName !== 'IMG'
+      || ['contain', 'scale-down'].includes(getComputedStyle(element).objectFit);
+    if (fitted && own > 0 && ownHeight > 0) {
+      const scale = Math.min(box.width / own, box.height / ownHeight);
+      [width, height] = [own * scale, ownHeight * scale];
+    }
+    const round = value => Math.round(value * 10) / 10;
+    return {
+      left: round(box.left + (box.width - width) / 2),
+      top: round(box.top + (box.height - height) / 2),
+      width: round(width),
+      height: round(height),
+    };
+  };
+};
+const sameSize = (a, b, slack = 1) => Boolean(a && b)
+  && Math.abs(a.width - b.width) <= slack && Math.abs(a.height - b.height) <= slack;
 
 // The colours a reader sees around a chart: the page's body, and the
 // nearest box from the chart's plot out to its wrapper that has a
@@ -91,6 +120,7 @@ const open = async (name, charts, viewport) => {
   const errors = [];
   page.on('pageerror', error => errors.push(String(error)));
   await page.addInitScript(coloursScript);
+  await page.addInitScript(drawnScript);
   await page.goto('file://' + path.resolve(dir, name), { waitUntil: 'load' });
   await page.waitForFunction(count => {
     const wrappers = document.querySelectorAll('.maidr-knitr');
@@ -127,7 +157,6 @@ const open = async (name, charts, viewport) => {
     JSON.stringify(cards) === JSON.stringify([['Cylinders', 1], ['Gears', 1]]),
     `dash.html: each chunk's chart is in a card of its own, titled by the chunk (${JSON.stringify(cards)})`,
   );
-
   const fullScreen = () => page.evaluate(
     () => document.querySelector('.maidr-knitr').closest('.bslib-card').getAttribute('data-full-screen'),
   );
@@ -389,7 +418,7 @@ const open = async (name, charts, viewport) => {
 // --- A Quarto figure -----------------------------------------------------------
 
 {
-  const { page, errors } = await open('fig.html', 1, { width: 1200, height: 900 });
+  const { page, errors } = await open('fig.html', 2, { width: 1200, height: 900 });
   const gaps = await page.evaluate(() => {
     const svg = document.querySelector('.maidr-knitr svg').getBoundingClientRect();
     const figure = document.querySelector('.maidr-knitr').closest('figure').getBoundingClientRect();
@@ -398,6 +427,20 @@ const open = async (name, charts, viewport) => {
   check(
     gaps.left > 10 && Math.abs(gaps.left - gaps.right) <= 2,
     `fig.html: the chart stands in the middle of its figure (${gaps.left}px to its left, ${gaps.right}px to its right)`,
+  );
+  // Quarto shows a 7 x 5 in figure at fig-dpi, 96 pixels to the inch.
+  const sizes = await page.evaluate(() => {
+    const charts = document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg');
+    const drawn = element => (element ? window.__maidrSmokeDrawn(element) : null);
+    return {
+      chart: drawn(charts[1]),
+      picture: drawn(document.querySelector('img[alt="A plain grey circle"]')),
+    };
+  });
+  check(
+    sameSize(sizes.chart, sizes.picture) && sizes.chart.width === 672 && sizes.chart.left === sizes.picture.left,
+    `fig.html: a 7 x 5 in chart is shown as large as a 7 x 5 in picture, where it is (${JSON.stringify(sizes.chart)}`
+      + ` and ${JSON.stringify(sizes.picture)})`,
   );
   check(errors.length === 0, `fig.html: no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await page.close();

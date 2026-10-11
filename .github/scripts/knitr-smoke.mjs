@@ -10,10 +10,14 @@
 //   * every chart is bound by maidr.js, in the order the document draws
 //     them, and no id is used twice before anything has the focus;
 //   * the figure maidr does not read is knitr's own svglite image;
-//   * every chart is drawn at its chunk's fig.width and fig.height: its svg
-//     is that many inches at 72 pixels each, in its width, height and
-//     viewBox, nothing it draws reaches outside its viewBox, and the tick
-//     labels of each axis stand apart;
+//   * every chart is drawn at its chunk's fig.width and fig.height: its
+//     viewBox is that many inches at 72 pixels each, and its width and
+//     height at the 96 knitr shows html_document's figures at (dpi 96,
+//     fig.retina 2); nothing it draws reaches outside its viewBox, and the
+//     tick labels of each axis stand apart;
+//   * a chart is shown the size of knitr's own figure for the same chunk
+//     options: one at html_document's 7 x 5 in as large as the drawing
+//     maidr does not read;
 //   * for each chart in turn -- its tab opened first when it is hidden --
 //     one Tab from the last tab stop before it lands on the chart, and that
 //     stop is outside the chart, and is the chart before it when one comes
@@ -69,7 +73,8 @@ const html = readFileSync(file, 'utf8');
 // value each announces: a value no other chart on the page has. A chart of
 // several subplots opens on the subplot chooser, and wants Enter before
 // Right Arrow reads a value. `size` is the chunk's fig.width and fig.height,
-// html_document's 7 x 5 unless the chunk sets them.
+// html_document's 7 x 5 unless the chunk sets them; html_document shows a
+// figure at 96 pixels to the inch.
 const charts = [
   { name: 'GG bar chart', announces: /\balpha\b.*\b11\b/ },
   { name: 'GG facet chart', announces: /\b21\b/, subplots: true },
@@ -229,6 +234,30 @@ check(
 check(
   state.circle !== null && state.circle.src.startsWith('data:image/svg+xml') && !state.circle.inChart,
   `the drawing maidr does not read is knitr's svglite image (${state.circle ? state.circle.src : 'not found'})`,
+);
+
+// A chart is shown the size knitr shows a figure of the same chunk options
+// at: the drawing maidr does not read is one, at html_document's 7 x 5 in.
+const shown = await page.evaluate(() => {
+  const box = element => {
+    if (!element) {
+      return null;
+    }
+    const rect = element.getBoundingClientRect();
+    return { width: Math.round(rect.width * 10) / 10, height: Math.round(rect.height * 10) / 10 };
+  };
+  const svgs = Array.from(document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg'));
+  return {
+    chart: box(svgs[0]),
+    figure: box(document.querySelector('img[alt="A plain grey circle"]')),
+  };
+});
+const sameBox = (a, b) => Boolean(a && b)
+  && Math.abs(a.width - b.width) <= 1 && Math.abs(a.height - b.height) <= 1;
+check(
+  sameBox(shown.chart, shown.figure) && shown.chart.width === 672,
+  `a 7 x 5 in chart is shown the size of knitr's 7 x 5 in figure (${JSON.stringify(shown.chart)}`
+    + ` and ${JSON.stringify(shown.figure)})`,
 );
 
 // Show chart i -- open the tab that hides it -- and put the focus on the
@@ -402,9 +431,12 @@ for (const [i, chart] of charts.entries()) {
 
   const drawn = await geometry(i);
   const [width, height] = chart.size.map(inches => inches * 72);
+  const [shownWidth, shownHeight] = chart.size.map(inches => inches * 96);
   check(
-    JSON.stringify(drawn.size) === JSON.stringify([`${width}px`, `${height}px`, `0 0 ${width} ${height}`]),
-    `${chart.name}: drawn at its chunk's ${chart.size.join(' x ')} in (${drawn.size.join(', ')})`,
+    JSON.stringify(drawn.size)
+      === JSON.stringify([`${shownWidth}px`, `${shownHeight}px`, `0 0 ${width} ${height}`]),
+    `${chart.name}: drawn at its chunk's ${chart.size.join(' x ')} in, shown at 96 pixels to the inch`
+      + ` (${drawn.size.join(', ')})`,
   );
   check(
     drawn.outside.length === 0,

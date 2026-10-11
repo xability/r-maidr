@@ -492,6 +492,17 @@
   would have kept the instructions from a reader until they entered the
   chart. The alt text and caption are still read first, then maidr's
   instructions. With the bundled 4.14.0 nothing changes (#370).
+* Such a chart is shown at the size of the figure it stands for, as knitr
+  shows the chunk's figure: `fig.width` times `dpi` over `fig.retina`
+  pixels wide, which is 96 pixels to the inch in R Markdown's and Quarto's
+  HTML, so `dpi` and Quarto's `fig-dpi` change it as they change a figure.
+  It was shown at 72 pixels to the inch whatever the `dpi`, three quarters
+  of the size of the figure it replaced. In a chunk whose figures are svg
+  files it is the size the device's file is: 96 pixels to the inch for
+  'svglite', 72 for R's `svg()` with Cairo 1.18, as Quarto's `fig-format:
+  svg` draws. The chart is drawn on the same canvas as before, which its
+  `viewBox` keeps, and maidr reads out the same; `show()`, `save_html()`
+  and the widgets still show a chart at 72 pixels to the inch.
 
 ### ggplot2
 

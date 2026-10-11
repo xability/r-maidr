@@ -135,7 +135,9 @@ the calls on its own page.
 
 A chart is drawn at a size in inches, as \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} and knitr's
 \code{fig.width} and \code{fig.height} size a figure, and its SVG is 72 pixels to
-the inch: a 10 x 4 in chart is 720 pixels wide and 288 high. The size is
+the inch: a 10 x 4 in chart is 720 pixels wide and 288 high (a knitted
+page shows it at the size of its chunk's figure instead: see
+\code{\link[=maidr_on]{maidr_on()}}). The size is
 the room the chart is laid out in -- how far apart its ticks and labels
 are, how lattice arranges its panels, where Base R puts its titles -- and
 not what maidr reads out: the data, titles and axis labels a reader

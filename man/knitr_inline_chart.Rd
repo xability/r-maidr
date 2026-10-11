@@ -62,13 +62,16 @@ chart in it: of a chunk whose output is only a raw block, it made none,
 and gathered such chunks, one after another, into one card, titled by
 the first; and it lifts an output that is only a raw block out of its
 card when the text \code{bsli} is in it.
+\item The chart was drawn at the chunk's \code{fig.width} and \code{fig.height}
+(\code{knitr_chart_size()}), which set the room it is laid out in, on a
+canvas of 72 pixels to the inch that its \code{viewBox} keeps. It is shown at
+the size knitr shows the chunk's figure at: its svg's \code{width} and
+\code{height} are the figure's (\code{knitr_chart_ppi()}).
 \item \code{fig.align} aligns the chart, and an \code{out.width} the author sets (not
 the one knitr derives for a retina figure) sets the wrapper's width,
-which the chart shrinks to. The chart itself was drawn at the chunk's
-\code{fig.width} and \code{fig.height} (\code{knitr_chart_size()}), which set the room
-it is laid out in, not the width it is shown at. The charts in place of
-figures \code{fig.show = "hold"} holds, at such a width and not aligned,
-sit side by side, as knitr's images do.
+which the chart shrinks to. The charts in place of figures
+\code{fig.show = "hold"} holds, at such a width and not aligned, sit side
+by side, as knitr's images do.
 }
 
 A figure's options hold its own caption and alt text alone; of several,
