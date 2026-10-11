@@ -36,7 +36,7 @@ lines around it, so pandoc reads it as a block of its own) inside a
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-04">
+<meta name="DC.date" content="2026-10-11">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -153,6 +153,17 @@ kept as its description.</p></li>
 <li><p>A chart in place of a figure of a <code>fig-</code> chunk in Quarto is given to
 Quarto as the figure it numbers and captions (<code>quarto_figure_float()</code>);
 every other chart is captioned here.</p></li>
+<li><p>Any other chart in place of a figure in Quarto is in a
+<code>.cell-output-display</code> div (<code>quarto_output_display()</code>), as Quarto's
+plot hook writes each figure, but in a <code>results = "asis"</code> chunk, where
+it writes none; and its wrapper is Markdown around the raw block, which
+pandoc reads as a div (<code>quarto_chart()</code>), but in a chunk Quarto lays
+out as a panel (<code>quarto_lays_out()</code>). A dashboard makes a card of each
+such chunk, as of a chunk whose output is an image, and leaves the
+chart in it: of a chunk whose output is only a raw block, it made none,
+and gathered such chunks, one after another, into one card, titled by
+the first; and it lifts an output that is only a raw block out of its
+card when the text <code>bsli</code> is in it.</p></li>
 <li><p><code>fig.align</code> aligns the chart, and an <code>out.width</code> the author sets (not
 the one knitr derives for a retina figure) sets the wrapper's width,
 which the chart shrinks to. The chart itself was drawn at the chunk's

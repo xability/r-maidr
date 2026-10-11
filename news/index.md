@@ -616,6 +616,18 @@
   key did nothing there. It now acts only on a page with pkgdown’s
   search box, and leaves maidr’s braille and review fields alone
   ([\#368](https://github.com/xability/r-maidr/issues/368)).
+- In a Quarto dashboard, each chunk whose output is such a chart is a
+  card of its own, with the chunk’s `title`, `padding`, `expandable` and
+  `fill`, as a chunk whose output is a static figure is. The chart was
+  written outside the `.cell-output-display` div Quarto writes each
+  figure in, and the dashboard makes no card of a cell whose output is
+  only raw HTML: it gathered such chunks, one after another, into one
+  card with the first one’s title and options, and the others’ titles
+  were lost. On any Quarto page such a chart is now in that div, as
+  Quarto’s own figures are (but in an `output: asis` chunk, as theirs
+  are not), so `column: margin` puts the chart in the margin, and no
+  longer its code with it
+  ([\#369](https://github.com/xability/r-maidr/issues/369)).
 
 #### ggplot2
 

@@ -495,8 +495,10 @@
   // keeps on the card's instance. The one for a card around a chart ignores
   // the keys pressed in the chart, where Escape closes maidr's own modes.
   // (This file reaches a page as a dependency in its <head>, never as a
-  // cell's output, so Quarto's dashboard filter, which lifts outputs that
-  // hold 'bslib-' out of their cards, never reads it.)
+  // cell's output, so Quarto's dashboard filter, which lifts an output that
+  // is only a raw HTML block out of its card when the text 'bsli' is in it
+  // -- its pattern 'bslib-' is a Lua pattern, whose 'b-' matches no b at
+  // all -- never reads it.)
   function shimCard(card) {
     var Card = window.bslib && window.bslib.Card;
     var instance = Card && typeof Card.getInstance === 'function' && Card.getInstance(card);

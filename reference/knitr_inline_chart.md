@@ -65,6 +65,18 @@ Character string of Markdown
   Quarto as the figure it numbers and captions
   (`quarto_figure_float()`); every other chart is captioned here.
 
+- Any other chart in place of a figure in Quarto is in a
+  `.cell-output-display` div (`quarto_output_display()`), as Quarto's
+  plot hook writes each figure, but in a `results = "asis"` chunk, where
+  it writes none; and its wrapper is Markdown around the raw block,
+  which pandoc reads as a div (`quarto_chart()`), but in a chunk Quarto
+  lays out as a panel (`quarto_lays_out()`). A dashboard makes a card of
+  each such chunk, as of a chunk whose output is an image, and leaves
+  the chart in it: of a chunk whose output is only a raw block, it made
+  none, and gathered such chunks, one after another, into one card,
+  titled by the first; and it lifts an output that is only a raw block
+  out of its card when the text `bsli` is in it.
+
 - `fig.align` aligns the chart, and an `out.width` the author sets (not
   the one knitr derives for a retina figure) sets the wrapper's width,
   which the chart shrinks to. The chart itself was drawn at the chunk's
