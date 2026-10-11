@@ -117,8 +117,8 @@
 }
 
 /* High contrast: maidr.js paints the body, which inline is the page's;
- * knitr-inline.js gives it the page's own colours back and the chart's
- * wrapper maidr's. */
+ * knitr-inline.js gives it the page's own colours back, and maidr's to the
+ * chart's wrapper, or to the article maidr mounted a widget in on the page. */
 html.maidr-knitr-contrast body {
   background-color: var(--maidr-knitr-page-bg) !important;
   color: var(--maidr-knitr-page-fg) !important;
