@@ -85,22 +85,20 @@
 #' `fig.width` and `fig.height` size a figure, and its SVG is 72 pixels to
 #' the inch: a 10 x 4 in chart is 720 pixels wide and 288 high (a knitted
 #' page shows it at the size of its chunk's figure instead: see
-#' [maidr_on()]). The size is
-#' the room the chart is laid out in -- how far apart its ticks and labels
-#' are, how lattice arranges its panels, where Base R puts its titles -- and
-#' not what maidr reads out: the data, titles and axis labels a reader
-#' hears are the same at every size. Only how a reader moves between panels
-#' can change: lattice arranges the panels of a chart conditioned on one
-#' variable with no `layout =` for the shape of the page, 1 x 2 at 7 x 5 in
-#' and 2 x 1 at 5 x 8 in for two panels, and the subplot grid a reader
-#' moves through follows; give `layout =` to keep it. The size is set by
-#' `width` and `height` in [show()] and [save_html()], by `fig_width` and
-#' `fig_height` in
-#' [render_maidr()], and by the chunk's `fig.width` and `fig.height` in an
-#' R Markdown or Quarto document (see [maidr_on()]). Nothing else sets it:
-#' not the size of the device a chart was drawn on, nor the size of the
-#' window, viewer or Shiny output it is shown in, which shrinks a chart
-#' wider than itself to fit.
+#' [maidr_on()]). The size is the room the chart is laid out in -- how far
+#' apart its ticks and labels are, how lattice arranges its panels, where
+#' Base R puts its titles -- and not what maidr reads out: the data, titles
+#' and axis labels a reader hears are the same at every size. Only how a
+#' reader moves between panels can change: lattice arranges the panels of a
+#' chart conditioned on one variable with no `layout =` for the shape of the
+#' page, 1 x 2 at 7 x 5 in and 2 x 1 at 5 x 8 in for two panels, and the
+#' subplot grid a reader moves through follows; give `layout =` to keep it.
+#' The size is set by `width` and `height` in [show()] and [save_html()], by
+#' `fig_width` and `fig_height` in [render_maidr()], and by the chunk's
+#' `fig.width` and `fig.height` in an R Markdown or Quarto document (see
+#' [maidr_on()]). Nothing else sets it: not the size of the device a chart
+#' was drawn on, nor the size of the window, viewer or Shiny output it is
+#' shown in, which shrinks a chart wider than itself to fit.
 #'
 #' Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
 #' never drawn smaller than that: quantmod's `chartSeries()` needs the room

@@ -403,6 +403,9 @@ svg_file_width <- function(file) {
   if (!is.character(file) || length(file) != 1L || !grepl("\\.svg$", file, ignore.case = TRUE)) {
     return(NULL)
   }
+  # The root <svg> tag opens the file, after at most an XML declaration and
+  # a comment; 4096 bytes hold it. Should it not be in them, no width is
+  # read and the device's own rule applies (`knitr_chart_ppi()`).
   start <- tryCatch(
     readChar(knitr_figure_path(file), 4096L, useBytes = TRUE),
     error = function(e) "",
