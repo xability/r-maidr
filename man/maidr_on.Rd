@@ -47,13 +47,24 @@ nothing in the page.
 A chart is drawn at its chunk's \code{fig.width} and \code{fig.height}, in inches,
 as knitr draws the chunk's figures: \code{fig.asp} and \code{fig.dim} set them as
 they do for a figure, and so do R Markdown's \code{fig_width} and \code{fig_height}
-and Quarto's \code{fig-width} and \code{fig-height}. Its SVG is 72 pixels to the
-inch. \code{html_document} and Quarto's HTML formats draw figures at 7 x 5 in,
-maidr's own size outside a document. A format with a figure size of its
-own draws its charts at that size: \code{rmarkdown::html_vignette} at 3 x 3
-in, small enough that a Base R chart shows fewer tick labels, ioslides at
-7.5 x 4.5 in, slidy at 8 x 6 in and \code{knitr::knit()} on its own at 7 x 7
-in. Set \code{fig.width} and \code{fig.height} to draw a chart at another size.
+and Quarto's \code{fig-width} and \code{fig-height}. \code{html_document} and Quarto's
+HTML formats draw figures at 7 x 5 in, maidr's own size outside a
+document. A format with a figure size of its own draws its charts at
+that size: \code{rmarkdown::html_vignette} at 3 x 3 in, small enough that a
+Base R chart shows fewer tick labels, ioslides at 7.5 x 4.5 in, slidy at
+8 x 6 in and \code{knitr::knit()} on its own at 7 x 7 in. Set \code{fig.width} and
+\code{fig.height} to draw a chart at another size.
+
+A chart is shown at the size knitr shows the chunk's figure: \code{fig.width}
+times \code{dpi} over \code{fig.retina} pixels wide for a retina figure, 96 pixels
+to the inch in R Markdown's and Quarto's HTML, where knitr's figures are
+\code{png} at \code{dpi = 96} and \code{fig.retina = 2}; a pixel to a dot for any other
+bitmap; and at the size its file gives an svg figure, 96 pixels to the
+inch for svglite's and 72 for R's \code{svg()} with Cairo 1.18 (Quarto's
+\code{fig-format: svg}). So \code{dpi}, Quarto's \code{fig-dpi}, changes it as it
+changes a figure. Its SVG's \code{viewBox} is still 72 to the inch, the
+canvas it was drawn on, and what maidr reads out is the same at any
+size. \code{show()} and \code{save_html()} show a chart at 72 pixels to the inch.
 
 A candlestick chart is drawn at least 12 x 6 in. A chunk that sets a
 smaller size of its own is told so in a message (see \code{\link[=show]{show()}}): among the
@@ -82,9 +93,31 @@ candlestick chart and a Base R chart alike.
 The size is the room the chart is laid out in, not what a reader hears:
 its data, titles and axes are the same at every size, though a lattice
 chart conditioned on one variable with no \verb{layout =} arranges its panels,
-and the grid a reader moves through, for it (see \code{\link[=show]{show()}}). Nor is it the
-width the chart is shown at, which \code{out.width} sets: a chart shrinks to
-fit a page narrower than itself, keeping its shape. \code{dpi} is not read.
+and the grid a reader moves through, for it (see \code{\link[=show]{show()}}).
+
+\code{out.width} sets the width a chart is shown at, wider or narrower than
+its own size, as it does a figure's, and \code{out.height} its height, though
+a chart keeps its shape where an image is stretched; \code{fig.align} aligns
+it. In Quarto a captioned chart is centred unless the chunk aligns it, a
+percentage \code{out-width} in a \code{layout} panel is its cell's, and \code{column: screen} and its kin stretch a chart across the screen. A chart always
+shrinks to fit a page narrower than itself, keeping its shape: Quarto's
+\code{fig-responsive: false}, which keeps an image from shrinking, is not
+read, so that a reader on a phone or with the page magnified need not
+scroll sideways through a chart.
+
+In a Quarto reveal.js deck a chart alone on a slide is stretched to the
+room left on the slide, as Quarto stretches a lone figure, less the room
+maidr's instructions, or a line of its text and its braille field, take
+below it, so that they stay on the slide; it is a little smaller than the
+figure for that. \code{auto-stretch} is read from the document's own front
+matter, not from a project's \verb{_quarto.yml}; a slide marked \code{.nostretch},
+a chart given an \code{out-height}, one in columns, a panel or a fragment, and
+a phone's scroll view are left alone, as Quarto leaves an image. An
+ioslides chart too large to leave that room on its slide is made smaller.
+In a Quarto dashboard a chart fills its card as an image does, less a
+line for maidr's text below it; the card scrolls to maidr's braille and
+review fields. The size a chart is given on a slide or in a card does not
+change while a reader uses it.
 
 A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 maths and \verb{\\@ref()} in \code{fig.cap} are shown as written, and a bookdown text

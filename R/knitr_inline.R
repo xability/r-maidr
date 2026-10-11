@@ -154,13 +154,26 @@ warn_inline_fallback <- function(error) {
 #'   and gathered such chunks, one after another, into one card, titled by
 #'   the first; and it lifts an output that is only a raw block out of its
 #'   card when the text `bsli` is in it.
-#' * `fig.align` aligns the chart, and an `out.width` the author sets (not
-#'   the one knitr derives for a retina figure) sets the wrapper's width,
-#'   which the chart shrinks to. The chart itself was drawn at the chunk's
-#'   `fig.width` and `fig.height` (`knitr_chart_size()`), which set the room
-#'   it is laid out in, not the width it is shown at. The charts in place of
-#'   figures `fig.show = "hold"` holds, at such a width and not aligned,
-#'   sit side by side, as knitr's images do.
+#' * The chart was drawn at the chunk's `fig.width` and `fig.height`
+#'   (`knitr_chart_size()`), which set the room it is laid out in, on a
+#'   canvas of 72 pixels to the inch that its `viewBox` keeps. It is shown at
+#'   the size knitr shows the chunk's figure at: its svg's `width` and
+#'   `height` are the figure's (`knitr_chart_ppi()`).
+#' * An `out.width` the author sets (not the one knitr derives for a retina
+#'   figure) is the wrapper's width, which the chart fills, wider than its
+#'   own size or narrower; in a panel Quarto lays out, a percentage is the
+#'   cell's, as Quarto makes an image's. An `out.height` sets the chart's
+#'   height, and its width keeps its shape. `fig.align` aligns the chart,
+#'   and the wrapper too when it is narrower than its column. A chart
+#'   Quarto captions outside a float is centred unless the chunk says
+#'   otherwise, as Quarto centres such a figure. Every chart still shrinks
+#'   to a column narrower than itself, keeping its shape. The charts in
+#'   place of figures `fig.show = "hold"` holds, at such a width and not
+#'   aligned, sit side by side, as knitr's images do.
+#' * In a Quarto reveal.js deck that keeps `auto-stretch`, a chart not
+#'   given a height is marked `maidr-knitr-stretch`, and `knitr-inline.js`
+#'   stretches it when it stands alone on its slide, as Quarto stretches a
+#'   lone figure (`quarto_auto_stretch()`).
 #'
 #' A figure's options hold its own caption and alt text alone; of several,
 #' as a chart `knit_print()` is asked for with a chunk's options may see,
@@ -220,22 +233,32 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   xml2::xml_attr(root, "maidr-data") <- NULL
   xml2::xml_attr(root, "data-maidr-knitr") <- json
 
-  # knitr sets out.width itself for a retina figure; only the author's is
-  # the chart's.
-  authored <- chunk_sets_option(options, "out.width") ||
-    !is.null(knitr::opts_chunk$get("out.width"))
-  width <- if (authored) knitr_chart_width(options$out.width, index)
-  align <- options$fig.align
-  aligned <- length(align) == 1L && align %in% c("left", "center", "right")
+  # Shown at the size knitr shows the figure at; drawn as it was.
+  inline_display_size(root, knitr_chart_ppi(options))
+  width <- knitr_chart_out_width(options, index, quarto)
+  height <- knitr_chart_height(options$out.height, index)
+  if (!is.null(height)) {
+    xml2::xml_attr(root, "style") <- sprintf("width: %s;", inline_width_for_height(root, height))
+  }
+  # Quarto centres a figure it captions, unless told otherwise; a figure of
+  # a fig- chunk is its own float, which it aligns itself.
+  align <- knitr_chart_align(options$fig.align, quarto && !float && !is.null(caption))
   # knitr writes the figures it holds, at a width the author sets and with
   # no alignment, as images in a row; Quarto puts each in a block of its
   # own. Such charts float in a row, and the last of them ends it.
-  side_by_side <- held && !quarto && !is.null(width) && !aligned
+  side_by_side <- held && !quarto && !is.null(width) && is.null(align)
+  # A reveal.js slide's one figure is stretched to the room left on the
+  # slide (Quarto's auto-stretch); knitr-inline.js stretches a chart that
+  # stands where such a figure would, but one given a height, as Quarto
+  # leaves an image given one.
+  stretch <- is.null(height) && quarto_stretches_figures()
   wrapper_class <- c(
     if (!is.null(caption)) "figure",
     "maidr-knitr",
     if (side_by_side) "maidr-knitr-row",
-    if (aligned) paste0("maidr-knitr-", align)
+    if (!is.null(align)) paste0("maidr-knitr-", align),
+    if (!is.null(width)) "maidr-knitr-sized",
+    if (stretch) "maidr-knitr-stretch"
   )
 
   wrapper <- sprintf(
@@ -276,6 +299,328 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
     return(quarto_output_display(block))
   }
   paste0("\n\n", block, "\n\n")
+}
+
+#' The CSS pixels to the inch knitr shows a chunk's figures at
+#'
+#' A chart is drawn on a canvas of 72 pixels to the inch (`R/chart_size.R`)
+#' and shown at the size the figure it stands for would be: `fig.width` by
+#' `fig.height` at this many pixels to the inch.
+#'
+#' * A retina figure (`fig.retina` other than 1) is shown `fig.width * dpi`
+#'   pixels wide: knitr sets its `out.width` so before it multiplies the
+#'   `dpi` by `fig.retina` for the file. That is the `dpi` a plot hook sees
+#'   divided by `fig.retina`: 96 in Quarto's HTML formats, whose `fig-dpi`
+#'   is 96, and in R Markdown's, which set `dpi = 96` (and `fig.retina = 2`
+#'   but in `html_vignette`).
+#' * Any other bitmap is shown a pixel to a dot, at the `dpi`; so is the
+#'   `png` maidr records on svglite in place of (`maidr_chunk_device()`),
+#'   which would have been one.
+#' * An svg is shown at the size its file gives itself, in the units its
+#'   device writes: svglite writes points, 96 pixels to the inch, and R's
+#'   `svg()` with Cairo 1.18 pixels, 72 to the inch (Quarto's `fig-format:
+#'   svg`). Its file is read when the plot hook names it; otherwise
+#'   svglite is 96 and any other svg device 72.
+#'
+#' @param options The chunk options, as a plot hook sees them. Those a chart
+#'   `knit_print()` was asked for with none of are the current chunk's.
+#' @return One number; 72, the canvas's own, when the options carry no
+#'   usable `dpi`
+#' @keywords internal
+#' @noRd
+knitr_chart_ppi <- function(options) {
+  option <- function(name) knitr_chart_option(options, name)
+  dpi <- positive_number(option("dpi"))
+  retina <- positive_number(option("fig.retina")) %||% 1
+  if (is.null(dpi)) {
+    return(72)
+  }
+  if (retina != 1) {
+    return(dpi / retina)
+  }
+  dev <- as.character(option("dev"))[1L]
+  if (!dev %in% c("svg", "svglite", "CairoSVG", "gridSVG") || svglite_for_png(dev, options)) {
+    return(dpi)
+  }
+  svg_figure_ppi(option("maidr.figure.file"), positive_number(option("fig.width"))) %||%
+    if (identical(dev, "svglite")) 96 else 72
+}
+
+#' One chunk option of a chart
+#'
+#' @param options The chunk options
+#' @param name The option's name
+#' @return Its value: the current chunk's when `options` carries none
+#' @keywords internal
+#' @noRd
+knitr_chart_option <- function(options, name) {
+  value <- options[[name]]
+  if (is.null(value) && knit_in_progress()) knitr::opts_current$get(name) else value
+}
+
+#' Whether a chunk's svglite is the one maidr gave it in place of its `png`
+#'
+#' `maidr_chunk_device()` gives svglite only to a chunk that sets no device
+#' of its own in a document whose device is `png`.
+#'
+#' @param dev The chunk's device
+#' @param options The chunk options
+#' @return Logical
+#' @keywords internal
+#' @noRd
+svglite_for_png <- function(dev, options) {
+  identical(dev, "svglite") && identical(knitr::opts_chunk$get("dev"), "png") &&
+    !chunk_sets_option(options, "dev")
+}
+
+#' The pixels to the inch an svg figure's file shows it at
+#'
+#' The width its file gives itself (`svg_file_width()`) over the figure's
+#' width in inches.
+#'
+#' @param file The figure's file, as knitr hands it to the plot hook
+#' @param width The figure's width, in inches
+#' @return One number, or `NULL` when the file is not an svg that can be
+#'   read
+#' @keywords internal
+#' @noRd
+svg_figure_ppi <- function(file, width) {
+  pixels <- svg_file_width(file)
+  if (is.null(pixels) || is.null(width)) NULL else pixels / width
+}
+
+#' The width an svg file gives itself, in CSS pixels
+#'
+#' Its root element's `width`, in an absolute unit or none. knitr names a
+#' figure's file relative to its `base.dir`, when it has one.
+#'
+#' @param file The file's path
+#' @return One number, or `NULL` when it is no svg, cannot be read, or
+#'   gives no width in an absolute unit
+#' @keywords internal
+#' @noRd
+svg_file_width <- function(file) {
+  if (!is.character(file) || length(file) != 1L || !grepl("\\.svg$", file, ignore.case = TRUE)) {
+    return(NULL)
+  }
+  # The root <svg> tag opens the file, after at most an XML declaration and
+  # a comment; 4096 bytes hold it. Should it not be in them, no width is
+  # read and the device's own rule applies (`knitr_chart_ppi()`).
+  start <- tryCatch(
+    readChar(knitr_figure_path(file), 4096L, useBytes = TRUE),
+    error = function(e) "",
+    warning = function(w) ""
+  )
+  tag <- regmatches(start, regexpr("<svg\\b[^>]*>", start))
+  pattern <- "\\swidth\\s*=\\s*[\"']\\s*([0-9]*\\.?[0-9]+)\\s*([a-z]*)\\s*[\"']"
+  found <- unlist(regmatches(tag, regexec(pattern, tag)))
+  if (length(found) != 3L) {
+    return(NULL)
+  }
+  css_pixels(as.numeric(found[[2L]]), found[[3L]])
+}
+
+#' Where a figure's file is
+#'
+#' @param file The file, as knitr names it: relative to its `base.dir`, when
+#'   it has one
+#' @return The path to read it from
+#' @keywords internal
+#' @noRd
+knitr_figure_path <- function(file) {
+  base <- knitr::opts_knit$get("base.dir")
+  if (file.exists(file) || !is.character(base) || length(base) != 1L) {
+    return(file)
+  }
+  file.path(base, file)
+}
+
+#' A length in absolute CSS units, in CSS pixels
+#'
+#' @param value The number
+#' @param unit Its unit: px (or none), pt, pc, in, cm or mm
+#' @return One number, or `NULL` for a unit that is not absolute
+#' @keywords internal
+#' @noRd
+css_pixels <- function(value, unit) {
+  per <- c(px = 1, pt = 4 / 3, pc = 16, `in` = 96, cm = 96 / 2.54, mm = 96 / 25.4)
+  unit <- if (nzchar(unit)) unit else "px"
+  if (!unit %in% names(per) || !is.finite(value)) {
+    return(NULL)
+  }
+  value * per[[unit]]
+}
+
+#' One positive number, from a chunk option
+#'
+#' @param value The option's value; its first element is read
+#' @return The number, or `NULL` when it is not one
+#' @keywords internal
+#' @noRd
+positive_number <- function(value) {
+  value <- if (is.numeric(value) && length(value) >= 1L) value[[1L]]
+  if (length(value) == 1L && is.finite(value) && value > 0) value
+}
+
+#' Show an inline chart at the size knitr shows a figure
+#'
+#' The chart's svg is as wide and high as its canvas, at 72 pixels to the
+#' inch, in user units its `viewBox` keeps; its `width` and `height` are
+#' made `ppi` pixels to the inch, so that it takes the room the chunk's
+#' figure would. What it draws, and what maidr reads from it, are as they
+#' were.
+#'
+#' @param root The chart's `<svg>` node
+#' @param ppi Pixels to the inch, from `knitr_chart_ppi()`
+#' @return `root`, invisibly
+#' @keywords internal
+#' @noRd
+inline_display_size <- function(root, ppi) {
+  size <- inline_svg_size(root)
+  if (is.null(size) || isTRUE(all.equal(ppi, 72))) {
+    return(invisible(root))
+  }
+  xml2::xml_attr(root, "width") <- format_px(size[["width"]] * ppi / 72)
+  xml2::xml_attr(root, "height") <- format_px(size[["height"]] * ppi / 72)
+  invisible(root)
+}
+
+#' The size of an inline chart's canvas, in its user units
+#'
+#' @param root The chart's `<svg>` node
+#' @return A named numeric vector, `width` and `height`, or `NULL`
+#' @keywords internal
+#' @noRd
+inline_svg_size <- function(root) {
+  box <- xml2::xml_attr(root, "viewBox")
+  values <- if (!is.na(box)) {
+    suppressWarnings(as.numeric(strsplit(trimws(box), "[[:space:],]+")[[1L]]))
+  }
+  if (length(values) == 4L && all(is.finite(values)) && all(values[3:4] > 0)) {
+    return(c(width = values[[3L]], height = values[[4L]]))
+  }
+  NULL
+}
+
+#' A length in pixels as the svg's attributes write it
+#'
+#' @param x A number of pixels
+#' @return One string, such as "672px"
+#' @keywords internal
+#' @noRd
+format_px <- function(x) {
+  paste0(format(round(x, 2), trim = TRUE, scientific = FALSE), "px")
+}
+
+#' The CSS width a chart takes from the author's `out.width`
+#'
+#' knitr sets `out.width` itself for a retina figure; only the author's, in
+#' the chunk or for the document, is the chart's. In a panel Quarto lays
+#' out (`quarto_lays_out()`) a percentage is given to the panel's cell,
+#' which the chart then fills, as Quarto gives an image's.
+#'
+#' @param options The chunk options
+#' @param index Which of the chunk's charts this is, from 1
+#' @param quarto Whether Quarto is knitting the document
+#' @return The width, or `NULL`
+#' @keywords internal
+#' @noRd
+knitr_chart_out_width <- function(options, index, quarto) {
+  authored <- chunk_sets_option(options, "out.width") ||
+    !is.null(knitr::opts_chunk$get("out.width"))
+  width <- if (authored) knitr_chart_width(options$out.width, index)
+  in_cell <- quarto && !is.null(width) && endsWith(width, "%") && quarto_lays_out(options)
+  if (in_cell) NULL else width
+}
+
+#' How a chart is aligned
+#'
+#' @param align The `fig.align` chunk option
+#' @param centred Whether the chart is centred when `fig.align` says
+#'   nothing, as Quarto centres a figure it captions
+#' @return "left", "center" or "right", or `NULL` for none
+#' @keywords internal
+#' @noRd
+knitr_chart_align <- function(align, centred) {
+  if (length(align) == 1L && align %in% c("left", "center", "right")) {
+    return(align)
+  }
+  if (centred) "center"
+}
+
+#' The CSS height a chart takes from `out.height`
+#'
+#' As `knitr_chart_width()` reads `out.width`. A percentage is not used: a
+#' figure's box is as high as what it holds, and an image given a
+#' percentage of it keeps its own height.
+#'
+#' @param out_height The `out.height` chunk option
+#' @param index Which of the chunk's charts this is, from 1
+#' @return The height, or `NULL`
+#' @keywords internal
+#' @noRd
+knitr_chart_height <- function(out_height, index) {
+  height <- knitr_chart_width(out_height, index)
+  if (is.null(height) || endsWith(height, "%")) NULL else height
+}
+
+#' The width that shows a chart at a height, keeping its shape
+#'
+#' An image given `out.height` is stretched to it; a chart keeps its shape,
+#' and is made as wide as that height asks. It still shrinks to a column
+#' narrower than that.
+#'
+#' @param root The chart's `<svg>` node
+#' @param height The CSS height, from `knitr_chart_height()`
+#' @return A CSS width
+#' @keywords internal
+#' @noRd
+inline_width_for_height <- function(root, height) {
+  size <- inline_svg_size(root)
+  ratio <- if (is.null(size)) 1 else size[["width"]] / size[["height"]]
+  found <- regmatches(height, regexec("^([0-9]*\\.?[0-9]+)([a-z]*)$", height))[[1L]]
+  pixels <- if (length(found) == 3L) css_pixels(as.numeric(found[[2L]]), found[[3L]])
+  if (!is.null(pixels)) {
+    return(format_px(pixels * ratio))
+  }
+  sprintf("calc(%s * %s)", height, format(round(ratio, 4), scientific = FALSE))
+}
+
+#' Whether Quarto stretches the lone figure of a slide of this document
+#'
+#' In a reveal.js deck that keeps `auto-stretch` (`quarto_auto_stretch()`).
+#'
+#' @return Logical
+#' @keywords internal
+#' @noRd
+quarto_stretches_figures <- function() {
+  !is.null(knitr::opts_knit$get("quarto.version")) &&
+    identical(knitr::pandoc_to(), "revealjs") && quarto_auto_stretch()
+}
+
+#' Whether Quarto stretches a reveal.js slide's lone figure
+#'
+#' Quarto's `auto-stretch`, on unless the document's own front matter turns
+#' it off, at its top level or under `format: revealjs:`. A project's
+#' `_quarto.yml` is not seen from R.
+#'
+#' @return Logical
+#' @keywords internal
+#' @noRd
+quarto_auto_stretch <- function() {
+  if (!requireNamespace("rmarkdown", quietly = TRUE)) {
+    return(TRUE)
+  }
+  meta <- tryCatch(rmarkdown::metadata, error = function(e) list())
+  if (!is.list(meta)) {
+    return(TRUE)
+  }
+  value <- meta[["auto-stretch"]]
+  revealjs <- if (is.list(meta[["format"]])) meta[["format"]][["revealjs"]]
+  if (is.list(revealjs) && !is.null(revealjs[["auto-stretch"]])) {
+    value <- revealjs[["auto-stretch"]]
+  }
+  !isFALSE(value)
 }
 
 #' HTML as a raw block of Markdown

@@ -23,13 +23,21 @@
 #     Base R 2 x 2 `par(mfrow)` grid in one of `fig.width = 10,
 #     fig.height = 4`, whose short panels R thins the tick labels of: the
 #     others are at html_document's own 7 x 5 in;
+#   * a ggplot2 bar chart in a chunk of `out.width = "100%"`, wider than
+#     its own size;
 #   * a ggplot2 bar chart in the second tab of a {.tabset}, hidden when the
 #     page loads;
-#   * a grid drawing maidr does not read, which stays knitr's own figure.
+#   * a grid drawing maidr does not read, which stays knitr's own figure,
+#     and the same drawing at `out.width = "100%"`: the size a chart is
+#     shown at is checked against them.
 #
 # A second, smaller page, `mixed.html`, holds a 'plotly' widget that maidr
 # binds in the page itself, followed by an inline chart, so that a reader
-# can go from one kind of chart to the other.
+# can go from one kind of chart to the other. A third, `slides.html`, is an
+# ioslides presentation with a chart at its 7.5 x 4.5 in below a point on a
+# slide, larger than the slide leaves room for with maidr's text below it.
+# A fourth, `bs5.html`, is a Bootstrap 5 page with a captioned chart given
+# `out.width = "50%"` and `fig.align = "right"`.
 #
 # Every chart's values are its own, so an announcement names the chart it
 # came from. The page sets its paragraphs in a size of its own, as an author
@@ -125,6 +133,11 @@ writeLines(c(
   "}",
   "```",
   "",
+  "```{r full-width, out.width = \"100%\"}",
+  "full <- data.frame(part = c(\"full1\", \"full2\", \"full3\"), n = c(151, 152, 153))",
+  "ggplot(full, aes(part, n)) + geom_col() + labs(title = \"Full width chart\")",
+  "```",
+  "",
   "## Tabs {.tabset}",
   "",
   "### Shown",
@@ -141,6 +154,11 @@ writeLines(c(
   "## A drawing maidr does not read",
   "",
   "```{r static, fig.alt = \"A plain grey circle\"}",
+  "grid::grid.newpage()",
+  "grid::grid.circle(gp = grid::gpar(fill = \"grey\"))",
+  "```",
+  "",
+  "```{r static-wide, fig.alt = \"A wide grey circle\", out.width = \"100%\"}",
   "grid::grid.newpage()",
   "grid::grid.circle(gp = grid::gpar(fill = \"grey\"))",
   "```"
@@ -175,3 +193,50 @@ writeLines(c(
 ), mixed)
 
 rmarkdown::render(mixed, output_file = "mixed.html", quiet = TRUE, envir = new.env())
+
+slides <- file.path(out, "slides.Rmd")
+writeLines(c(
+  "---",
+  "title: \"maidr knitr smoke, slides\"",
+  "output: ioslides_presentation",
+  "---",
+  "",
+  "```{r setup, include = FALSE}",
+  "library(maidr)",
+  "library(ggplot2)",
+  "```",
+  "",
+  "## A chart below a point",
+  "",
+  "- A point above the chart",
+  "",
+  "```{r io-bar, echo = FALSE}",
+  "io <- data.frame(kind = c(\"io1\", \"io2\", \"io3\"), n = c(151, 152, 153))",
+  "ggplot(io, aes(kind, n)) + geom_col()",
+  "```"
+), slides)
+
+rmarkdown::render(slides, output_file = "slides.html", quiet = TRUE, envir = new.env())
+
+bs5 <- file.path(out, "bs5.Rmd")
+writeLines(c(
+  "---",
+  "title: \"maidr knitr smoke, Bootstrap 5\"",
+  "output:",
+  "  html_document:",
+  "    theme:",
+  "      version: 5",
+  "---",
+  "",
+  "```{r setup, include = FALSE}",
+  "library(maidr)",
+  "library(ggplot2)",
+  "```",
+  "",
+  "```{r bs5-chart, fig.cap = \"On the right\", fig.align = \"right\", out.width = \"50%\"}",
+  "bs <- data.frame(kind = c(\"bs1\", \"bs2\"), n = c(161, 162))",
+  "ggplot(bs, aes(kind, n)) + geom_col()",
+  "```"
+), bs5)
+
+rmarkdown::render(bs5, output_file = "bs5.html", quiet = TRUE, envir = new.env())

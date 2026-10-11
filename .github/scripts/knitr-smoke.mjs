@@ -10,10 +10,15 @@
 //   * every chart is bound by maidr.js, in the order the document draws
 //     them, and no id is used twice before anything has the focus;
 //   * the figure maidr does not read is knitr's own svglite image;
-//   * every chart is drawn at its chunk's fig.width and fig.height: its svg
-//     is that many inches at 72 pixels each, in its width, height and
-//     viewBox, nothing it draws reaches outside its viewBox, and the tick
-//     labels of each axis stand apart;
+//   * every chart is drawn at its chunk's fig.width and fig.height: its
+//     viewBox is that many inches at 72 pixels each, and its width and
+//     height at the 96 knitr shows html_document's figures at (dpi 96,
+//     fig.retina 2); nothing it draws reaches outside its viewBox, and the
+//     tick labels of each axis stand apart;
+//   * a chart is shown the size of knitr's own figure for the same chunk
+//     options: one at html_document's 7 x 5 in as large as the drawing
+//     maidr does not read, and one at out.width = "100%" as wide as that
+//     drawing at the same width, wider than its own size;
 //   * for each chart in turn -- its tab opened first when it is hidden --
 //     one Tab from the last tab stop before it lands on the chart, and that
 //     stop is outside the chart, and is the chart before it when one comes
@@ -42,13 +47,22 @@
 //     painted; on a second page, `mixed.html`, the same holds for a 'plotly'
 //     widget maidr binds in the page itself and for the inline chart a
 //     reader tabs to from it with high contrast still on. What is checked is
-//     what the page shows -- computed colours -- whatever paints them.
+//     what the page shows -- computed colours -- whatever paints them;
+//   * on an ioslides slide, `slides.html`, which cuts off what runs past its
+//     foot, a chart too large to leave room below it for maidr's text is
+//     made smaller: maidr's instructions, text and braille and review fields
+//     stay on the slide, and the chart keeps its size and place, and the
+//     slide its title in view, as the reader uses it;
+//   * on a Bootstrap 5 page, `bs5.html`, which makes a figure an inline
+//     block, a captioned chart given out.width = "50%" and fig.align =
+//     "right" is half the column wide and stands at its right, as knitr's
+//     image given the same does.
 //
 // A chart whose ids clashed with another's, or that was bound to another's
 // data, announces or highlights the wrong chart; a page that loaded the
 // bundle once per chart runs maidr.js more than once.
 //
-//     node .github/scripts/knitr-smoke.mjs <dir-with-charts.html-and-mixed.html>
+//     node .github/scripts/knitr-smoke.mjs <dir-rendered-by-knitr-smoke.R>
 //
 // Needs the `playwright` package and its Chromium; `MAIDR_SMOKE_CHROMIUM`
 // names an executable to use instead of the one Playwright installed.
@@ -69,7 +83,8 @@ const html = readFileSync(file, 'utf8');
 // value each announces: a value no other chart on the page has. A chart of
 // several subplots opens on the subplot chooser, and wants Enter before
 // Right Arrow reads a value. `size` is the chunk's fig.width and fig.height,
-// html_document's 7 x 5 unless the chunk sets them.
+// html_document's 7 x 5 unless the chunk sets them; html_document shows a
+// figure at 96 pixels to the inch.
 const charts = [
   { name: 'GG bar chart', announces: /\balpha\b.*\b11\b/ },
   { name: 'GG facet chart', announces: /\b21\b/, subplots: true },
@@ -81,6 +96,7 @@ const charts = [
   { name: 'Wide bar chart', announces: /\bwide1\b.*\b101\b/, size: [10, 4] },
   { name: 'Tall bar chart', announces: /\btall1\b.*\b111\b/, size: [5, 8] },
   { name: 'Base grid chart', announces: /\b121\b/, subplots: true, size: [10, 4] },
+  { name: 'Full width chart', announces: /\bfull1\b.*\b151\b/ },
   { name: 'Hidden tab chart', announces: /\bhid1\b.*\b91\b/ },
 ].map(chart => ({ size: [7, 5], ...chart }));
 
@@ -229,6 +245,38 @@ check(
 check(
   state.circle !== null && state.circle.src.startsWith('data:image/svg+xml') && !state.circle.inChart,
   `the drawing maidr does not read is knitr's svglite image (${state.circle ? state.circle.src : 'not found'})`,
+);
+
+// A chart is shown the size knitr shows a figure of the same chunk options
+// at: the drawing maidr does not read is one, at html_document's 7 x 5 in,
+// and again at out.width = "100%", which is wider than its own size.
+const shown = await page.evaluate(() => {
+  const box = element => {
+    if (!element) {
+      return null;
+    }
+    const rect = element.getBoundingClientRect();
+    return { width: Math.round(rect.width * 10) / 10, height: Math.round(rect.height * 10) / 10 };
+  };
+  const svgs = Array.from(document.querySelectorAll('.maidr-knitr svg.maidr-knitr-svg'));
+  return {
+    chart: box(svgs[0]),
+    figure: box(document.querySelector('img[alt="A plain grey circle"]')),
+    wideChart: box(svgs.find(svg => /\bfull1\b/.test(svg.textContent))),
+    wideFigure: box(document.querySelector('img[alt="A wide grey circle"]')),
+  };
+});
+const sameBox = (a, b) => Boolean(a && b)
+  && Math.abs(a.width - b.width) <= 1 && Math.abs(a.height - b.height) <= 1;
+check(
+  sameBox(shown.chart, shown.figure) && shown.chart.width === 672,
+  `a 7 x 5 in chart is shown the size of knitr's 7 x 5 in figure (${JSON.stringify(shown.chart)}`
+    + ` and ${JSON.stringify(shown.figure)})`,
+);
+check(
+  sameBox(shown.wideChart, shown.wideFigure) && shown.wideChart.width > 672,
+  'a chart given out.width = "100%" is as wide as a figure given it, wider than its own size'
+    + ` (${JSON.stringify(shown.wideChart)} and ${JSON.stringify(shown.wideFigure)})`,
 );
 
 // Show chart i -- open the tab that hides it -- and put the focus on the
@@ -402,9 +450,12 @@ for (const [i, chart] of charts.entries()) {
 
   const drawn = await geometry(i);
   const [width, height] = chart.size.map(inches => inches * 72);
+  const [shownWidth, shownHeight] = chart.size.map(inches => inches * 96);
   check(
-    JSON.stringify(drawn.size) === JSON.stringify([`${width}px`, `${height}px`, `0 0 ${width} ${height}`]),
-    `${chart.name}: drawn at its chunk's ${chart.size.join(' x ')} in (${drawn.size.join(', ')})`,
+    JSON.stringify(drawn.size)
+      === JSON.stringify([`${shownWidth}px`, `${shownHeight}px`, `0 0 ${width} ${height}`]),
+    `${chart.name}: drawn at its chunk's ${chart.size.join(' x ')} in, shown at 96 pixels to the inch`
+      + ` (${drawn.size.join(', ')})`,
   );
   check(
     drawn.outside.length === 0,
@@ -742,6 +793,115 @@ check(
   widgetErrors.length === 0,
   `no page errors on the widget's page${widgetErrors.length ? ': ' + widgetErrors.join(' | ') : ''}`,
 );
+
+// An ioslides slide: a 7.5 x 4.5 in chart below a point.
+const io = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+const ioErrors = [];
+io.on('pageerror', error => ioErrors.push(String(error)));
+await io.goto('file://' + path.resolve(dir, 'slides.html') + '#2', { waitUntil: 'load' });
+await io.waitForFunction(
+  plotOf => document.querySelector(`slide.current .maidr-knitr ${plotOf}`),
+  plotOf,
+  { timeout: 15000 },
+).catch(() => {});
+await io.waitForTimeout(settle * 2);
+const ioState = () => io.evaluate(() => {
+  const slide = document.querySelector('slide.current');
+  const wrapper = slide && slide.querySelector('.maidr-knitr');
+  if (!wrapper) {
+    return null;
+  }
+  const svg = wrapper.querySelector('svg.maidr-knitr-svg').getBoundingClientRect();
+  let lowest = 0;
+  for (const selector of ['[id^="maidr-text-container"]', 'textarea[id^="maidr-braille-textarea"]',
+    'input[id^="maidr-review-input"]']) {
+    const shown = wrapper.querySelector(selector);
+    const box = shown && shown.getBoundingClientRect();
+    if (box && box.height) {
+      lowest = Math.max(lowest, box.bottom);
+    }
+  }
+  const round = value => Math.round(value * 10) / 10;
+  return {
+    chart: [svg.left, svg.top, svg.width, svg.height].map(round),
+    title: round(slide.querySelector('h2').getBoundingClientRect().top),
+    below: lowest ? round(lowest - svg.bottom) : 0,
+    past: lowest ? round(lowest - slide.getBoundingClientRect().bottom) : 0,
+    own: Number.parseFloat(wrapper.querySelector('svg.maidr-knitr-svg').getAttribute('height')),
+  };
+});
+const ioStates = { load: await ioState() };
+if (ioStates.load) {
+  const ioPlot = io.locator(`slide.current .maidr-knitr ${plotOf}`);
+  await ioPlot.focus();
+  await io.waitForTimeout(settle);
+  ioStates.focus = await ioState();
+  await io.keyboard.press('ArrowRight');
+  await io.waitForTimeout(settle);
+  ioStates.key = await ioState();
+  await io.keyboard.press('b');
+  await io.waitForTimeout(settle);
+  ioStates.braille = await ioState();
+  await io.keyboard.press('b');
+  await io.waitForTimeout(settle);
+  await ioPlot.focus();
+  await io.keyboard.press('r');
+  await io.waitForTimeout(settle);
+  ioStates.review = await ioState();
+  await io.keyboard.press('r');
+  await io.waitForTimeout(settle);
+  await io.evaluate(() => document.activeElement.blur());
+  await io.waitForTimeout(settle);
+  ioStates.blur = await ioState();
+}
+const ioAll = Object.values(ioStates);
+check(
+  Boolean(ioStates.load) && ioStates.load.chart[3] < ioStates.load.own && ioStates.load.chart[3] > 96
+    && ioAll.every(state => JSON.stringify(state.chart) === JSON.stringify(ioStates.load.chart)
+      && state.title === ioStates.load.title && state.past <= 1)
+    && ioStates.focus.below > 0 && ioStates.braille.below > ioStates.key.below && ioStates.review.below > 0,
+  'an ioslides chart is made small enough for maidr\'s instructions, text and braille and review fields'
+    + ` to stay on its slide, and keeps its size and place as the reader uses it (${JSON.stringify(ioStates)})`,
+);
+check(ioErrors.length === 0, `no page errors on the slides${ioErrors.length ? ': ' + ioErrors.join(' | ') : ''}`);
+await io.close();
+
+// A Bootstrap 5 page: a captioned chart given out.width and aligned right.
+const bs5 = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+const bs5Errors = [];
+bs5.on('pageerror', error => bs5Errors.push(String(error)));
+await bs5.goto('file://' + path.resolve(dir, 'bs5.html'), { waitUntil: 'load' });
+await bs5.waitForFunction(
+  plotOf => document.querySelector(`.maidr-knitr ${plotOf}`),
+  plotOf,
+  { timeout: 15000 },
+).catch(() => {});
+await bs5.waitForTimeout(settle);
+const placed = await bs5.evaluate(() => {
+  const chart = document.querySelector('.maidr-knitr svg.maidr-knitr-svg');
+  if (!chart) {
+    return null;
+  }
+  const column = chart.closest('.main-container');
+  const style = getComputedStyle(column);
+  const outer = column.getBoundingClientRect();
+  const left = outer.left + parseFloat(style.paddingLeft);
+  const right = outer.right - parseFloat(style.paddingRight);
+  const box = chart.getBoundingClientRect();
+  return {
+    left: Math.round(box.left - left),
+    right: Math.round(right - box.right),
+    width: Math.round(box.width),
+    column: Math.round(right - left),
+  };
+});
+check(
+  Boolean(placed) && Math.abs(placed.right) <= 1 && Math.abs(placed.width - placed.column / 2) <= 1,
+  'on a Bootstrap 5 page a captioned chart given out.width = "50%" and fig.align = "right" is half the column'
+    + ` wide, at its right, as knitr's image is (${JSON.stringify(placed)})`,
+);
+check(bs5Errors.length === 0, `no page errors on the Bootstrap 5 page${bs5Errors.length ? ': ' + bs5Errors.join(' | ') : ''}`);
+await bs5.close();
 
 await browser.close();
 if (failures.length > 0) {

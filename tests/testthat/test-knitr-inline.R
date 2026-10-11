@@ -466,12 +466,13 @@ test_that("fig.align and the author's out.width lay the chart out", {
   )
   centred <- maidr:::knitr_inline_chart(svg, list(fig.align = "center", out.width = "50%"))
   testthat::expect_match(
-    centred, '<div class="maidr-knitr maidr-knitr-center" style="width: 50%;">',
+    centred,
+    '<div class="maidr-knitr maidr-knitr-center maidr-knitr-sized" style="width: 50%;">',
     fixed = TRUE
   )
   testthat::expect_match(
     maidr:::knitr_inline_chart(svg, list(fig.align = "default", out.width = 300)),
-    '<div class="maidr-knitr" style="width: 300px;">', fixed = TRUE
+    '<div class="maidr-knitr maidr-knitr-sized" style="width: 300px;">', fixed = TRUE
   )
   testthat::expect_match(
     maidr:::knitr_inline_chart(svg, list(out.width = "\\linewidth")),
@@ -483,7 +484,7 @@ test_that("fig.align and the author's out.width lay the chart out", {
   held <- list(fig.show = "hold", fig.align = "default", out.width = "50%", fig.num = 2L)
   first <- maidr:::knitr_inline_chart(svg, c(held, fig.cur = 1L), figure = TRUE)
   last <- maidr:::knitr_inline_chart(svg, c(held, fig.cur = 2L), index = 2L, figure = TRUE)
-  row <- '<div class="maidr-knitr maidr-knitr-row" style="width: 50%;">'
+  row <- '<div class="maidr-knitr maidr-knitr-row maidr-knitr-sized" style="width: 50%;">'
   testthat::expect_match(first, row, fixed = TRUE)
   testthat::expect_false(grepl("maidr-knitr-row-end", first, fixed = TRUE))
   testthat::expect_match(last, row, fixed = TRUE)
@@ -517,14 +518,272 @@ test_that("an out.width the chunk sets, in either spelling, is its chart's width
     "```{r none}", "barplot(c(a = 1))", "```"
   ), dir)
   testthat::expect_identical(
-    regmatches(page, gregexpr('<div class="maidr-knitr"[^>]*>', page))[[1]],
+    regmatches(page, gregexpr('<div class="maidr-knitr[ "][^>]*>', page))[[1]],
     c(
-      '<div class="maidr-knitr" style="width: 50%;">',
-      '<div class="maidr-knitr" style="width: 40%;">',
-      '<div class="maidr-knitr" style="width: 30%;">',
+      '<div class="maidr-knitr maidr-knitr-sized" style="width: 50%;">',
+      '<div class="maidr-knitr maidr-knitr-sized" style="width: 40%;">',
+      '<div class="maidr-knitr maidr-knitr-sized" style="width: 30%;">',
       '<div class="maidr-knitr">'
     )
   )
+})
+
+# ==============================================================================
+# The size a chart is shown at
+# ==============================================================================
+
+#' The width, height and viewBox of the first chart in an inline chart's
+#' Markdown, and its inline style
+inline_root_size <- function(out) {
+  start <- regmatches(out, regexpr("<svg[^>]*>", out))
+  attr_of <- function(name) {
+    found <- regmatches(start, regexec(sprintf('\\s%s="([^"]*)"', name), start))[[1]]
+    if (length(found) == 2L) found[[2L]] else NA_character_
+  }
+  c(
+    width = attr_of("width"), height = attr_of("height"), viewBox = attr_of("viewBox"),
+    style = attr_of("style")
+  )
+}
+
+test_that("a chart's pixels to the inch are those knitr shows the chunk's figure at", {
+  ppi <- maidr:::knitr_chart_ppi
+  # A retina figure is shown fig.width * dpi pixels wide, and a plot hook
+  # sees its dpi multiplied by fig.retina: Quarto's HTML formats and R
+  # Markdown's set dpi 96 and fig.retina 2.
+  testthat::expect_identical(ppi(list(dpi = 192, fig.retina = 2, dev = "png")), 96)
+  testthat::expect_identical(ppi(list(dpi = 300, fig.retina = 2, dev = "png")), 150)
+  testthat::expect_identical(ppi(list(dpi = 144, fig.retina = 2, dev = "png")), 72)
+  # knitr gives an svg at fig.retina 2 the same out.width.
+  testthat::expect_identical(ppi(list(dpi = 192, fig.retina = 2, dev = "svg")), 96)
+  # At fig.retina 1 a bitmap is shown a pixel to a dot.
+  testthat::expect_identical(ppi(list(dpi = 96, fig.retina = 1, dev = "png")), 96)
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "png")), 150)
+  testthat::expect_identical(ppi(list(dpi = 50, dev = "ragg_png")), 50)
+  # An svg device without its file: svglite writes points, 96 to the inch,
+  # the others pixels, 72.
+  chunk <- knitr::opts_chunk$get()
+  withr::defer(knitr::opts_chunk$restore(chunk))
+  knitr::opts_chunk$set(dev = "svglite")
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "svglite")), 96)
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "svg")), 72)
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "CairoSVG")), 72)
+  # The svglite maidr records on in place of a document's png, in a chunk
+  # that names no device of its own, is shown as that png would be.
+  knitr::opts_chunk$set(dev = "png")
+  testthat::expect_identical(ppi(list(dpi = 150, fig.retina = 1, dev = "svglite")), 150)
+  # Options that carry no dpi, outside a knit: the canvas's own.
+  testthat::expect_identical(ppi(list()), 72)
+  testthat::expect_identical(ppi(list(dpi = "high")), 72)
+})
+
+test_that("an svg figure's file is found under knitr's base.dir", {
+  ppi <- maidr:::knitr_chart_ppi
+  base <- withr::local_tempdir("maidr-svg-base-")
+  writeLines(
+    c('<svg xmlns="http://www.w3.org/2000/svg" width="504pt" height="360pt">', "</svg>"),
+    file.path(base, "figure.svg")
+  )
+  # The plot hook names the file relative to base.dir, which need not be
+  # the working directory.
+  withr::local_dir(withr::local_tempdir("maidr-svg-cwd-"))
+  old <- knitr::opts_knit$get("base.dir")
+  withr::defer(knitr::opts_knit$set(base.dir = old))
+  knitr::opts_knit$set(base.dir = base)
+  options <- list(dpi = 150, fig.retina = 1, dev = "svg", fig.width = 7,
+                  maidr.figure.file = "figure.svg")
+
+  # Read from the file, in points; the device's own rule would give 72.
+  testthat::expect_equal(ppi(options), 96)
+})
+
+test_that("an svg figure is shown at the size its file gives itself", {
+  ppi <- maidr:::knitr_chart_ppi
+  dir <- withr::local_tempdir("maidr-svg-ppi-")
+  options <- function(file, dev = "svg") {
+    list(dpi = 150, fig.retina = 1, dev = dev, fig.width = 7, maidr.figure.file = file)
+  }
+  svg_file <- function(width) {
+    file <- tempfile(fileext = ".svg", tmpdir = dir)
+    writeLines(c(
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      sprintf('<svg xmlns="http://www.w3.org/2000/svg" width="%s" height="360">', width),
+      "</svg>"
+    ), file)
+    file
+  }
+  # Pixels, as R's svg() writes with Cairo 1.18; points, as svglite and an
+  # older Cairo write; and the other absolute units.
+  testthat::expect_identical(ppi(options(svg_file("504"))), 72)
+  testthat::expect_identical(ppi(options(svg_file("504px"))), 72)
+  testthat::expect_equal(ppi(options(svg_file("504pt"))), 96)
+  testthat::expect_equal(ppi(options(svg_file("7in"))), 96)
+  testthat::expect_equal(ppi(options(svg_file("17.78cm"))), 96)
+  # svglite's own file, read the same way.
+  testthat::skip_if_not_installed("svglite")
+  written <- file.path(dir, "svglite.svg")
+  svglite::svglite(written, width = 7, height = 5)
+  graphics::plot.new()
+  grDevices::dev.off()
+  testthat::expect_equal(ppi(options(written, dev = "svglite")), 96)
+  # A unit that is not absolute, or no file to read: the device decides.
+  testthat::expect_identical(ppi(options(svg_file("40em"))), 72)
+  testthat::expect_identical(ppi(options(file.path(dir, "missing.svg"))), 72)
+  testthat::expect_identical(
+    ppi(options(file.path(dir, "missing.svg"), dev = "svglite")), 96
+  )
+})
+
+test_that("a chart is shown at the size knitr shows the chunk's figure, its canvas kept", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  drawn <- inline_root_size(maidr:::knitr_inline_chart(svg, list()))
+  testthat::expect_identical(
+    drawn[c("width", "height", "viewBox")],
+    c(width = "504px", height = "360px", viewBox = "0 0 504 360")
+  )
+  # Quarto's HTML and R Markdown's show a 7 x 5 in figure 672 x 480: the
+  # svg is that size, and its viewBox the 7 x 5 in canvas maidr drew on.
+  shown <- inline_root_size(
+    maidr:::knitr_inline_chart(svg, list(dpi = 192, fig.retina = 2, dev = "png"))
+  )
+  testthat::expect_identical(
+    shown[c("width", "height", "viewBox")],
+    c(width = "672px", height = "480px", viewBox = "0 0 504 360")
+  )
+  dpi150 <- inline_root_size(
+    maidr:::knitr_inline_chart(svg, list(dpi = 300, fig.retina = 2, dev = "png"))
+  )
+  testthat::expect_identical(
+    dpi150[c("width", "height", "viewBox")],
+    c(width = "1050px", height = "750px", viewBox = "0 0 504 360")
+  )
+})
+
+test_that("out.height sets a chart's height and keeps its shape", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  height_of <- function(value) {
+    inline_root_size(maidr:::knitr_inline_chart(svg, list(out.height = value)))[["style"]]
+  }
+  # A 7 x 5 in chart is 1.4 times as wide as it is high.
+  testthat::expect_identical(height_of("200px"), "width: 280px;")
+  testthat::expect_identical(height_of(200), "width: 280px;")
+  testthat::expect_identical(height_of("2in"), "width: 268.8px;")
+  testthat::expect_identical(height_of("10em"), "width: calc(10em * 1.4);")
+  # A percentage of a box as high as what it holds is no height, as for an
+  # image; nor is LaTeX's.
+  testthat::expect_identical(height_of("50%"), NA_character_)
+  testthat::expect_identical(height_of("\\textheight"), NA_character_)
+  # Given both, the chart is no wider than out.width and no higher than
+  # out.height.
+  testthat::local_mocked_bindings(
+    chunk_sets_option = function(options, name) TRUE,
+    .package = "maidr"
+  )
+  both <- maidr:::knitr_inline_chart(svg, list(out.width = "50%", out.height = "150px"))
+  testthat::expect_identical(inline_root_size(both)[["style"]], "width: 210px;")
+  testthat::expect_match(
+    both, '<div class="maidr-knitr maidr-knitr-sized" style="width: 50%;">', fixed = TRUE
+  )
+})
+
+test_that("in Quarto a captioned chart is centred and a panel's cell takes a percentage width", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  testthat::local_mocked_bindings(
+    chunk_sets_option = function(options, name) TRUE,
+    .package = "maidr"
+  )
+  withr::defer(knitr::opts_knit$delete("quarto.version"))
+  captioned <- list(label = "unnamed-chunk-2", fig.cap = "Bars")
+
+  # Outside Quarto knitr leaves a figure where it is.
+  wrapper_of <- function(out) regmatches(out, regexpr('<div class="[^"]*maidr-knitr[^>]*>', out))
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, captioned, figure = TRUE)),
+    '<div class="figure maidr-knitr">'
+  )
+  knitr::opts_knit$set(quarto.version = "1.7.32")
+  # Quarto centres a figure it captions unless the chunk says otherwise.
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, captioned, figure = TRUE)),
+    '<div class="figure maidr-knitr maidr-knitr-center">'
+  )
+  right <- c(captioned, fig.align = "right")
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, right, figure = TRUE)),
+    '<div class="figure maidr-knitr maidr-knitr-right">'
+  )
+  # The float of a fig- chunk is Quarto's to align, and the chunk's own
+  # alignment is the chart's.
+  float <- list(label = "fig-bars", fig.cap = "Bars", fig.num = 1L, fig.cur = 1L)
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, float, figure = TRUE)),
+    '<div class="maidr-knitr">'
+  )
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, c(float, fig.align = "left"), figure = TRUE)),
+    '<div class="maidr-knitr maidr-knitr-left">'
+  )
+
+  # In a panel a percentage width is the cell's; the chart fills the cell.
+  panel <- list(label = "unnamed-chunk-3", `layout-ncol` = 2L, out.width = "80%")
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, panel, figure = TRUE)),
+    '<div class="maidr-knitr">'
+  )
+  pixels <- utils::modifyList(panel, list(out.width = "200px"))
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, pixels, figure = TRUE)),
+    '<div class="maidr-knitr maidr-knitr-sized" style="width: 200px;">'
+  )
+  # Outside a panel the width is the chart's.
+  single <- list(label = "unnamed-chunk-4", out.width = "80%")
+  testthat::expect_identical(
+    wrapper_of(maidr:::knitr_inline_chart(svg, single, figure = TRUE)),
+    '<div class="maidr-knitr maidr-knitr-sized" style="width: 80%;">'
+  )
+})
+
+test_that("a Quarto deck that keeps auto-stretch marks its charts to be stretched", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  testthat::local_mocked_bindings(
+    chunk_sets_option = function(options, name) TRUE,
+    .package = "maidr"
+  )
+  withr::defer(knitr::opts_knit$delete(c("quarto.version", "rmarkdown.pandoc.to")))
+  marked <- function(options = list(label = "unnamed-chunk-2")) {
+    grepl("maidr-knitr-stretch", maidr:::knitr_inline_chart(svg, options, figure = TRUE))
+  }
+
+  knitr::opts_knit$set(quarto.version = "1.7.32", rmarkdown.pandoc.to = "revealjs")
+  testthat::local_mocked_bindings(metadata = list(title = "deck"), .package = "rmarkdown")
+  testthat::expect_true(marked())
+  # Quarto stretches an image given a width, and leaves one given a height.
+  testthat::expect_true(marked(list(label = "unnamed-chunk-2", out.width = "50%")))
+  testthat::expect_false(marked(list(label = "unnamed-chunk-2", out.height = "300px")))
+  # Not in a deck that turns auto-stretch off, at the top of its front
+  # matter or for reveal.js.
+  testthat::local_mocked_bindings(metadata = list(`auto-stretch` = FALSE), .package = "rmarkdown")
+  testthat::expect_false(marked())
+  testthat::local_mocked_bindings(
+    metadata = list(format = list(revealjs = list(`auto-stretch` = FALSE))),
+    .package = "rmarkdown"
+  )
+  testthat::expect_false(marked())
+  testthat::local_mocked_bindings(
+    metadata = list(`auto-stretch` = FALSE, format = list(revealjs = list(`auto-stretch` = TRUE))),
+    .package = "rmarkdown"
+  )
+  testthat::expect_true(marked())
+  # Nor outside a deck, nor outside Quarto.
+  knitr::opts_knit$set(rmarkdown.pandoc.to = "html")
+  testthat::expect_false(marked())
+  knitr::opts_knit$set(rmarkdown.pandoc.to = "revealjs")
+  knitr::opts_knit$delete("quarto.version")
+  testthat::expect_false(marked())
 })
 
 test_that("a chart that cannot be shown inline goes in an iframe, with one warning", {
@@ -1484,8 +1743,22 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   )
   testthat::expect_false(grepl(">Cars by cylinder</p>", html, fixed = TRUE))
   testthat::expect_match(html, ">Base bars</p>", fixed = TRUE)
-  # Quarto's spelling of out.width sizes the chart.
-  testthat::expect_match(html, '<div class="figure maidr-knitr" style="width: 50%;">', fixed = TRUE)
+  # Quarto's spelling of out.width sizes the chart, which Quarto centres as
+  # it centres a figure it captions.
+  testthat::expect_match(
+    html,
+    '<div class="figure maidr-knitr maidr-knitr-center maidr-knitr-sized" style="width: 50%;">',
+    fixed = TRUE
+  )
+  # Every chart is shown at fig-dpi, 96 pixels to the inch, as Quarto shows
+  # its figures; its canvas is 72.
+  sizes <- vapply(charts, function(chart) {
+    paste(
+      xml2::xml_attr(chart, "width"), xml2::xml_attr(chart, "height"),
+      xml2::xml_attr(chart, "viewbox")
+    )
+  }, character(1))
+  testthat::expect_identical(unique(sizes), "672px 480px 0 0 504 360")
   testthat::expect_identical(
     unname(chart_names(page)),
     c(
@@ -1628,6 +1901,89 @@ test_that("a Quarto dashboard keeps every chart in a card", {
   testthat::expect_length(
     xml2::xml_find_all(doc, "//head/script[contains(@src, 'knitr-inline.js')]"),
     1L
+  )
+})
+
+test_that("a Quarto deck shows its charts at its figures' size, marked to be stretched", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("withr")
+  quarto <- Sys.which("quarto")
+  testthat::skip_if(!nzchar(quarto), "Quarto is not installed")
+  withr::local_envvar(QUARTO_R = R.home("bin"))
+  dir <- withr::local_tempdir("maidr-qdeck-")
+  has_class <- function(class) {
+    sprintf("contains(concat(' ', normalize-space(@class), ' '), ' %s ')", class)
+  }
+  render_deck <- function(name, yaml) {
+    qmd <- file.path(dir, paste0(name, ".qmd"))
+    writeLines(c(
+      "---", "title: deck", yaml, "---",
+      "```{r}",
+      "#| include: false",
+      sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+      maidr_loader(),
+      "library(ggplot2)",
+      "```",
+      "",
+      "## A chart",
+      "",
+      "```{r}",
+      "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+      "```",
+      "",
+      "## A chart given a height",
+      "",
+      "```{r}",
+      "#| out-height: 300px",
+      "barplot(c(a = 1, b = 2))",
+      "```"
+    ), qmd)
+    out <- suppressWarnings(system2(
+      quarto, c("render", shQuote(qmd), "--quiet"),
+      stdout = TRUE, stderr = TRUE, timeout = 300
+    ))
+    status <- attr(out, "status")
+    testthat::expect_identical(
+      if (is.null(status)) 0L else status, 0L,
+      info = paste(out, collapse = "\n")
+    )
+    page <- file.path(dir, paste0(name, ".html"))
+    testthat::skip_if_not(file.exists(page))
+    xml2::read_html(page)
+  }
+
+  doc <- render_deck("stretched", "format: revealjs")
+  charts <- xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]")
+  testthat::expect_length(charts, 2L)
+  # A deck's figures are 10 x 5 in, shown at fig-dpi, 96 pixels to the inch;
+  # the canvas is 72. The chart given a height keeps its shape.
+  testthat::expect_identical(
+    vapply(charts, function(chart) {
+      paste(
+        xml2::xml_attr(chart, "width"), xml2::xml_attr(chart, "height"),
+        xml2::xml_attr(chart, "viewbox")
+      )
+    }, character(1)),
+    rep("960px 480px 0 0 720 360", 2L)
+  )
+  testthat::expect_identical(xml2::xml_attr(charts[[2]], "style"), "width: 600px;")
+  # Quarto stretches a slide's lone image, but one given a height: the
+  # chart in its place is marked for knitr-inline.js to stretch alike.
+  stretched <- xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("maidr-knitr-stretch")))
+  testthat::expect_length(stretched, 1L)
+  testthat::expect_length(xml2::xml_find_all(stretched[[1]], ".//svg[@data-maidr-knitr]"), 1L)
+  testthat::expect_true(is.na(xml2::xml_attr(
+    xml2::xml_find_first(stretched[[1]], ".//svg[@data-maidr-knitr]"), "style"
+  )))
+
+  # A deck that turns auto-stretch off in its front matter has none.
+  doc <- render_deck("unstretched", c("format:", "  revealjs:", "    auto-stretch: false"))
+  testthat::expect_length(xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]"), 2L)
+  testthat::expect_length(
+    xml2::xml_find_all(doc, sprintf("//div[%s]", has_class("maidr-knitr-stretch"))),
+    0L
   )
 })
 

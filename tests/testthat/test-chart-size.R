@@ -35,11 +35,16 @@ svg_size <- function(markup) {
 }
 
 #' The svg attributes a chart of `size` inches is written with
-svg_size_for <- function(size) {
+#'
+#' Its canvas, in the viewBox, is 72 pixels to the inch; it is shown at
+#' `ppi`: 72 by `show()` and `save_html()`, and in a knitted page at the
+#' pixels to the inch knitr shows the chunk's figure at.
+svg_size_for <- function(size, ppi = 72) {
   px <- size * 72
+  shown <- size * ppi
   c(
-    width = paste0(px[1], "px"),
-    height = paste0(px[2], "px"),
+    width = paste0(shown[1], "px"),
+    height = paste0(shown[2], "px"),
     viewBox = sprintf("0 0 %s %s", px[1], px[2])
   )
 }
@@ -2224,7 +2229,7 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
   testthat::expect_match(warned, "maidr could not draw this chart at 7 x 6.5 in", fixed = TRUE)
 })
 
-test_that("R Markdown and Quarto draw their charts at the figure size they set", {
+test_that("R Markdown and Quarto draw their charts at the figure size they set and show it", {
   testthat::skip_on_cran()
   skip_if_no_render()
   testthat::skip_if_not_installed("rmarkdown")
@@ -2242,13 +2247,18 @@ test_that("R Markdown and Quarto draw their charts at the figure size they set",
     lapply(inline_svg_roots(paste(readLines(file, warn = FALSE), collapse = "\n")), svg_size)
   }
 
-  # html_document's own figure size is maidr's, 7 x 5 in.
+  # html_document's own figure size is maidr's, 7 x 5 in. It shows its
+  # figures at 96 pixels to the inch (dpi 96 at fig.retina 2), and its
+  # charts the same: a 7 x 5 in figure is 672 x 480.
   rmd <- file.path(dir, "plain.Rmd")
   writeLines(c("---", "title: plain", "output: html_document", "---", chunks), rmd)
   html <- render_in_session(rmd)
   testthat::expect_identical(
     page_sizes(html),
-    list(svg_size_for(c(7, 5)), svg_size_for(c(10, 4)), svg_size_for(c(5, 8)))
+    list(
+      svg_size_for(c(7, 5), ppi = 96), svg_size_for(c(10, 4), ppi = 96),
+      svg_size_for(c(5, 8), ppi = 96)
+    )
   )
 
   # One set in the YAML is every chunk's that sets none.
@@ -2259,7 +2269,10 @@ test_that("R Markdown and Quarto draw their charts at the figure size they set",
   ), rmd)
   testthat::expect_identical(
     page_sizes(render_in_session(rmd)),
-    list(svg_size_for(c(6, 4)), svg_size_for(c(10, 4)), svg_size_for(c(5, 8)))
+    list(
+      svg_size_for(c(6, 4), ppi = 96), svg_size_for(c(10, 4), ppi = 96),
+      svg_size_for(c(5, 8), ppi = 96)
+    )
   )
 
   quarto <- Sys.which("quarto")
@@ -2278,8 +2291,12 @@ test_that("R Markdown and Quarto draw their charts at the figure size they set",
   ), qmd)
   status <- system2(quarto, c("render", shQuote(qmd), "--quiet"), stdout = TRUE, stderr = TRUE)
   testthat::expect_null(attr(status, "status"), info = paste(status, collapse = "\n"))
+  # Quarto's HTML shows its figures at fig-dpi, 96, as well.
   testthat::expect_identical(
     page_sizes(file.path(dir, "sized.html")),
-    list(svg_size_for(c(7, 5)), svg_size_for(c(10, 4)), svg_size_for(c(5, 8)))
+    list(
+      svg_size_for(c(7, 5), ppi = 96), svg_size_for(c(10, 4), ppi = 96),
+      svg_size_for(c(5, 8), ppi = 96)
+    )
   )
 })
