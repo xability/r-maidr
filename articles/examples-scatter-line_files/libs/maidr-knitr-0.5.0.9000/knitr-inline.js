@@ -14,7 +14,8 @@
  * a slide deck's arrow keys, a book's page keys and a site's search key
  * would otherwise act on the same key presses maidr navigates with. Every
  * shim only acts while the focus is inside a chart, so the page's own keys
- * work everywhere else. */
+ * work everywhere else. High contrast, which painted the frame, paints the
+ * chart, not the page around it. */
 (function () {
   'use strict';
   if (window.__maidrKnitr) return;
@@ -34,6 +35,13 @@
     return inChart(document.activeElement);
   }
 
+  // The element that stands for a chart's frame: an inline chart's wrapper,
+  // or the element maidr mounted a widget in.
+  function paintTarget(node) {
+    if (!node || !node.closest) return null;
+    return node.closest('.maidr-knitr') || node.closest('article[id^="maidr-article-"]');
+  }
+
   // maidr.js finds maidr-math.css beside its own <script src>. Inlined into a
   // self-contained page, or moved by bookdown, it cannot, so it is pointed at
   // the copy the page declares as an attachment of the maidr dependency.
@@ -48,12 +56,16 @@
   // tree a moment later. Should the mount fail, React unmounts the tree, and
   // the svg goes with it. So the svg keeps its static name until maidr's
   // focusable element is really around it, and is put back if it was lost:
-  // the reader keeps a named picture rather than nothing.
+  // the reader keeps a named picture rather than nothing. Once it is around
+  // it, maidr names that element, and the drawing is hidden: reveal.js reads
+  // a slide's text aloud when it is shown, all but what is hidden, and a
+  // chart's tick labels are text.
   function verifyMounted(svg, wrapper, attempt) {
     if (svg.isConnected && svg.closest('figure[id^="maidr-figure"] > [tabindex]')) {
       svg.removeAttribute('role');
       svg.removeAttribute('aria-label');
       svg.removeAttribute('aria-labelledby');
+      svg.setAttribute('aria-hidden', 'true');
       describeAll();
       if (wrapper) fitChart(wrapper);
       return;
@@ -196,17 +208,23 @@
   }
 
   // pkgdown takes / for its search box from anywhere on the page, and stops
-  // it being typed: a / typed into maidr's own fields (the command palette,
-  // the chat) is kept from the page. maidr's handlers, below the wrapper,
-  // still see it.
+  // it being typed: on a page with pkgdown's search box, a / typed into
+  // maidr's own fields (the command palette, the chat) is kept from the
+  // page. maidr's handlers, below the wrapper, still see it. Not one typed
+  // in braille or review mode: maidr reads the keys of those fields from the
+  // document, where / resets the autoplay speed, and shimPkgdownSearch()
+  // keeps pkgdown's box from taking the focus from them.
+  var MODE_FIELD = 'textarea[id^="maidr-braille-textarea"], input[id^="maidr-review-input"]';
+
   function keepSlashFromPage(wrapper) {
     if (wrapper.__maidrKnitrSlash) return;
     wrapper.__maidrKnitrSlash = true;
     wrapper.addEventListener('keydown', function (event) {
+      if (event.key !== '/' || !document.getElementById('search-input')) return;
       var target = event.target;
       var editable = target && (target.isContentEditable ||
         (target.matches && target.matches('input, textarea, select')));
-      if (event.key === '/' && editable) event.stopPropagation();
+      if (editable && !target.matches(MODE_FIELD)) event.stopPropagation();
     });
   }
 
@@ -262,7 +280,91 @@
     }
   }
 
+  // --- High contrast -------------------------------------------------------
+
+  // maidr.js paints document.body for high contrast. In a frame that was the
+  // chart's own body; inline it is the whole page. While maidr has it
+  // painted, the page is given its own colours back, and the chart's wrapper
+  // -- or a widget's, which maidr mounted in the page itself -- takes
+  // maidr's, which is what the frame looked like. The body's inline style is
+  // left as maidr.js wrote it -- knitr-inline.css overrides it -- so that
+  // maidr.js putting it back is a change this sees, whenever it happens:
+  // high contrast turned off, or the reader leaving the chart.
+  var painted = null;
+  var pageInline = null;
+
+  function bodyColours() {
+    var style = document.body.style;
+    return [style.getPropertyValue('background-color'), style.getPropertyValue('color')];
+  }
+
+  function unpaint() {
+    document.documentElement.classList.remove('maidr-knitr-contrast');
+    if (painted) {
+      painted.style.removeProperty('background-color');
+      painted.style.removeProperty('color');
+      painted = null;
+    }
+  }
+
+  // The page's colours, read before maidr paints the body over them. Not
+  // while a chart has it painted: the reader went from one chart to the
+  // next, and the colours on it are maidr's.
+  function notePageColours() {
+    if (!document.body || document.documentElement.classList.contains('maidr-knitr-contrast')) return;
+    var computed = getComputedStyle(document.body);
+    var root = document.documentElement.style;
+    root.setProperty('--maidr-knitr-page-bg', computed.backgroundColor);
+    root.setProperty('--maidr-knitr-page-fg', computed.color);
+    pageInline = bodyColours();
+  }
+
+  function followContrast() {
+    var now = bodyColours();
+    if (!pageInline || (now[0] === pageInline[0] && now[1] === pageInline[1])) {
+      unpaint();
+      return;
+    }
+    var target = paintTarget(document.activeElement);
+    if (!target) {
+      // The page changed its own body, not maidr.
+      unpaint();
+      pageInline = now;
+      return;
+    }
+    if (painted && painted !== target) unpaint();
+    target.style.setProperty('background-color', now[0]);
+    target.style.setProperty('color', now[1]);
+    painted = target;
+    document.documentElement.classList.add('maidr-knitr-contrast');
+  }
+
+  function watchContrast() {
+    if (!document.body || !window.MutationObserver || watchContrast.done) return;
+    watchContrast.done = true;
+    notePageColours();
+    new MutationObserver(followContrast)
+      .observe(document.body, { attributes: true, attributeFilter: ['style'] });
+  }
+
   // --- Host page shortcuts ---------------------------------------------
+
+  // Each host object this script guards is marked, and one marked already
+  // is left alone: by this script, or by a maidr.js that guards the page's
+  // hosts itself, which marks what it guards with __maidrHostGuard (and
+  // this script's mark), so a key is never guarded twice over.
+  function isGuarded(object) {
+    return !!(object.__maidrKnitr || object.__maidrHostGuard);
+  }
+
+  // Such a maidr.js says so in maidrLive.features. reveal.js's search key
+  // below guards no object to mark, and is left to it: it holds the key
+  // off the deck itself, but for a reader who gave the key to one of
+  // maidr's commands.
+  function nativeGuards() {
+    var live = window.maidrLive;
+    return !!(live && live.features && live.features.hostGuards >= 1);
+  }
 
   // reveal.js (rmarkdown revealjs, Quarto revealjs) reads keyboardCondition
   // on every keydown; whatever the deck set is kept. reveal.js 3, which
@@ -270,7 +372,7 @@
   // its dependencies have loaded.
   function shimReveal() {
     var reveal = window.Reveal;
-    if (!reveal || reveal.__maidrKnitr || typeof reveal.configure !== 'function' ||
+    if (!reveal || isGuarded(reveal) || typeof reveal.configure !== 'function' ||
         typeof reveal.getConfig !== 'function') {
       return;
     }
@@ -301,7 +403,7 @@
   // the sidebar, f opens the search).
   function shimMousetrap() {
     var mousetrap = window.Mousetrap;
-    if (!mousetrap || mousetrap.__maidrKnitr) return;
+    if (!mousetrap || isGuarded(mousetrap)) return;
     var host = mousetrap.prototype && typeof mousetrap.prototype.stopCallback === 'function'
       ? mousetrap.prototype : mousetrap;
     var previous = host.stopCallback;
@@ -317,7 +419,7 @@
   // field, through window.quartoOpenSearch, looked up when the key is let go.
   function shimQuartoSearch() {
     var open = window.quartoOpenSearch;
-    if (typeof open !== 'function' || open.__maidrKnitr) return;
+    if (typeof open !== 'function' || isGuarded(open)) return;
     var guarded = function () {
       if (focusInChart()) return;
       return open.apply(this, arguments);
@@ -335,7 +437,7 @@
     var frames = document.querySelectorAll('.sbframelist');
     for (var i = 0; i < frames.length; i++) {
       var sly = Sly.getInstance(frames[i]);
-      if (!sly || !sly.options || sly.options.__maidrKnitr) continue;
+      if (!sly || !sly.options || isGuarded(sly.options)) continue;
       guardSlyOptions(sly.options);
     }
   }
@@ -355,7 +457,7 @@
   // runs before that, so the handler is guarded on the prototype.
   function shimIoslides() {
     var SlideDeck = window.SlideDeck;
-    if (!SlideDeck || !SlideDeck.prototype || SlideDeck.__maidrKnitr ||
+    if (!SlideDeck || !SlideDeck.prototype || isGuarded(SlideDeck) ||
         typeof SlideDeck.prototype.onBodyKeyDown_ !== 'function') {
       return;
     }
@@ -370,16 +472,16 @@
   // slidy leaves alone a key pressed on an element with an onkeydown
   // property of its own.
   function keepFromSlidy(plot) {
-    if (window.w3c_slidy && !plot.onkeydown) {
+    if (window.w3c_slidy && !isGuarded(window.w3c_slidy) && !plot.onkeydown) {
       plot.onkeydown = function () {};
     }
   }
 
   // pkgdown moves the focus to its search box on /, which maidr reads as
-  // "reset speed" on the chart itself. The box cannot take the focus while
-  // it is disabled, for the one task in which pkgdown's handler runs. (A /
-  // typed into one of maidr's fields never reaches pkgdown: see
-  // keepSlashFromPage().)
+  // "reset speed" on the chart itself and in braille mode. The box cannot
+  // take the focus while it is disabled, for the one task in which pkgdown's
+  // handler runs. (A / typed into maidr's other fields never reaches
+  // pkgdown: see keepSlashFromPage().)
   function shimPkgdownSearch(event) {
     if (event.key !== '/') return;
     var search = document.getElementById('search-input');
@@ -388,12 +490,127 @@
     setTimeout(function () { search.disabled = false; }, 0);
   }
 
+  // A bslib card shown full screen (a Quarto dashboard's) leaves it on
+  // Escape pressed anywhere, through a listener on the document that it
+  // keeps on the card's instance. The one for a card around a chart ignores
+  // the keys pressed in the chart, where Escape closes maidr's own modes.
+  // (This file reaches a page as a dependency in its <head>, never as a
+  // cell's output, so Quarto's dashboard filter, which lifts outputs that
+  // hold 'bslib-' out of their cards, never reads it.)
+  function shimCard(card) {
+    var Card = window.bslib && window.bslib.Card;
+    var instance = Card && typeof Card.getInstance === 'function' && Card.getInstance(card);
+    if (!instance || isGuarded(instance) || typeof instance._exitFullScreenOnEscape !== 'function') {
+      return;
+    }
+    instance.__maidrKnitr = true;
+    var previous = instance._exitFullScreenOnEscape;
+    var guarded = function (event) {
+      if (inChart(event.target)) return;
+      return previous.call(instance, event);
+    };
+    if (card.getAttribute('data-full-screen') === 'true') {
+      document.removeEventListener('keydown', previous, false);
+      document.addEventListener('keydown', guarded, false);
+    }
+    instance._exitFullScreenOnEscape = guarded;
+  }
+
+  function shimCards(node) {
+    for (var card = node.closest('.bslib-card'); card;
+      card = card.parentElement && card.parentElement.closest('.bslib-card')) {
+      shimCard(card);
+    }
+  }
+
   function shimHosts() {
     shimIoslides();
     shimReveal();
     shimMousetrap();
     shimQuartoSearch();
     shimSly();
+  }
+
+  // --- A deck's keys -------------------------------------------------------
+
+  // A slide deck: reveal.js (rmarkdown revealjs, Quarto revealjs), ioslides
+  // or slidy.
+  function onDeck() {
+    return !!(window.Reveal || window.SlideDeck || window.w3c_slidy);
+  }
+
+  // On a slide a chart is often the first thing Tab reaches, and Shift+Tab
+  // from it would leave the page for the browser's own controls, where no
+  // key reaches the deck. maidr.js hands the reader to the slide when its
+  // chart is framed; this does the same inline, on a deck, and only when
+  // nothing on the page comes before the chart. On any other page Shift+Tab
+  // is left to the browser.
+  var TABBABLE = 'a[href],area[href],button:not([disabled]),input:not([disabled]),' +
+    'select:not([disabled]),textarea:not([disabled]),iframe,audio[controls],video[controls],' +
+    '[contenteditable]:not([contenteditable="false"]),[tabindex]:not([tabindex^="-"])';
+
+  // A link or a field with a negative tabindex is out of the tab order, as
+  // pandoc's anchors for the lines of a code block are.
+  function reachable(element) {
+    if (parseInt(element.getAttribute('tabindex'), 10) < 0) return false;
+    if (element.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
+    var style = getComputedStyle(element);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  }
+
+  function takeFocus(element) {
+    var added = !element.hasAttribute('tabindex');
+    if (added) element.setAttribute('tabindex', '-1');
+    element.focus();
+    if (document.activeElement === element) return true;
+    if (added) element.removeAttribute('tabindex');
+    return false;
+  }
+
+  function handOff(event) {
+    if (event.key !== 'Tab' || !event.shiftKey || event.altKey || event.ctrlKey ||
+        event.metaKey || event.defaultPrevented || !onDeck()) {
+      return;
+    }
+    var active = document.activeElement;
+    var wrapper = paintTarget(active);
+    if (!wrapper || active.closest('[role="dialog"],[aria-modal="true"]')) return;
+    var stops = document.querySelectorAll(TABBABLE);
+    for (var i = 0; i < stops.length && stops[i] !== active; i++) {
+      if (reachable(stops[i])) return;
+    }
+    event.preventDefault();
+    // From outside the wrapper: maidr mounts a widget in an <article> of its
+    // own, which is no slide.
+    var host = wrapper.parentElement;
+    var slide = host && host.closest('section,article,[role="region"],.slide');
+    var candidates = slide ? [slide] : [];
+    for (var node = host; node; node = node.parentElement) {
+      if (node !== slide) candidates.push(node);
+    }
+    for (var j = 0; j < candidates.length; j++) {
+      if (takeFocus(candidates[j])) return;
+    }
+    active.blur();
+  }
+
+  // reveal.js's search plugin opens on Ctrl+Shift+F (Cmd on a Mac) from a
+  // listener of its own on the document, which keyboardCondition does not
+  // reach. Its test is a capital F with Ctrl or Cmd held, so Ctrl+F with
+  // Caps Lock on opens it too. The key is stopped on the root element as
+  // it bubbles up: after the React handlers inside the page have had it --
+  // among them the recorder that takes a new shortcut in maidr's settings
+  // -- and before the document. maidr.js's own shortcuts listen on the
+  // document too, so the stopped key reaches them no more than the plugin,
+  // and it is stopped only on a deck that has the plugin: anywhere else it
+  // is left to a reader who gave it to one of maidr's commands.
+  function keepSearchShut(event) {
+    if (!(event.ctrlKey || event.metaKey) || event.key !== 'F' || nativeGuards()) return;
+    var reveal = window.Reveal;
+    if (window.RevealSearch ||
+        (reveal && typeof reveal.hasPlugin === 'function' && reveal.hasPlugin('search'))) {
+      event.stopPropagation();
+    }
   }
 
   // --- Quarto cross-reference previews -----------------------------------
@@ -436,9 +653,17 @@
     if (!focusInChart()) return;
     shimHosts();
     shimPkgdownSearch(event);
+    handOff(event);
   }, true);
+  document.documentElement.addEventListener('keydown', function (event) {
+    if (focusInChart()) keepSearchShut(event);
+  }, false);
   document.addEventListener('focusin', function (event) {
     var target = event.target;
+    if (inChart(target)) {
+      notePageColours();
+      shimCards(target);
+    }
     if (target && target.matches && target.matches(PLOT)) describe(target);
     // The page may have zoomed since (a deck resized to its window), and a
     // dialog takes the focus when it is shown.
@@ -450,6 +675,7 @@
     pointAtMathStylesheet();
     bindCharts();
     shimHosts();
+    watchContrast();
     watchPreviews();
     // Hosts that build their page when it is ready (Quarto's search, a
     // storyboard) are built by load, and so is a maidr.js that loaded late.

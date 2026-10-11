@@ -1,6 +1,7 @@
 /* maidr knitr-inline: the charts r-maidr writes inline into a knitted HTML
- * page. Every rule is scoped to the .maidr-knitr wrapper around a chart, or
- * to a dashboard box holding one. */
+ * page. Every rule is scoped to the .maidr-knitr wrapper around a chart, to
+ * a dashboard box holding one, or to the page while a chart's high contrast
+ * is on. */
 
 .maidr-knitr {
   margin: 0 0 1em;
@@ -22,14 +23,20 @@
   height: auto;
 }
 
-/* fig.align; knitr's figures are left-aligned by default. */
+/* fig.align; knitr's figures are left-aligned by default. A Quarto figure
+ * is centred unless fig-align says otherwise, by a text-align that centres
+ * an image, not the chart's block. */
 .maidr-knitr-center > .maidr-knitr-svg,
-.maidr-knitr-center figure[id^="maidr-figure"] > [tabindex] {
+.maidr-knitr-center figure[id^="maidr-figure"] > [tabindex],
+.quarto-figure-center .maidr-knitr > .maidr-knitr-svg,
+.quarto-figure-center .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
   margin-left: auto;
   margin-right: auto;
 }
 .maidr-knitr-right > .maidr-knitr-svg,
-.maidr-knitr-right figure[id^="maidr-figure"] > [tabindex] {
+.maidr-knitr-right figure[id^="maidr-figure"] > [tabindex],
+.quarto-figure-right .maidr-knitr > .maidr-knitr-svg,
+.quarto-figure-right .maidr-knitr figure[id^="maidr-figure"] > [tabindex] {
   margin-left: auto;
 }
 .maidr-knitr-center > .maidr-knitr-caption {
@@ -52,6 +59,16 @@
 .maidr-knitr-row + :not(.maidr-knitr-row),
 .maidr-knitr-row-end {
   clear: both;
+}
+
+/* maidr's braille field is as wide as the reader's braille display, and its
+ * review field 50 characters; in a narrower column, as a phone's, they keep
+ * to the chart's width. maidr's other fields, in its dialogs, are sized by
+ * MUI. */
+.maidr-knitr textarea[id^="maidr-braille-textarea"],
+.maidr-knitr input[id^="maidr-review-input"] {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* A visible focus (WCAG 2.4.7) that survives a page that removes every
@@ -99,6 +116,14 @@
   }
 }
 
+/* High contrast: maidr.js paints the body, which inline is the page's;
+ * knitr-inline.js gives it the page's own colours back, and maidr's to the
+ * chart's wrapper, or to the article maidr mounted a widget in on the page. */
+html.maidr-knitr-contrast body {
+  background-color: var(--maidr-knitr-page-bg) !important;
+  color: var(--maidr-knitr-page-fg) !important;
+}
+
 /* maidr opens its dialogs inside the chart. knitr-inline.js sets, on each
  * chart's wrapper, the zoom that undoes a zoom of the page around it (a
  * slide deck's), and the one that gives their text its own size back when
@@ -113,6 +138,15 @@
   zoom: var(--maidr-knitr-zoom, 1);
   max-width: min(600px, calc((100vw - 64px) / var(--maidr-knitr-zoom, 1)));
   max-height: calc((100vh - 64px) / var(--maidr-knitr-zoom, 1));
+}
+
+/* reveal.js 5, which Quarto's decks use, scales its slides with a transform
+ * rather than a zoom, which makes the slides the box a fixed dialog is
+ * placed in and scales the dialog with them: a dialog as tall as the
+ * window, scaled up, ran off it. It is kept to the box it is placed in as
+ * well. */
+.reveal .maidr-knitr .MuiDialog-paper {
+  max-height: min(calc(100% - 64px), calc((100vh - 64px) / var(--maidr-knitr-zoom, 1)));
 }
 
 /* A reveal.js slide, and the slides around it, set a perspective, which
@@ -132,6 +166,8 @@
  * for the page itself. */
 .maidr-knitr [role="dialog"] {
   text-align: start;
+  font-size: var(--maidr-knitr-rem, 1rem);
+  line-height: 1.5;
 }
 .maidr-knitr [role="dialog"] :is(h1, h2, h3, h4, h5, h6) {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
@@ -154,6 +190,22 @@
   font-size: calc(0.875 * var(--maidr-knitr-rem, 1rem)) !important;
   line-height: 1.57 !important;
   letter-spacing: 0.00714em !important;
+}
+/* The text of maidr's dialogs that has none of MUI's type, a heading among
+ * it, sized as MUI's body text; their captions; and their lists, which a
+ * slide's rules for its own lists would restyle. */
+.maidr-knitr [role="dialog"] :is(h1, h2, h3, h4, h5, h6):not([class*="MuiTypography-"]) {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+}
+.maidr-knitr [role="dialog"] .MuiTypography-caption {
+  font-size: calc(0.75 * var(--maidr-knitr-rem, 1rem)) !important;
+  line-height: 1.66 !important;
+}
+.maidr-knitr [role="dialog"] :is(ul, ol) {
+  display: block !important;
+  margin: 0 !important;
 }
 
 /* Dashboards size their boxes to the window and hide what does not fit:
