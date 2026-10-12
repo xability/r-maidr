@@ -8,7 +8,8 @@ maidr_knitr_dependencies()
 }
 \value{
 A list of htmlDependency objects: the configuration dependencies
-of \code{\link[=maidr_html_dependencies]{maidr_html_dependencies()}}, the bundle, and \code{maidr-knitr}
+of \code{\link[=maidr_html_dependencies]{maidr_html_dependencies()}}, the bundle, \code{maidr-knitr}, and
+\code{maidr-knitr-compat} when the page needs it
 }
 \description{
 A knitted HTML page shows its charts inline (see \code{knitr_inline_chart()})
@@ -29,8 +30,11 @@ as an attachment, so every renderer copies it with the bundle: bookdown
 copies only the files a page references, and left a book's charts with
 no stylesheet for the maths in AI chat responses. A self-contained page
 drops the attachment, and has no URL to resolve it against either.
-\item \code{maidr-knitr} (\code{maidr_knitr_dependency()}) binds the charts and keeps the
-host page's keyboard shortcuts out of them.
+\item \code{maidr-knitr} (\code{maidr_knitr_dependency()}) binds the charts, describes
+them and lays them out.
+\item \code{maidr-knitr-compat} (\code{maidr_knitr_compat_dependency()}) follows, only
+on a page whose maidr.js may be older than 4.15.0 (see
+\code{maidr_knitr_compat_needed()}).
 }
 
 The \code{maidr} dependency of \code{\link[=save_html]{save_html()}}, \code{\link[=show]{show()}} and the widgets is not

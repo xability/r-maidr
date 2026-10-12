@@ -134,6 +134,17 @@
   Shift+Tab out of it, after which the page's keys work again. The focus
   ring stays visible on a page whose CSS removes outlines, and in forced
   colours.
+* From 4.15.0, which this release bundles, maidr.js itself keeps the
+  page's keys off a chart that has the focus, hands Shift+Tab from a chart
+  at the start of a slide to the slide, draws the focus ring, and paints
+  the chart rather than the page for high contrast (see Bug Fixes;
+  xability/maidr#1388, #1390). A knitted page now leaves all of that to
+  it, and carries a copy of its own only where its maidr.js may be older:
+  after a `maidr_htmlwidget(use_cdn = TRUE)` that comes before the page's
+  first chart -- whose maidr.js the page then loads instead of the bundled
+  one -- when `maidr.cdn_version` or `MAIDR_CDN_VERSION` names a release
+  before 4.15.0, or `"latest"`, which the CDN may answer with an older
+  release for up to a week.
 
 ### lattice
 
