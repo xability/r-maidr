@@ -4,9 +4,10 @@
 #' how the pointer moves the reader's position in the chart, and with it the
 #' highlight, sound and announcement. It is the chart's starting value for
 #' the reader's Hover Mode setting, not a lock on it: a reader who has
-#' changed that setting keeps theirs. It is read by the maidr.js releases
-#' after 4.14.0 (xability/maidr#1382); older ones, the 4.14.0 bundled with
-#' this package among them, ignore it, so writing it is always safe.
+#' changed that setting keeps theirs. It is read by maidr.js 4.15.0 and
+#' later (xability/maidr#1382), the version bundled with this package; an
+#' older one, which `maidr.cdn_version` can pin, ignores it, so writing it
+#' is always safe.
 #'
 #' Set per chart by `hover_mode` in [show()], [save_html()],
 #' [maidr_htmlwidget()] and [render_maidr()], and for every chart that does

@@ -104,11 +104,10 @@ x values rather than the y, so neither the picture nor the reading is a
 band. A width series stacks on a negative lower edge only under
 \code{stackStrategy = "all"}.
 
-The option is read by maidr.js 4.15.0 and later. The copy bundled with
-this version of the package is older, so with \code{use_cdn = FALSE}, or a
-\code{maidr.cdn_version} pinned below 4.15.0, \code{percentile_bands} is checked
-and then ignored with a warning, and the series read as they would be
-without it.
+The option is read by maidr.js 4.15.0 and later, the version bundled with
+this package. With \code{use_cdn = TRUE} and a \code{maidr.cdn_version} pinned below
+4.15.0, \code{percentile_bands} is checked and then ignored with a warning, and
+the series read as they would be without it.
 }
 
 \examples{

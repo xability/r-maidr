@@ -366,9 +366,9 @@
   `lower` below 0.5 and every `upper` above it, the bands nested -- and a
   series name the chart does not have is a warning. It is passed to the
   ECharts adapter's `percentileBands` option, which maidr.js reads from
-  4.15.0; the maidr.js bundled with this release is 4.14.0, so the option
-  takes effect with `use_cdn = TRUE` and is otherwise checked, then ignored
-  with a warning, until the bundle is raised. Draw the fan over a category
+  4.15.0, the version bundled with this release. A widget with
+  `use_cdn = TRUE` whose `maidr.cdn_version` pins an older maidr.js has the
+  option checked, then ignored with a warning. Draw the fan over a category
   x axis: over a numeric one ECharts stacks the series on the x values, and
   draws no band.
 * `maidr_htmlwidget()` takes `hover_mode`, which it hands to a highcharter
@@ -391,9 +391,8 @@
 * `options(maidr.hover_mode = )` sets it for every chart that sets none,
   the charts of an R Markdown or Quarto document and those printed at the
   console included.
-* maidr.js reads it from the release after 4.14.0. The 4.14.0 bundled with
-  this release ignores it, as every older maidr.js does, so it takes effect
-  with `use_cdn = TRUE` until the bundle is raised.
+* maidr.js reads it from 4.15.0, the version bundled with this release.
+  An older maidr.js, which `maidr.cdn_version` can pin, ignores it.
 
 ## Performance
 
@@ -439,8 +438,9 @@
   root's size (1.6 on a 10px root), whatever size maidr.js had given their
   text and whatever the reader's default, so a maidr.js that sizes its
   dialogs for such a page itself would have shown 22.4px body text under a
-  20px title. With the bundled maidr.js 4.13.0 their body text is still
-  14px under a 20px title at a browser's default font size (#354).
+  20px title. With the bundled maidr.js 4.15.0, which sizes its dialogs
+  for such a page itself (xability/maidr#1360), their body text is 14px
+  under a 20px title at a browser's default font size (#354).
 * High contrast, turned on in a chart a knitted page shows inline (new in
   this version, above), paints the chart, as it painted the chart's frame,
   and leaves the page around it in its own colours. maidr.js paints the
@@ -499,12 +499,12 @@
   the chart in the margin, and no longer its code with it (#369).
 * Such a chart with `fig.alt` or a caption keeps the description maidr.js
   gives it. The page described the chart by its alt text and caption alone,
-  in place of whatever maidr.js had described it by. From the maidr.js
-  release after 4.14.0, which describes every chart by its keyboard
-  instructions before the reader enters it (xability/maidr#1384), that
-  would have kept the instructions from a reader until they entered the
-  chart. The alt text and caption are still read first, then maidr's
-  instructions. With the bundled 4.14.0 nothing changes (#370).
+  in place of whatever maidr.js had described it by. From maidr.js 4.15.0,
+  the version bundled with this release, which describes every chart by
+  its keyboard instructions before the reader enters it
+  (xability/maidr#1384), that would have kept the instructions from a
+  reader until they entered the chart. The alt text and caption are still
+  read first, then maidr's instructions (#370).
 * Such a chart is shown at the size of the figure it stands for, as knitr
   shows the chunk's figure: `fig.width` times `dpi` over `fig.retina`
   pixels wide, which is 96 pixels to the inch in R Markdown's and Quarto's

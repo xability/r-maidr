@@ -140,9 +140,10 @@
 #'   who has changed that setting keeps theirs. \code{NULL} (the default)
 #'   takes \code{getOption("maidr.hover_mode")}, and when that is unset
 #'   writes nothing, so maidr.js uses the reader's setting, whose default is
-#'   \code{"pointermove"}. Read by the maidr.js releases after 4.14.0; the
-#'   4.14.0 bundled with this package ignores it, so it takes effect with
-#'   \code{use_cdn = TRUE}. See \code{?"maidr-options"}.
+#'   \code{"pointermove"}. Read by maidr.js 4.15.0 and later, the version
+#'   bundled with this package; an older one, which
+#'   \code{maidr.cdn_version} can pin, ignores it. See
+#'   \code{?"maidr-options"}.
 #' @param ... Additional arguments passed to internal functions
 #' @return Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
 #' @examples

@@ -103,8 +103,8 @@ visual highlight is off; audio, text and braille are not affected.
 An echarts4r fan chart -- a median line with bands drawn as stacked areas --
 is read as a percentile band once `percentile_bands` names its series and the
 quantiles of each band's edges. The option needs maidr.js 4.15.0 or later,
-which `use_cdn = TRUE` loads; with the bundled 4.14.0 it is ignored with a
-warning. See `?maidr_htmlwidget`.
+the version bundled with this package; with an older one pinned by
+`maidr.cdn_version` it is ignored with a warning. See `?maidr_htmlwidget`.
 
 ``` r
 fan |>
@@ -212,9 +212,8 @@ options(maidr.hover_mode = "click")
 ```
 
 Left unset, nothing is written and the reader's setting decides. maidr.js
-reads it from the release after 4.14.0; the 4.14.0 bundled with this
-package ignores it, so it takes effect with `use_cdn = TRUE` until the
-bundle is raised.
+reads it from 4.15.0, the version bundled with this package; an older one,
+which `maidr.cdn_version` can pin, ignores it.
 
 ### R Markdown and Quarto
 
