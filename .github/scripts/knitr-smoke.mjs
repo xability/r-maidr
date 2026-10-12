@@ -76,6 +76,14 @@
 //     Space, the deck's keys for the next slide, which the slide after it
 //     gives somewhere to go, reach the chart and leave the deck alone while
 //     the chart has the focus, and move the deck once it has gone;
+//   * on an ioslides and a slidy deck, `older-ioslides.html` and
+//     `older-slidy.html`, whose maidr.js is 4.14.0, from the CDN, which
+//     guards none of the deck's keys, the page carries the copies, and
+//     Right Arrow, Space and Page Down pressed in a chart are the chart's
+//     and leave the deck on its slide; Shift+Tab from the chart, which
+//     nothing on its slide comes before, hands the reader to the slide
+//     rather than to the widget on the slide before, which is not shown,
+//     and Right Arrow then moves the deck;
 //   * on a Bootstrap 5 page, `bs5.html`, which makes a figure an inline
 //     block, a captioned chart given out.width = "50%" and fig.align =
 //     "right" is half the column wide and stands at its right, as knitr's
@@ -1118,6 +1126,88 @@ check(
 );
 check(ioErrors.length === 0, `no page errors on the slides${ioErrors.length ? ': ' + ioErrors.join(' | ') : ''}`);
 await io.close();
+
+// A deck whose maidr.js is 4.14.0, from the CDN, which guards none of the
+// deck's keys: a widget that loads it on the first slide, the chart on the
+// second and a slide after it. The page's copies (knitr-compat.js) keep
+// the deck's keys for the next slide in the chart while it has the focus,
+// and hand Shift+Tab from it to its slide, from which Right Arrow moves the
+// deck again -- not to the widget on the slide before, which is not shown.
+const olderDeck = async (name, kind, hash) => {
+  const deckPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const deckErrors = [];
+  deckPage.on('pageerror', error => deckErrors.push(String(error)));
+  await deckPage.goto('file://' + path.resolve(dir, name) + hash, { waitUntil: 'load' });
+  await deckPage.waitForFunction(
+    plotOf => document.querySelector(`.maidr-knitr ${plotOf}`),
+    plotOf,
+    { timeout: 15000 },
+  ).catch(() => {});
+  await deckPage.waitForTimeout(settle * 2);
+  const at = () => deckPage.evaluate(kind => {
+    const slides = kind === 'ioslides'
+      ? Array.from(document.querySelectorAll('slides > slide'))
+      : Array.from(document.querySelectorAll('div.slide'));
+    const current = kind === 'ioslides'
+      ? document.querySelector('slide.current')
+      : slides[window.w3c_slidy ? window.w3c_slidy.slide_number : -1];
+    const active = document.activeElement;
+    const text = document.querySelector('.maidr-knitr [id^="maidr-text-container"]');
+    return {
+      slide: slides.indexOf(current),
+      chart: slides.findIndex(slide => slide.querySelector('.maidr-knitr')),
+      inChart: Boolean(active && active.closest('.maidr-knitr')),
+      onSlide: Boolean(current && active && active !== document.body && current.contains(active)),
+      text: text ? text.textContent.trim().slice(0, 40) : null,
+    };
+  }, kind);
+  const runtime = await deckPage.evaluate(() => ({
+    guards: Boolean(window.maidrLive && window.maidrLive.features && window.maidrLive.features.hostGuards >= 1),
+    compat: Boolean(window.__maidrKnitrCompat),
+  }));
+  check(
+    !runtime.guards && runtime.compat,
+    `${name}: an older maidr.js, and the page's copies of what it lacks (${JSON.stringify(runtime)})`,
+  );
+  const deck = { load: await at() };
+  await deckPage.evaluate(plotOf => {
+    const plot = document.querySelector(`.maidr-knitr ${plotOf}`);
+    if (plot) {
+      plot.focus();
+    }
+  }, plotOf);
+  await deckPage.waitForTimeout(settle);
+  deck.focus = await at();
+  for (const key of ['ArrowRight', 'Space', 'PageDown']) {
+    await deckPage.keyboard.press(key);
+    await deckPage.waitForTimeout(settle * 2);
+    deck[key] = await at();
+  }
+  await deckPage.keyboard.press('Shift+Tab');
+  await deckPage.waitForTimeout(settle);
+  deck.back = await at();
+  await deckPage.keyboard.press('ArrowRight');
+  await deckPage.waitForTimeout(settle * 2);
+  deck.away = await at();
+  const report = JSON.stringify(deck);
+  check(
+    deck.load.chart >= 0 && deck.load.slide === deck.load.chart && deck.focus.inChart
+      && ['ArrowRight', 'Space', 'PageDown'].every(key => deck[key].slide === deck.load.chart && deck[key].inChart)
+      && /od\d/.test(deck.ArrowRight.text || ''),
+    `${name}: Right Arrow, Space and Page Down in a chart are the chart's, and leave the ${kind} deck where it is`
+      + ` (${report})`,
+  );
+  check(
+    !deck.back.inChart && deck.back.onSlide && deck.back.slide === deck.load.chart
+      && !deck.away.inChart && deck.away.slide === deck.load.chart + 1,
+    `${name}: Shift+Tab from a chart nothing on its slide comes before hands the reader to the slide,`
+      + ` from which Right Arrow moves the ${kind} deck (${report})`,
+  );
+  check(deckErrors.length === 0, `${name}: no page errors${deckErrors.length ? ': ' + deckErrors.join(' | ') : ''}`);
+  await deckPage.close();
+};
+await olderDeck('older-ioslides.html', 'ioslides', '#3');
+await olderDeck('older-slidy.html', 'slidy', '#(3)');
 
 // A Bootstrap 5 page: a captioned chart given out.width and aligned right.
 const bs5 = await browser.newPage({ viewport: { width: 1200, height: 900 } });

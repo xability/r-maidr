@@ -48,8 +48,14 @@
 # x 4.5 in below a point on a slide, larger than the slide leaves room for
 # with maidr's text below it, and a slide after it, which the deck's Right
 # Arrow and Space would move to from the chart if nothing held them. A
-# sixth, `bs5.html`, is a Bootstrap 5 page with a captioned chart given
-# `out.width = "50%"` and `fig.align = "right"`.
+# sixth and a seventh, `older-ioslides.html` and `older-slidy.html`, are an
+# ioslides and a slidy deck whose maidr.js is 4.14.0 from the CDN, loaded
+# by a widget on the first slide, with a chart on the second and a slide
+# after it: maidr.js guards none of the deck's keys, and the page's copies
+# (knitr-compat.js) keep them from the chart and hand Shift+Tab from it to
+# its slide. Both are self-contained, so rendering them fetches that
+# maidr.js too. An eighth, `bs5.html`, is a Bootstrap 5 page with a
+# captioned chart given `out.width = "50%"` and `fig.align = "right"`.
 #
 # Every chart's values are its own, so an announcement names the chart it
 # came from. The page sets its paragraphs in a size of its own, as an author
@@ -255,6 +261,50 @@ writeLines(c(
 ), slides)
 
 rmarkdown::render(slides, output_file = "slides.html", quiet = TRUE, envir = new.env())
+
+# A deck whose maidr.js is 4.14.0, from the CDN: the widget that loads it
+# on the first slide, before the chart's, and a slide after the chart's.
+# The page carries knitr-compat.js, whose guards keep the deck's keys from
+# the chart and hand Shift+Tab from it to its slide.
+older_deck <- function(name, format) {
+  rmd <- file.path(out, paste0(name, ".Rmd"))
+  writeLines(c(
+    "---",
+    "title: \"maidr knitr smoke, an older maidr.js on slides\"",
+    sprintf("output: %s", format),
+    "---",
+    "",
+    "```{r setup, include = FALSE}",
+    "library(maidr)",
+    "library(ggplot2)",
+    "options(maidr.cdn_version = \"4.14.0\")",
+    "```",
+    "",
+    "## A widget",
+    "",
+    "```{r widget, echo = FALSE}",
+    "maidr_htmlwidget(plotly::plot_ly(",
+    "  x = c(\"dw1\", \"dw2\"), y = c(171, 172), type = \"bar\", height = 300",
+    "), use_cdn = TRUE)",
+    "```",
+    "",
+    "## A chart",
+    "",
+    "```{r chart, echo = FALSE, fig.width = 5, fig.height = 3}",
+    "deck <- data.frame(kind = c(\"od1\", \"od2\", \"od3\"), n = c(181, 182, 183))",
+    "ggplot(deck, aes(kind, n)) + geom_col()",
+    "```",
+    "",
+    "## The slide after the chart",
+    "",
+    "- A point after the chart"
+  ), rmd)
+  on.exit(options(maidr.cdn_version = NULL), add = TRUE)
+  rmarkdown::render(rmd, output_file = paste0(name, ".html"), quiet = TRUE, envir = new.env())
+}
+
+older_deck("older-ioslides", "ioslides_presentation")
+older_deck("older-slidy", "slidy_presentation")
 
 bs5 <- file.path(out, "bs5.Rmd")
 writeLines(c(
