@@ -438,17 +438,18 @@
   root's size (1.6 on a 10px root), whatever size maidr.js had given their
   text and whatever the reader's default, so a maidr.js that sizes its
   dialogs for such a page itself would have shown 22.4px body text under a
-  20px title. With the bundled maidr.js 4.15.0, which sizes its dialogs
-  for such a page itself (xability/maidr#1360), their body text is 14px
-  under a 20px title at a browser's default font size (#354).
+  20px title. maidr.js sizes its dialogs for such a page itself from 4.14.0
+  (xability/maidr#1360): with the bundled maidr.js 4.15.0, their body text
+  is 14px under a 20px title at a browser's default font size (#354).
 * High contrast, turned on in a chart a knitted page shows inline (new in
   this version, above), paints the chart, as it painted the chart's frame,
-  and leaves the page around it in its own colours. maidr.js paints the
-  page's body for high contrast, which inline is the whole page, so the
-  whole page turned black. A chart made with `maidr_htmlwidget()` on such a
+  and leaves the page around it in its own colours. maidr.js before 4.15.0
+  painted the page's body for high contrast, which inline is the whole page,
+  so the whole page turned black; the bundled 4.15.0 paints the chart itself
+  (xability/maidr#1388). A chart made with `maidr_htmlwidget()` on such a
   page, which maidr binds in the page itself, is painted in place of the
-  page as well, and the page keeps its colours when the reader tabs from
-  one kind of chart to the other (#368).
+  page as well, and the page keeps its colours when the reader tabs from one
+  kind of chart to the other (#368).
 * Escape pressed in such a chart in a card of a Quarto dashboard shown full
   screen closes maidr's own modes, its help and its braille and review
   modes among them, and leaves the card full screen. The card listens for
