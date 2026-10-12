@@ -38,7 +38,12 @@
 # 4.14.0: the page's only maidr.js, older than the 4.15.0 that draws a
 # chart's focus ring and paints it for high contrast itself, so the page
 # carries knitr-compat.js and knitr-compat.css, which do. It is
-# self-contained too, so rendering it fetches that maidr.js. A fourth,
+# self-contained too, so rendering it fetches that maidr.js. `latest.html`
+# is the same page pinned to `latest`, which may be an older release, so it
+# carries the copies too; it is not self-contained, and `knitr-smoke.mjs`
+# answers its request for maidr.js@latest with the bundled maidr.js, so that
+# the copies meet a maidr.js that guards the page itself, as they will once
+# `latest` is that release, and must stand down for it. A fourth,
 # `slides.html`, is an ioslides presentation with a chart at its 7.5 x 4.5
 # in below a point on a slide, larger than the slide leaves room for with
 # maidr's text below it, and a slide after it, which the deck's Right Arrow
@@ -176,15 +181,16 @@ writeLines(c(
 rmarkdown::render(rmd, output_file = "charts.html", quiet = TRUE, envir = new.env())
 
 # A widget, then an inline chart; the widget's maidr.js from the CDN at
-# `pin`, or the bundled one when `pin` is NULL.
-widget_page <- function(name, title, pin = NULL) {
+# `pin`, or the bundled one when `pin` is NULL. A page that is not
+# self-contained loads its maidr.js from the CDN when it is opened.
+widget_page <- function(name, title, pin = NULL, self_contained = TRUE) {
   rmd <- file.path(out, paste0(name, ".Rmd"))
   writeLines(c(
     "---",
     sprintf("title: \"%s\"", title),
     "output:",
     "  html_document:",
-    "    self_contained: true",
+    sprintf("    self_contained: %s", tolower(self_contained)),
     "---",
     "",
     "```{r setup, include = FALSE}",
@@ -216,6 +222,10 @@ widget_page <- function(name, title, pin = NULL) {
 
 widget_page("mixed", "maidr knitr smoke, widget and inline chart")
 widget_page("older", "maidr knitr smoke, an older maidr.js", pin = "4.14.0")
+widget_page(
+  "latest", "maidr knitr smoke, maidr.js at latest",
+  pin = "latest", self_contained = FALSE
+)
 
 slides <- file.path(out, "slides.Rmd")
 writeLines(c(

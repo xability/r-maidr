@@ -168,7 +168,8 @@ jobs:
       # a chunk and one in a hidden tab, and uses each from the keyboard,
       # and a second page with a 'plotly' widget before an inline chart, and
       # a third whose widget loads maidr.js 4.14.0 from the CDN, which the
-      # render fetches to embed it.
+      # render fetches to embed it, and a fourth pinned to `latest`, whose
+      # request for maidr.js the browser check answers with the bundled one.
       - name: Render an R Markdown page of inline charts
         run: Rscript .github/scripts/knitr-smoke.R knitr
 

@@ -59,6 +59,11 @@
 //     than the page nor draws its ring itself, all of that holds as well:
 //     the page carries copies of both (knitr-compat.js and .css), which
 //     stand in for that maidr.js only;
+//   * on a fourth, `latest.html`, pinned to `latest`, which may be older,
+//     the page carries the copies too, but its maidr.js -- the bundled one,
+//     served here for maidr.js@latest -- guards the page and rings its
+//     charts itself, and the copies stand down for it: the page is not
+//     marked for them, and all of the above holds as on `mixed.html`;
 //   * on an ioslides slide, `slides.html`, which cuts off what runs past its
 //     foot, a chart too large to leave room below it for maidr's text is
 //     made smaller: maidr's instructions, text and braille and review fields
@@ -82,8 +87,9 @@
 // names an executable to use instead of the one Playwright installed.
 
 import { chromium } from 'playwright';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const dir = process.argv[2];
 if (!dir) {
@@ -91,6 +97,12 @@ if (!dir) {
   process.exit(2);
 }
 const file = path.resolve(dir, 'charts.html');
+
+// The maidr.js this package bundles, which `latest.html` is given for the
+// maidr.js@latest it asks the CDN for.
+const bundledLib = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../inst/htmlwidgets/lib');
+const bundledDir = path.join(bundledLib, readdirSync(bundledLib).find(entry => /^maidr-\d/.test(entry)));
+const bundledVersion = path.basename(bundledDir).replace(/^maidr-/, '');
 const html = readFileSync(file, 'utf8');
 
 // The charts of knitr-smoke.R, in the order it draws them, and the first
@@ -783,12 +795,22 @@ await phone.close();
 // painted in turn, and the page never is. On `mixed.html` the page's
 // maidr.js is the bundled one, which does that itself; on `older.html` it
 // is 4.14.0, from the CDN, and the page's copies (knitr-compat.js) do it,
-// and draw the chart's focus ring, for it alone.
-const widgetPage = async (name, older) => {
+// and draw the chart's focus ring, for it alone. On `latest.html` the page
+// carries the copies, and its maidr.js is the bundled one, which they stand
+// down for.
+const widgetPage = async (name, kind) => {
   const widget = await browser.newPage({ viewport: { width: 1200, height: 900 } });
   const widgetErrors = [];
   widget.on('pageerror', error => widgetErrors.push(String(error)));
   await widget.addInitScript(coloursScript);
+  if (kind === 'latest') {
+    await widget.route('https://cdn.jsdelivr.net/npm/maidr@latest/dist/**', route => {
+      const local = path.join(bundledDir, new URL(route.request().url()).pathname.replace(/^.*\/dist\//, ''));
+      return existsSync(local) && local.startsWith(bundledDir + path.sep)
+        ? route.fulfill({ path: local })
+        : route.fulfill({ status: 404, body: '' });
+    });
+  }
   await widget.goto('file://' + path.resolve(dir, name), { waitUntil: 'load' });
   await widget.waitForFunction(
     () => document.querySelectorAll('article[id^="maidr-article-"]').length === 2,
@@ -802,14 +824,21 @@ const widgetPage = async (name, older) => {
     compat: Boolean(window.__maidrKnitrCompat),
     marked: document.documentElement.classList.contains('maidr-knitr-compat'),
   }));
-  check(
-    older
-      ? !runtime.guards && runtime.compat && runtime.marked
-      : runtime.guards && !runtime.compat && !runtime.marked,
-    older
-      ? `${name}: an older maidr.js, and the page's copies of what it lacks (${JSON.stringify(runtime)})`
-      : `${name}: the bundled maidr.js, and no copy of what it does itself (${JSON.stringify(runtime)})`,
-  );
+  const expected = {
+    bundled: [
+      runtime.guards && !runtime.compat && !runtime.marked,
+      'the bundled maidr.js, and no copy of what it does itself',
+    ],
+    older: [
+      !runtime.guards && runtime.compat && runtime.marked,
+      'an older maidr.js, and the page\'s copies of what it lacks',
+    ],
+    latest: [
+      runtime.version === bundledVersion && runtime.guards && runtime.compat && !runtime.marked,
+      `maidr.js ${bundledVersion} for latest, which the page's copies stand down for`,
+    ],
+  }[kind];
+  check(expected[0], `${name}: ${expected[1]} (${JSON.stringify(runtime)})`);
   const mounted = await widget.evaluate(plotOf => ({
     widget: Boolean(document.querySelector(`.html-widget ${plotOf}`)),
     inline: Boolean(document.querySelector(`.maidr-knitr ${plotOf}`)),
@@ -859,8 +888,9 @@ const widgetPage = async (name, older) => {
   );
   await widget.close();
 };
-await widgetPage('mixed.html', false);
-await widgetPage('older.html', true);
+await widgetPage('mixed.html', 'bundled');
+await widgetPage('older.html', 'older');
+await widgetPage('latest.html', 'latest');
 
 // An ioslides slide: a 7.5 x 4.5 in chart below a point.
 const io = await browser.newPage({ viewport: { width: 1280, height: 800 } });
