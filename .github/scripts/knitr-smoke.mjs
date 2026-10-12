@@ -62,8 +62,12 @@
 //   * on a fourth, `latest.html`, pinned to `latest`, which may be older,
 //     the page carries the copies too, but its maidr.js -- the bundled one,
 //     served here for maidr.js@latest -- guards the page and rings its
-//     charts itself, and the copies stand down for it: the page is not
-//     marked for them, and all of the above holds as on `mixed.html`;
+//     charts itself, and the copies stand down for it: all of the above
+//     holds as on `mixed.html`, the page is not marked for the copied focus
+//     ring, and, given hosts to guard, pkgdown's search box, reveal.js's
+//     search plugin and a body painted as maidr.js before 4.15.0 paints it,
+//     with the keys they act on pressed in the chart, knitr-compat.js
+//     guards no host, paints no chart and does nothing else on the page;
 //   * on an ioslides slide, `slides.html`, which cuts off what runs past its
 //     foot, a chart too large to leave room below it for maidr's text is
 //     made smaller: maidr's instructions, text and braille and review fields
@@ -798,12 +802,111 @@ await phone.close();
 // and draw the chart's focus ring, for it alone. On `latest.html` the page
 // carries the copies, and its maidr.js is the bundled one, which they stand
 // down for.
+// What knitr-compat.js does on a page, told by the stack of each call made
+// from it: the page's other scripts, maidr.js among them, which does the
+// same things for itself from 4.15.0, are not counted. Listeners it adds to
+// the window, the document and its root element at start-up, which do
+// nothing until a chart has the focus, are not counted either.
+const compatProbe = () => {
+  Error.stackTraceLimit = 50;
+  const acts = [];
+  window.__maidrSmokeCompatActs = acts;
+  const fromCompat = () => /knitr-compat\.js/.test(new Error().stack || '');
+  const watch = (proto, name, counts = () => true) => {
+    const original = proto[name];
+    proto[name] = function (...args) {
+      const result = original.apply(this, args);
+      if (counts.call(this, result) && fromCompat()) {
+        acts.push(name);
+      }
+      return result;
+    };
+  };
+  watch(CSSStyleDeclaration.prototype, 'setProperty');
+  watch(DOMTokenList.prototype, 'add');
+  watch(DOMTokenList.prototype, 'toggle', result => result === true);
+  watch(MutationObserver.prototype, 'observe');
+  watch(Event.prototype, 'preventDefault');
+  watch(Event.prototype, 'stopPropagation');
+  watch(HTMLElement.prototype, 'focus');
+  watch(HTMLElement.prototype, 'blur');
+  watch(Element.prototype, 'setAttribute');
+  watch(EventTarget.prototype, 'addEventListener', function () {
+    return this instanceof Element && this !== document.documentElement;
+  });
+  const disabled = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'disabled');
+  Object.defineProperty(HTMLInputElement.prototype, 'disabled', {
+    ...disabled,
+    set(value) {
+      disabled.set.call(this, value);
+      if (value && fromCompat()) {
+        acts.push('disabled');
+      }
+    },
+  });
+};
+
+// On `latest.html`, whose maidr.js guards the page itself, the page's copies
+// are given everything they act on while a chart has the focus -- the hosts
+// whose keys they guard, pkgdown's search box, reveal.js's search plugin,
+// and a body painted as maidr.js before 4.15.0 paints it for high contrast
+// -- and the keys each acts on are pressed in the chart. A copy that stands
+// down leaves all of it to maidr.js: it guards no host, paints no chart and
+// does nothing else on the page.
+const standDown = async (widget, name) => {
+  await widget.locator(`.maidr-knitr ${plotOf}`).focus();
+  await widget.waitForTimeout(settle);
+  await widget.evaluate(() => {
+    const deck = function SlideDeck() {};
+    deck.prototype.onBodyKeyDown_ = function () {};
+    Object.assign(window, {
+      SlideDeck: deck,
+      Reveal: { configure() {}, getConfig: () => ({}), isReady: () => true },
+      RevealSearch: {},
+      Mousetrap: { stopCallback: () => false },
+      quartoOpenSearch() {},
+    });
+    const search = document.createElement('input');
+    search.id = 'search-input';
+    document.body.append(search);
+    document.body.style.setProperty('background-color', 'rgb(0, 0, 0)');
+    document.body.style.setProperty('color', 'rgb(255, 255, 255)');
+  });
+  await widget.waitForTimeout(settle);
+  const inChart = [];
+  for (const key of ['ArrowRight', '/', 'Control+Shift+F']) {
+    inChart.push(await widget.evaluate(() => Boolean(document.activeElement.closest('.maidr-knitr'))));
+    await widget.keyboard.press(key);
+    await widget.waitForTimeout(settle);
+  }
+  const stood = await widget.evaluate(() => ({
+    acts: [...new Set(window.__maidrSmokeCompatActs)],
+    hosts: ['SlideDeck', 'Reveal', 'Mousetrap', 'quartoOpenSearch']
+      .filter(host => window[host].__maidrKnitr && !window[host].__maidrHostGuard),
+    chart: document.querySelector('.maidr-knitr').style.backgroundColor,
+    contrast: document.documentElement.classList.contains('maidr-knitr-contrast'),
+    pageColours: document.documentElement.style.getPropertyValue('--maidr-knitr-page-bg'),
+  }));
+  const report = JSON.stringify({ inChart, ...stood });
+  check(
+    inChart.every(Boolean) && !stood.chart && !stood.contrast && !stood.pageColours,
+    `${name}: a body painted as maidr.js before 4.15.0 paints it is left to it: the page's copy of high contrast`
+      + ` paints no chart and notes no page colours (${report})`,
+  );
+  check(
+    inChart.every(Boolean) && stood.hosts.length === 0 && stood.acts.length === 0,
+    `${name}: the page's copied host guards leave its decks, books, sites and pkgdown's search to maidr.js,`
+      + ` and nothing else of knitr-compat.js acts (${report})`,
+  );
+};
+
 const widgetPage = async (name, kind) => {
   const widget = await browser.newPage({ viewport: { width: 1200, height: 900 } });
   const widgetErrors = [];
   widget.on('pageerror', error => widgetErrors.push(String(error)));
   await widget.addInitScript(coloursScript);
   if (kind === 'latest') {
+    await widget.addInitScript(compatProbe);
     await widget.route('https://cdn.jsdelivr.net/npm/maidr@latest/dist/**', route => {
       const local = path.join(bundledDir, new URL(route.request().url()).pathname.replace(/^.*\/dist\//, ''));
       return existsSync(local) && local.startsWith(bundledDir + path.sep)
@@ -883,6 +986,9 @@ const widgetPage = async (name, kind) => {
       sameColours(widgetOff.body, inlinePlain.body) && widgetOff.backdrop === inlinePlain.backdrop,
       `${name}: high contrast turned off leaves nothing painted (page ${widgetOff.body.join(' on ')}; chart ${widgetOff.backdrop})`,
     );
+    if (kind === 'latest') {
+      await standDown(widget, name);
+    }
   }
   check(
     widgetErrors.length === 0,
