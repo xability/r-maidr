@@ -368,6 +368,19 @@ test_that("percentile_bands is checked, then ignored with a warning, on an older
   })
 })
 
+test_that("the warning for an older CDN maidr.js points at the bundled one", {
+  local_mocked_bindings(maidr_cdn_version = function() "4.14.0", .package = "maidr")
+  expect_warning(
+    w <- maidr_htmlwidget(stub_widget("echarts4r"), use_cdn = TRUE, percentile_bands = one_fan()),
+    "this widget loads 4.14.0; .*`use_cdn = FALSE` for the bundled maidr.js, or a `maidr.cdn_version` of 4.15.0 or later"
+  )
+  expect_null(w$jsHooks$render[[1]]$data$options)
+
+  # The bundled copy reads the option: no warning without the CDN.
+  expect_no_warning(w <- maidr_htmlwidget(stub_widget("echarts4r"), percentile_bands = one_fan()))
+  expect_false(is.null(w$jsHooks$render[[1]]$data$options$percentileBands))
+})
+
 test_that("the option goes through from the maidr.js release that reads it", {
   local_mocked_bindings(maidr_cdn_version = function() "4.14.0", .package = "maidr")
   expect_false(maidr:::echarts_percentile_bands_available(use_cdn = TRUE))

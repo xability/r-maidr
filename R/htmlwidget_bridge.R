@@ -165,8 +165,9 @@ maidr_htmlwidget <- function(widget, use_cdn = FALSE, percentile_bands = NULL,
         "`percentile_bands` needs maidr.js ", ECHARTS_PERCENTILE_BANDS_VERSION,
         " or later, and this widget loads ",
         maidr_widget_version(use_cdn), "; it is ignored, and the series are ",
-        "read as they would be without it. Use `use_cdn = TRUE` to load the ",
-        "latest maidr.js.",
+        "read as they would be without it. Use `use_cdn = FALSE` for the ",
+        "bundled maidr.js, or a `maidr.cdn_version` of ",
+        ECHARTS_PERCENTILE_BANDS_VERSION, " or later.",
         call. = FALSE
       )
     }
