@@ -139,7 +139,6 @@ fan |>
          lineStyle = list(opacity = 0)) |>
   e_area(width, stack = "band", name = "90\% interval", symbol = "none") |>
   maidr_htmlwidget(
-    use_cdn = TRUE,
     percentile_bands = list(
       median = "Median",
       bands = data.frame(series = "90\% interval", lower = 0.05, upper = 0.95)
