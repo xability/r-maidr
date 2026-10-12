@@ -72,6 +72,7 @@ bar_chart_svg <- function(title = NULL) {
 # ==============================================================================
 
 test_that("the knitr page loads maidr.js deferred, with its maths stylesheet declared", {
+  local_empty_knit_meta()
   deps <- maidr:::maidr_knitr_dependencies()
   names <- vapply(deps, function(dep) dep$name, character(1))
   testthat::expect_identical(utils::tail(names, 2L), c("maidr", "maidr-knitr"))
@@ -116,6 +117,7 @@ test_that("the knitr page script and stylesheet are installed, and named apart f
 })
 
 test_that("a page carries copies of maidr.js's page guards only for a maidr.js without them", {
+  local_empty_knit_meta()
   needed <- maidr:::maidr_knitr_compat_needed
   bundled <- Filter(function(dep) dep$name == "maidr", maidr:::maidr_knitr_dependencies())[[1]]
   cdn <- function(version) {

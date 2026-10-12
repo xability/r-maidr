@@ -150,3 +150,23 @@ maidr_loader <- function() {
     "library(maidr)"
   }
 }
+
+#' Empty knitr's document metadata for a test, and put it back after
+#'
+#' maidr_knitr_dependencies() reads what the knit so far has declared for
+#' the page (knitr::knit_meta()), and a knit an earlier test ran, or left
+#' unfinished, can leave a widget's maidr.js there.
+local_empty_knit_meta <- function(env = parent.frame()) {
+  saved <- knitr::knit_meta(clean = TRUE)
+  ids <- attr(saved, "knit_meta_id")
+  withr::defer(
+    {
+      knitr::knit_meta(clean = TRUE)
+      for (i in seq_along(saved)) {
+        knitr::knit_meta_add(saved[i], if (length(ids) >= i) ids[[i]] else "")
+      }
+    },
+    envir = env
+  )
+  invisible(NULL)
+}
