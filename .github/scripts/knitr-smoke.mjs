@@ -63,7 +63,10 @@
 //     foot, a chart too large to leave room below it for maidr's text is
 //     made smaller: maidr's instructions, text and braille and review fields
 //     stay on the slide, and the chart keeps its size and place, and the
-//     slide its title in view, as the reader uses it;
+//     slide its title in view, as the reader uses it; and Right Arrow and
+//     Space, the deck's keys for the next slide, which the slide after it
+//     gives somewhere to go, reach the chart and leave the deck alone while
+//     the chart has the focus, and move the deck once it has gone;
 //   * on a Bootstrap 5 page, `bs5.html`, which makes a figure an inline
 //     block, a captioned chart given out.width = "50%" and fig.align =
 //     "right" is half the column wide and stands at its right, as knitr's
@@ -896,9 +899,16 @@ const ioState = () => io.evaluate(() => {
   };
 });
 const ioStates = { load: await ioState() };
+// Focused without waiting for it to be on the current slide: a deck that
+// took a key from the chart has moved off it, which the checks report.
+const focusIoPlot = () => io.evaluate(plotOf => {
+  const plot = document.querySelector(`.maidr-knitr ${plotOf}`);
+  if (plot) {
+    plot.focus();
+  }
+}, plotOf);
 if (ioStates.load) {
-  const ioPlot = io.locator(`slide.current .maidr-knitr ${plotOf}`);
-  await ioPlot.focus();
+  await focusIoPlot();
   await io.waitForTimeout(settle);
   ioStates.focus = await ioState();
   await io.keyboard.press('ArrowRight');
@@ -909,7 +919,7 @@ if (ioStates.load) {
   ioStates.braille = await ioState();
   await io.keyboard.press('b');
   await io.waitForTimeout(settle);
-  await ioPlot.focus();
+  await focusIoPlot();
   await io.keyboard.press('r');
   await io.waitForTimeout(settle);
   ioStates.review = await ioState();
@@ -922,11 +932,51 @@ if (ioStates.load) {
 const ioAll = Object.values(ioStates);
 check(
   Boolean(ioStates.load) && ioStates.load.chart[3] < ioStates.load.own && ioStates.load.chart[3] > 96
-    && ioAll.every(state => JSON.stringify(state.chart) === JSON.stringify(ioStates.load.chart)
+    && ioAll.every(state => state && JSON.stringify(state.chart) === JSON.stringify(ioStates.load.chart)
       && state.title === ioStates.load.title && state.past <= 1)
     && ioStates.focus.below > 0 && ioStates.braille.below > ioStates.key.below && ioStates.review.below > 0,
   'an ioslides chart is made small enough for maidr\'s instructions, text and braille and review fields'
     + ` to stay on its slide, and keeps its size and place as the reader uses it (${JSON.stringify(ioStates)})`,
+);
+// The deck's own keys for the next slide, pressed in the chart: maidr's,
+// not the deck's, while the chart has the focus. The slide after the
+// chart's gives the deck somewhere to go, so a deck that took them would
+// show it; once the chart has lost the focus, Right Arrow is the deck's.
+const deckAt = () => io.evaluate(() => {
+  const slides = Array.from(document.querySelectorAll('slides > slide'));
+  const current = document.querySelector('slide.current');
+  const text = current && current.querySelector('.maidr-knitr [id^="maidr-text-container"]');
+  return {
+    slide: slides.indexOf(current),
+    of: slides.length,
+    inChart: Boolean(document.activeElement && document.activeElement.closest('.maidr-knitr')),
+    text: text ? text.textContent.trim().slice(0, 40) : null,
+  };
+});
+const deck = {};
+if (ioStates.load) {
+  await focusIoPlot();
+  await io.waitForTimeout(settle);
+  deck.focus = await deckAt();
+  await io.keyboard.press('ArrowRight');
+  await io.waitForTimeout(settle * 2);
+  deck.right = await deckAt();
+  await io.keyboard.press('Space');
+  await io.waitForTimeout(settle * 2);
+  deck.space = await deckAt();
+  await io.evaluate(() => document.activeElement.blur());
+  await io.waitForTimeout(settle);
+  await io.keyboard.press('ArrowRight');
+  await io.waitForTimeout(settle * 2);
+  deck.away = await deckAt();
+}
+check(
+  Boolean(deck.focus) && deck.focus.inChart && deck.focus.slide < deck.focus.of - 1
+    && [deck.right, deck.space].every(at => at.slide === deck.focus.slide && at.inChart)
+    && /io\d/.test(deck.right.text || '')
+    && !deck.away.inChart && deck.away.slide === deck.focus.slide + 1,
+  'on an ioslides slide with a slide after it, Right Arrow and Space in a chart are the chart\'s and leave'
+    + ` the deck where it is, and Right Arrow outside it moves the deck (${JSON.stringify(deck)})`,
 );
 check(ioErrors.length === 0, `no page errors on the slides${ioErrors.length ? ': ' + ioErrors.join(' | ') : ''}`);
 await io.close();

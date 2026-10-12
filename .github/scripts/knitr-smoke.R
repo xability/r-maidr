@@ -41,7 +41,8 @@
 # self-contained too, so rendering it fetches that maidr.js. A fourth,
 # `slides.html`, is an ioslides presentation with a chart at its 7.5 x 4.5
 # in below a point on a slide, larger than the slide leaves room for with
-# maidr's text below it. A fifth, `bs5.html`, is a Bootstrap 5 page with a
+# maidr's text below it, and a slide after it, which the deck's Right Arrow
+# and Space would move to from the chart if nothing held them. A fifth, `bs5.html`, is a Bootstrap 5 page with a
 # captioned chart given `out.width = "50%"` and `fig.align = "right"`.
 #
 # Every chart's values are its own, so an announcement names the chart it
@@ -235,7 +236,11 @@ writeLines(c(
   "```{r io-bar, echo = FALSE}",
   "io <- data.frame(kind = c(\"io1\", \"io2\", \"io3\"), n = c(151, 152, 153))",
   "ggplot(io, aes(kind, n)) + geom_col()",
-  "```"
+  "```",
+  "",
+  "## The slide after the chart",
+  "",
+  "- A point after the chart"
 ), slides)
 
 rmarkdown::render(slides, output_file = "slides.html", quiet = TRUE, envir = new.env())
