@@ -870,8 +870,10 @@ const widgetPage = async (name, kind) => {
         + ` (on the chart: ${moved}; page ${inInline.body.join(' on ')}; chart ${inInline.backdrop};`
         + ` widget ${widgetAfter.backdrop})`,
     );
-    // The page takes the outline off everything that has the focus, and an
-    // older maidr.js takes it off its charts once a plotly chart is bound.
+    // The page takes the outline off everything that has the focus. (maidr.js
+    // 4.13.0 and earlier also took it off every chart once a plotly chart
+    // was bound; 4.14.0, which `older.html` loads, keeps that to plotly's
+    // own charts, xability/maidr#1359.)
     const ringed = await ringOf(widget, '.maidr-knitr');
     check(ringed.shows, `${name}: the inline chart shows its focus ring (${ringed.outline})`);
     await widget.keyboard.press('c');

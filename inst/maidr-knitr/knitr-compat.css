@@ -6,11 +6,12 @@
  * rather than the page for high contrast (xability/maidr#1388). */
 
 /* A visible focus (WCAG 2.4.7) that survives a page that removes every
- * outline (*:focus { outline: none !important }), and an older maidr.js's
- * own figure[id^="maidr-figure"] > div[tabindex="0"]:focus { outline: none
- * !important }, which its plotly adapter adds to the page once a plotly
- * chart is bound: this selector is more specific. The ring is drawn inside
- * the chart, because Quarto's .cell-output-display (overflow: auto),
+ * outline (*:focus { outline: none !important }), and maidr.js 4.13.0's and
+ * earlier's own figure[id^="maidr-figure"] > div[tabindex="0"]:focus {
+ * outline: none !important }, which their plotly adapter adds to the page
+ * once a plotly chart is bound (4.14.0 keeps it to plotly's own charts,
+ * xability/maidr#1359): this selector is more specific. The ring is drawn
+ * inside the chart, because Quarto's .cell-output-display (overflow: auto),
  * flexdashboard's .chart-stage and reveal.js's slides (overflow: hidden)
  * clip one drawn outside it. A light band inside the ring, the outline of
  * the svg itself, keeps it visible on a dark plot background. */
