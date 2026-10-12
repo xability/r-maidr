@@ -341,10 +341,13 @@
     '[contenteditable]:not([contenteditable="false"]),[tabindex]:not([tabindex^="-"])';
 
   // A link or a field with a negative tabindex is out of the tab order, as
-  // pandoc's anchors for the lines of a code block are.
+  // pandoc's anchors for the lines of a code block are. ioslides marks none
+  // of its slides hidden: it renders every one and fades out all but the
+  // current, so a chart or a link on another slide is not on screen.
   function reachable(element) {
     if (parseInt(element.getAttribute('tabindex'), 10) < 0) return false;
     if (element.closest('[hidden],[aria-hidden="true"],[inert]')) return false;
+    if (element.closest('slides > slide:not(.current)')) return false;
     var style = getComputedStyle(element);
     return style.display !== 'none' && style.visibility !== 'hidden';
   }
