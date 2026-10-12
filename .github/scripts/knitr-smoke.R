@@ -38,26 +38,27 @@
 # 4.14.0: the page's only maidr.js, older than the 4.15.0 that draws a
 # chart's focus ring and paints it for high contrast itself, so the page
 # carries knitr-compat.js and knitr-compat.css, which do. It is
-# self-contained too, so rendering it fetches that maidr.js. `latest.html`
-# is the same page pinned to `latest`, which may be an older release, so it
-# carries the copies too; it is not self-contained, and `knitr-smoke.mjs`
-# answers its request for maidr.js@latest with the bundled maidr.js, so that
-# the copies meet a maidr.js that guards the page itself, as they will once
-# `latest` is that release, and must stand down for it. A fourth,
-# `slides.html`, is an ioslides presentation with a chart at its 7.5 x 4.5
-# in below a point on a slide, larger than the slide leaves room for with
-# maidr's text below it, and a slide after it, which the deck's Right Arrow
-# and Space would move to from the chart if nothing held them. A fifth, `bs5.html`, is a Bootstrap 5 page with a
-# captioned chart given `out.width = "50%"` and `fig.align = "right"`.
+# self-contained too, so rendering it fetches that maidr.js. A fourth,
+# `latest.html`, is the same page pinned to `latest`, which may be an older
+# release, so it carries the copies too; it is not self-contained, and
+# `knitr-smoke.mjs` answers its request for maidr.js@latest with the bundled
+# maidr.js, so that the copies meet a maidr.js that guards the page itself,
+# as they will once `latest` is that release, and must stand down for it. A
+# fifth, `slides.html`, is an ioslides presentation with a chart at its 7.5
+# x 4.5 in below a point on a slide, larger than the slide leaves room for
+# with maidr's text below it, and a slide after it, which the deck's Right
+# Arrow and Space would move to from the chart if nothing held them. A
+# sixth, `bs5.html`, is a Bootstrap 5 page with a captioned chart given
+# `out.width = "50%"` and `fig.align = "right"`.
 #
 # Every chart's values are its own, so an announcement names the chart it
 # came from. The page sets its paragraphs in a size of its own, as an author
 # may, with a rule that also reaches the paragraphs of maidr's dialogs; the
-# rest of a dialog's text is not the page's to size. It, `mixed.html` and
-# `older.html` take the outline off everything that has the focus, as some
-# pages do, so that the chart's focus ring has to outlast that. The page is
-# self-contained: maidr.js is embedded once, and no file beside it is
-# needed.
+# rest of a dialog's text is not the page's to size. It, `mixed.html`,
+# `older.html` and `latest.html` take the outline off everything that has
+# the focus, as some pages do, so that the chart's focus ring has to outlast
+# that. The page is self-contained: maidr.js is embedded once, and no file
+# beside it is needed.
 #
 #     Rscript .github/scripts/knitr-smoke.R <out-dir>
 
