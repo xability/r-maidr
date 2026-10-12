@@ -7,6 +7,9 @@
 // headless Chromium and checked the way a reader would find it:
 //
 //   * the page raises no error, runs maidr.js once, and holds no iframe;
+//   * the page's maidr.js, the bundled one, keeps the page's keys off a
+//     chart and draws its focus ring itself, and the page carries no copy
+//     of either (knitr-compat.js);
 //   * every chart is bound by maidr.js, in the order the document draws
 //     them, and no id is used twice before anything has the focus;
 //   * the figure maidr does not read is knitr's own svglite image;
@@ -27,6 +30,8 @@
 //     its highlight inside that chart's own svg and viewBox, and Shift+Tab
 //     leaves it -- from the first, which nothing comes before, for the
 //     browser, as on any page that is not a slide deck;
+//   * a chart that has the focus shows its focus ring on this page, whose
+//     stylesheet takes the outline off everything that has the focus;
 //   * Ctrl+Shift+F pressed in a chart reaches the page, which has no deck
 //     search to keep it from: a reader may give it to a command of maidr's;
 //   * / in braille mode resets the autoplay speed, on this page and with a
@@ -46,8 +51,14 @@
 //     the page in its own colours, and leaving the chart leaves nothing
 //     painted; on a second page, `mixed.html`, the same holds for a 'plotly'
 //     widget maidr binds in the page itself and for the inline chart a
-//     reader tabs to from it with high contrast still on. What is checked is
-//     what the page shows -- computed colours -- whatever paints them;
+//     reader tabs to from it with high contrast still on, and the chart
+//     shows its focus ring. What is checked is what the page shows --
+//     computed colours and outlines -- whatever paints them;
+//   * on a third page, `older.html`, the same as `mixed.html` but for its
+//     maidr.js, 4.14.0 from the CDN, which neither paints a chart rather
+//     than the page nor draws its ring itself, all of that holds as well:
+//     the page carries copies of both (knitr-compat.js and .css), which
+//     stand in for that maidr.js only;
 //   * on an ioslides slide, `slides.html`, which cuts off what runs past its
 //     foot, a chart too large to leave room below it for maidr's text is
 //     made smaller: maidr's instructions, text and braille and review fields
@@ -198,6 +209,22 @@ const coloursScript = () => {
   };
 };
 await page.addInitScript(coloursScript);
+
+// The focus ring of the plot that has the focus, inside `container`: its
+// computed outline, and whether it shows -- a line at least 2 pixels wide.
+const ringOf = (target, container) => target.evaluate(container => {
+  const plot = document.querySelector(container)
+    .querySelector('figure[id^="maidr-figure"] > [tabindex="0"]');
+  if (!plot || document.activeElement !== plot) {
+    return { shows: false, outline: 'the plot has no focus' };
+  }
+  const style = getComputedStyle(plot);
+  return {
+    shows: style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) >= 2,
+    outline: `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`,
+  };
+}, container);
+
 // A colour no channel of which is lighter than a quarter: maidr's default
 // dark colour for high contrast is black.
 const dark = colour => Boolean(colour)
@@ -223,6 +250,9 @@ const state = await page.evaluate(() => {
       .filter(w => w.querySelector('article[id^="maidr-article-"]')).length,
     pending: document.querySelectorAll('[data-maidr-knitr]').length,
     duplicates: ids.filter((id, i) => ids.indexOf(id) !== i),
+    features: window.maidrLive && window.maidrLive.features,
+    compat: Boolean(window.__maidrKnitrCompat)
+      || document.documentElement.classList.contains('maidr-knitr-compat'),
     circle: circle
       ? {
         src: (circle.getAttribute('src') || '').slice(0, 30),
@@ -233,6 +263,11 @@ const state = await page.evaluate(() => {
 });
 check(state.runs === 1, `maidr.js runs once (${state.runs} time(s))`);
 check(state.iframes === 0, `no iframe on the page (${state.iframes})`);
+check(
+  Boolean(state.features) && state.features.hostGuards >= 1 && state.features.focusRing >= 1 && !state.compat,
+  'the page\'s maidr.js guards the page and rings its charts itself, and the page carries no copy'
+    + ` (features ${JSON.stringify(state.features)}, copies ${state.compat})`,
+);
 check(
   state.wrappers === charts.length && state.bound === charts.length && state.pending === 0,
   `every chart is bound (${state.bound} of ${state.wrappers} on the page, ${charts.length} drawn)`,
@@ -542,17 +577,21 @@ await page.keyboard.press('Escape');
 await page.waitForTimeout(settle);
 
 // Ctrl+Shift+F, from the first chart: a key like any other on a page with
-// no deck search to keep it from.
+// no deck search to keep it from. First, the chart's focus ring, on a page
+// that takes the outline off everything that has the focus.
 await page.locator('.maidr-knitr figure[id^="maidr-figure"] > [tabindex="0"]').first().focus();
 await page.waitForTimeout(settle);
+const ring = await ringOf(page, '.maidr-knitr');
+check(ring.shows, `a chart that has the focus shows its focus ring on a page that takes outlines off (${ring.outline})`);
 await page.keyboard.press('Control+Shift+F');
 await page.waitForTimeout(settle);
 const searchKeys = await page.evaluate(() => window.__maidrSmokeSearchKeys);
 check(searchKeys === 1, `Ctrl+Shift+F pressed in a chart reaches the page (${searchKeys} time(s))`);
 
-// High contrast, from the first chart. maidr.js paints the page's body for
-// it, which inline is the whole page around the chart. Checked after the
-// rest, since maidr keeps the setting for the next chart a reader enters.
+// High contrast, from the first chart. maidr.js before 4.15.0 painted the
+// page's body for it, which inline is the whole page around the chart.
+// Checked after the rest, since maidr keeps the setting for the next chart
+// a reader enters.
 const plotOf = 'figure[id^="maidr-figure"] > [tabindex="0"]';
 const coloursOf = (target, selector) => target.evaluate(
   selector => window.__maidrSmokeColours(document.querySelector(selector)),
@@ -738,61 +777,87 @@ await phone.close();
 // A 'plotly' widget maidr binds in the page itself, then an inline chart.
 // High contrast, turned on in the widget, is on in the chart a reader tabs
 // to from it, before maidr has given the widget's colours back: each is
-// painted in turn, and the page never is.
-const widget = await browser.newPage({ viewport: { width: 1200, height: 900 } });
-const widgetErrors = [];
-widget.on('pageerror', error => widgetErrors.push(String(error)));
-await widget.addInitScript(coloursScript);
-await widget.goto('file://' + path.resolve(dir, 'mixed.html'), { waitUntil: 'load' });
-await widget.waitForFunction(
-  () => document.querySelectorAll('article[id^="maidr-article-"]').length === 2,
-  null,
-  { timeout: 15000 },
-).catch(() => {});
-await widget.waitForTimeout(settle * 2);
-const mounted = await widget.evaluate(plotOf => ({
-  widget: Boolean(document.querySelector(`.html-widget ${plotOf}`)),
-  inline: Boolean(document.querySelector(`.maidr-knitr ${plotOf}`)),
-}), plotOf);
-check(mounted.widget && mounted.inline, `the widget and the inline chart are both bound (${JSON.stringify(mounted)})`);
-if (mounted.widget && mounted.inline) {
-  const widgetPlain = await coloursOf(widget, '.html-widget');
-  const inlinePlain = await coloursOf(widget, '.maidr-knitr');
-  await widget.locator(`.html-widget ${plotOf}`).focus();
-  await widget.waitForTimeout(settle);
-  await widget.keyboard.press('c');
-  await widget.waitForTimeout(settle);
-  const inWidget = await coloursOf(widget, '.html-widget');
+// painted in turn, and the page never is. On `mixed.html` the page's
+// maidr.js is the bundled one, which does that itself; on `older.html` it
+// is 4.14.0, from the CDN, and the page's copies (knitr-compat.js) do it,
+// and draw the chart's focus ring, for it alone.
+const widgetPage = async (name, older) => {
+  const widget = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+  const widgetErrors = [];
+  widget.on('pageerror', error => widgetErrors.push(String(error)));
+  await widget.addInitScript(coloursScript);
+  await widget.goto('file://' + path.resolve(dir, name), { waitUntil: 'load' });
+  await widget.waitForFunction(
+    () => document.querySelectorAll('article[id^="maidr-article-"]').length === 2,
+    null,
+    { timeout: 15000 },
+  ).catch(() => {});
+  await widget.waitForTimeout(settle * 2);
+  const runtime = await widget.evaluate(() => ({
+    version: window.maidrLive && (window.maidrLive.version || 'before 4.15.0'),
+    guards: Boolean(window.maidrLive && window.maidrLive.features && window.maidrLive.features.hostGuards >= 1),
+    compat: Boolean(window.__maidrKnitrCompat),
+    marked: document.documentElement.classList.contains('maidr-knitr-compat'),
+  }));
   check(
-    sameColours(inWidget.body, widgetPlain.body) && dark(inWidget.backdrop),
-    'high contrast paints a widget maidr binds in the page, and leaves the page in its own colours'
-      + ` (page ${inWidget.body.join(' on ')}, was ${widgetPlain.body.join(' on ')}; widget ${inWidget.backdrop})`,
+    older
+      ? !runtime.guards && runtime.compat && runtime.marked
+      : runtime.guards && !runtime.compat && !runtime.marked,
+    older
+      ? `${name}: an older maidr.js, and the page's copies of what it lacks (${JSON.stringify(runtime)})`
+      : `${name}: the bundled maidr.js, and no copy of what it does itself (${JSON.stringify(runtime)})`,
   );
-  await widget.keyboard.press('Tab');
-  await widget.waitForTimeout(settle);
-  const moved = await widget.evaluate(plotOf => document.activeElement
-    === document.querySelector(`.maidr-knitr ${plotOf}`), plotOf);
-  const inInline = await coloursOf(widget, '.maidr-knitr');
-  const widgetAfter = await coloursOf(widget, '.html-widget');
+  const mounted = await widget.evaluate(plotOf => ({
+    widget: Boolean(document.querySelector(`.html-widget ${plotOf}`)),
+    inline: Boolean(document.querySelector(`.maidr-knitr ${plotOf}`)),
+  }), plotOf);
+  check(mounted.widget && mounted.inline, `${name}: the widget and the inline chart are both bound (${JSON.stringify(mounted)})`);
+  if (mounted.widget && mounted.inline) {
+    const widgetPlain = await coloursOf(widget, '.html-widget');
+    const inlinePlain = await coloursOf(widget, '.maidr-knitr');
+    await widget.locator(`.html-widget ${plotOf}`).focus();
+    await widget.waitForTimeout(settle);
+    await widget.keyboard.press('c');
+    await widget.waitForTimeout(settle);
+    const inWidget = await coloursOf(widget, '.html-widget');
+    check(
+      sameColours(inWidget.body, widgetPlain.body) && dark(inWidget.backdrop),
+      `${name}: high contrast paints a widget maidr binds in the page, and leaves the page in its own colours`
+        + ` (page ${inWidget.body.join(' on ')}, was ${widgetPlain.body.join(' on ')}; widget ${inWidget.backdrop})`,
+    );
+    await widget.keyboard.press('Tab');
+    await widget.waitForTimeout(settle);
+    const moved = await widget.evaluate(plotOf => document.activeElement
+      === document.querySelector(`.maidr-knitr ${plotOf}`), plotOf);
+    const inInline = await coloursOf(widget, '.maidr-knitr');
+    const widgetAfter = await coloursOf(widget, '.html-widget');
+    check(
+      moved && sameColours(inInline.body, inlinePlain.body) && dark(inInline.backdrop)
+        && widgetAfter.backdrop === widgetPlain.backdrop,
+      `${name}: Tab from the widget to the inline chart paints the chart, not the page, and leaves the widget unpainted`
+        + ` (on the chart: ${moved}; page ${inInline.body.join(' on ')}; chart ${inInline.backdrop};`
+        + ` widget ${widgetAfter.backdrop})`,
+    );
+    // The page takes the outline off everything that has the focus, and an
+    // older maidr.js takes it off its charts once a plotly chart is bound.
+    const ringed = await ringOf(widget, '.maidr-knitr');
+    check(ringed.shows, `${name}: the inline chart shows its focus ring (${ringed.outline})`);
+    await widget.keyboard.press('c');
+    await widget.waitForTimeout(settle);
+    const widgetOff = await coloursOf(widget, '.maidr-knitr');
+    check(
+      sameColours(widgetOff.body, inlinePlain.body) && widgetOff.backdrop === inlinePlain.backdrop,
+      `${name}: high contrast turned off leaves nothing painted (page ${widgetOff.body.join(' on ')}; chart ${widgetOff.backdrop})`,
+    );
+  }
   check(
-    moved && sameColours(inInline.body, inlinePlain.body) && dark(inInline.backdrop)
-      && widgetAfter.backdrop === widgetPlain.backdrop,
-    'Tab from the widget to the inline chart paints the chart, not the page, and leaves the widget unpainted'
-      + ` (on the chart: ${moved}; page ${inInline.body.join(' on ')}; chart ${inInline.backdrop};`
-      + ` widget ${widgetAfter.backdrop})`,
+    widgetErrors.length === 0,
+    `${name}: no page errors${widgetErrors.length ? ': ' + widgetErrors.join(' | ') : ''}`,
   );
-  await widget.keyboard.press('c');
-  await widget.waitForTimeout(settle);
-  const widgetOff = await coloursOf(widget, '.maidr-knitr');
-  check(
-    sameColours(widgetOff.body, inlinePlain.body) && widgetOff.backdrop === inlinePlain.backdrop,
-    `high contrast turned off leaves nothing painted (page ${widgetOff.body.join(' on ')}; chart ${widgetOff.backdrop})`,
-  );
-}
-check(
-  widgetErrors.length === 0,
-  `no page errors on the widget's page${widgetErrors.length ? ': ' + widgetErrors.join(' | ') : ''}`,
-);
+  await widget.close();
+};
+await widgetPage('mixed.html', false);
+await widgetPage('older.html', true);
 
 // An ioslides slide: a 7.5 x 4.5 in chart below a point.
 const io = await browser.newPage({ viewport: { width: 1280, height: 800 } });
