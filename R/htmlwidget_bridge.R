@@ -50,11 +50,10 @@
 #' band. A width series stacks on a negative lower edge only under
 #' `stackStrategy = "all"`.
 #'
-#' The option is read by maidr.js 4.15.0 and later. The copy bundled with
-#' this version of the package is older, so with `use_cdn = FALSE`, or a
-#' `maidr.cdn_version` pinned below 4.15.0, `percentile_bands` is checked
-#' and then ignored with a warning, and the series read as they would be
-#' without it.
+#' The option is read by maidr.js 4.15.0 and later, the version bundled with
+#' this package. With `use_cdn = TRUE` and a `maidr.cdn_version` pinned below
+#' 4.15.0, `percentile_bands` is checked and then ignored with a warning, and
+#' the series read as they would be without it.
 #'
 #' @param widget An htmlwidget created by plotly, highcharter or echarts4r.
 #' @param use_cdn Logical. Where the MAIDR scripts are loaded from:
@@ -118,7 +117,6 @@
 #'          lineStyle = list(opacity = 0)) |>
 #'   e_area(width, stack = "band", name = "90% interval", symbol = "none") |>
 #'   maidr_htmlwidget(
-#'     use_cdn = TRUE,
 #'     percentile_bands = list(
 #'       median = "Median",
 #'       bands = data.frame(series = "90% interval", lower = 0.05, upper = 0.95)
@@ -166,8 +164,9 @@ maidr_htmlwidget <- function(widget, use_cdn = FALSE, percentile_bands = NULL,
         "`percentile_bands` needs maidr.js ", ECHARTS_PERCENTILE_BANDS_VERSION,
         " or later, and this widget loads ",
         maidr_widget_version(use_cdn), "; it is ignored, and the series are ",
-        "read as they would be without it. Use `use_cdn = TRUE` to load the ",
-        "latest maidr.js.",
+        "read as they would be without it. Use `use_cdn = FALSE` for the ",
+        "bundled maidr.js, or a `maidr.cdn_version` of ",
+        ECHARTS_PERCENTILE_BANDS_VERSION, " or later.",
         call. = FALSE
       )
     }
@@ -203,7 +202,7 @@ maidr_htmlwidget <- function(widget, use_cdn = FALSE, percentile_bands = NULL,
 }
 
 # The first maidr.js whose ECharts adapter reads `percentileBands`
-# (xability/maidr#1369, released after 4.14.0).
+# (xability/maidr#1369, first released in 4.15.0).
 ECHARTS_PERCENTILE_BANDS_VERSION <- "4.15.0"
 
 #' The maidr.js version a widget loads
@@ -218,13 +217,13 @@ maidr_widget_version <- function(use_cdn) {
 
 #' Whether the maidr.js a widget loads reads ECharts' `percentileBands`
 #'
-#' The option shipped in the ECharts adapter after maidr.js 4.14.0, the
-#' version bundled with this package. An older maidr.js ignores an option it
-#' does not know, so emitting it would do no harm, but nothing would be read
+#' The option shipped in the ECharts adapter of maidr.js 4.15.0, the version
+#' bundled with this package, so only a `maidr.cdn_version` pinned below it
+#' loads a maidr.js without it. An older maidr.js ignores an option it does
+#' not know, so emitting it would do no harm, but nothing would be read
 #' either and the author would never learn why; the option is therefore
 #' dropped with a warning on the R side instead, as the `*_trace_available()`
-#' checks drop a trace the bundle cannot build. The moment the bundle, or the
-#' CDN version, reaches the release that carries it, the option goes through.
+#' checks drop a trace the bundle cannot build.
 #'
 #' @param use_cdn Logical, as in [maidr_htmlwidget()].
 #' @return TRUE when the loaded maidr.js reads the option

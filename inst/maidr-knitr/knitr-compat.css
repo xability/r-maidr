@@ -1,0 +1,61 @@
+/* maidr knitr-compat: copies of rules maidr.js has of its own from 4.15.0,
+ * for a knitted page whose maidr.js is older; see knitr-compat.js, which
+ * marks the page (maidr-knitr-compat) only for such a maidr.js. maidr.js
+ * 4.15.0 draws this focus ring on a chart bound from the page
+ * (xability/maidr#1390, maidrLive.features.focusRing), and paints the chart
+ * rather than the page for high contrast (xability/maidr#1388). */
+
+/* A visible focus (WCAG 2.4.7) that survives a page that removes every
+ * outline (*:focus { outline: none !important }), and maidr.js 4.13.0's and
+ * earlier's own figure[id^="maidr-figure"] > div[tabindex="0"]:focus {
+ * outline: none !important }, which their plotly adapter adds to the page
+ * once a plotly chart is bound (4.14.0 keeps it to plotly's own charts,
+ * xability/maidr#1359): this selector is more specific. The ring is drawn
+ * inside the chart, because Quarto's .cell-output-display (overflow: auto),
+ * flexdashboard's .chart-stage and reveal.js's slides (overflow: hidden)
+ * clip one drawn outside it. A light band inside the ring, the outline of
+ * the svg itself, keeps it visible on a dark plot background. */
+html.maidr-knitr-compat .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus {
+  outline: 3px solid #1a5fb4 !important;
+  outline-offset: -3px !important;
+}
+html.maidr-knitr-compat .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus .maidr-knitr-svg {
+  outline: 2px solid #ffffff !important;
+  outline-offset: -5px !important;
+}
+
+/* The braille and review fields, and maidr's buttons, take the focus in
+ * their modes, and need a ring as much as the chart does. */
+html.maidr-knitr-compat .maidr-knitr textarea:focus,
+html.maidr-knitr-compat .maidr-knitr input:focus,
+html.maidr-knitr-compat .maidr-knitr select:focus,
+html.maidr-knitr-compat .maidr-knitr button:focus-visible,
+html.maidr-knitr-compat .maidr-knitr a:focus-visible,
+html.maidr-knitr-compat .maidr-knitr [role="button"]:focus-visible {
+  outline: 3px solid #1a5fb4 !important;
+  outline-offset: 1px !important;
+}
+
+@media (forced-colors: active) {
+  html.maidr-knitr-compat .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus,
+  html.maidr-knitr-compat .maidr-knitr textarea:focus,
+  html.maidr-knitr-compat .maidr-knitr input:focus,
+  html.maidr-knitr-compat .maidr-knitr select:focus,
+  html.maidr-knitr-compat .maidr-knitr button:focus-visible,
+  html.maidr-knitr-compat .maidr-knitr a:focus-visible,
+  html.maidr-knitr-compat .maidr-knitr [role="button"]:focus-visible {
+    outline-color: Highlight !important;
+  }
+  html.maidr-knitr-compat .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus .maidr-knitr-svg {
+    outline: none !important;
+  }
+}
+
+/* High contrast: an older maidr.js paints the body, which inline is the
+ * page's; knitr-compat.js gives it the page's own colours back, and
+ * maidr's to the chart's wrapper, or to the article maidr mounted a widget
+ * in on the page. */
+html.maidr-knitr-contrast body {
+  background-color: var(--maidr-knitr-page-bg) !important;
+  color: var(--maidr-knitr-page-fg) !important;
+}

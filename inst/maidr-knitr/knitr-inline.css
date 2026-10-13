@@ -1,7 +1,8 @@
 /* maidr knitr-inline: the charts r-maidr writes inline into a knitted HTML
- * page. Every rule is scoped to the .maidr-knitr wrapper around a chart, to
- * a dashboard box holding one, or to the page while a chart's high contrast
- * is on. */
+ * page. Every rule is scoped to the .maidr-knitr wrapper around a chart, or
+ * to a dashboard box or slide holding one. maidr.js draws a chart's focus
+ * ring itself from 4.15.0 (xability/maidr#1390); knitr-compat.css carries a
+ * copy for a page whose maidr.js is older. */
 
 .maidr-knitr {
   margin: 0 0 1em;
@@ -149,59 +150,6 @@
 .maidr-knitr input[id^="maidr-review-input"] {
   max-width: 100%;
   box-sizing: border-box;
-}
-
-/* A visible focus (WCAG 2.4.7) that survives a page that removes every
- * outline (*:focus { outline: none !important }), and maidr.js's own
- * figure[id^="maidr-figure"] > div[tabindex="0"]:focus { outline: none
- * !important }, which its plotly adapter adds to the page once a plotly
- * chart is bound: this selector is more specific. The ring is drawn inside
- * the chart, because Quarto's .cell-output-display (overflow: auto),
- * flexdashboard's .chart-stage and reveal.js's slides (overflow: hidden)
- * clip one drawn outside it. A light band inside the ring, the outline of
- * the svg itself, keeps it visible on a dark plot background. */
-.maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus {
-  outline: 3px solid #1a5fb4 !important;
-  outline-offset: -3px !important;
-}
-.maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus .maidr-knitr-svg {
-  outline: 2px solid #ffffff !important;
-  outline-offset: -5px !important;
-}
-
-/* The braille and review fields, and maidr's buttons, take the focus in
- * their modes, and need a ring as much as the chart does. */
-.maidr-knitr textarea:focus,
-.maidr-knitr input:focus,
-.maidr-knitr select:focus,
-.maidr-knitr button:focus-visible,
-.maidr-knitr a:focus-visible,
-.maidr-knitr [role="button"]:focus-visible {
-  outline: 3px solid #1a5fb4 !important;
-  outline-offset: 1px !important;
-}
-
-@media (forced-colors: active) {
-  .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus,
-  .maidr-knitr textarea:focus,
-  .maidr-knitr input:focus,
-  .maidr-knitr select:focus,
-  .maidr-knitr button:focus-visible,
-  .maidr-knitr a:focus-visible,
-  .maidr-knitr [role="button"]:focus-visible {
-    outline-color: Highlight !important;
-  }
-  .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus .maidr-knitr-svg {
-    outline: none !important;
-  }
-}
-
-/* High contrast: maidr.js paints the body, which inline is the page's;
- * knitr-inline.js gives it the page's own colours back, and maidr's to the
- * chart's wrapper, or to the article maidr mounted a widget in on the page. */
-html.maidr-knitr-contrast body {
-  background-color: var(--maidr-knitr-page-bg) !important;
-  color: var(--maidr-knitr-page-fg) !important;
 }
 
 /* maidr opens its dialogs inside the chart. knitr-inline.js sets, on each

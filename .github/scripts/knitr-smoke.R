@@ -33,18 +33,38 @@
 #
 # A second, smaller page, `mixed.html`, holds a 'plotly' widget that maidr
 # binds in the page itself, followed by an inline chart, so that a reader
-# can go from one kind of chart to the other. A third, `slides.html`, is an
-# ioslides presentation with a chart at its 7.5 x 4.5 in below a point on a
-# slide, larger than the slide leaves room for with maidr's text below it.
-# A fourth, `bs5.html`, is a Bootstrap 5 page with a captioned chart given
-# `out.width = "50%"` and `fig.align = "right"`.
+# can go from one kind of chart to the other. A third, `older.html`, is the
+# same page with the widget's maidr.js loaded from the CDN, pinned to
+# 4.14.0: the page's only maidr.js, older than the 4.15.0 that draws a
+# chart's focus ring and paints it for high contrast itself, so the page
+# carries knitr-compat.js and knitr-compat.css, which do. It is
+# self-contained too, so rendering it fetches that maidr.js. A fourth,
+# `latest.html`, is the same page pinned to `latest`, which may be an older
+# release, so it carries the copies too; it is not self-contained, and
+# `knitr-smoke.mjs` answers its request for maidr.js@latest with the bundled
+# maidr.js, so that the copies meet a maidr.js that guards the page itself,
+# as they will once `latest` is that release, and must stand down for it. A
+# fifth, `slides.html`, is an ioslides presentation with a chart at its 7.5
+# x 4.5 in below a point on a slide, larger than the slide leaves room for
+# with maidr's text below it, and a slide after it, which the deck's Right
+# Arrow and Space would move to from the chart if nothing held them. A
+# sixth and a seventh, `older-ioslides.html` and `older-slidy.html`, are an
+# ioslides and a slidy deck whose maidr.js is 4.14.0 from the CDN, loaded
+# by a widget on the first slide, with a chart on the second and a slide
+# after it: maidr.js guards none of the deck's keys, and the page's copies
+# (knitr-compat.js) keep them from the chart and hand Shift+Tab from it to
+# its slide. Both are self-contained, so rendering them fetches that
+# maidr.js too. An eighth, `bs5.html`, is a Bootstrap 5 page with a
+# captioned chart given `out.width = "50%"` and `fig.align = "right"`.
 #
 # Every chart's values are its own, so an announcement names the chart it
 # came from. The page sets its paragraphs in a size of its own, as an author
 # may, with a rule that also reaches the paragraphs of maidr's dialogs; the
-# rest of a dialog's text is not the page's to size. The page is
-# self-contained: maidr.js is embedded once, and no file beside it is
-# needed.
+# rest of a dialog's text is not the page's to size. It, `mixed.html`,
+# `older.html` and `latest.html` take the outline off everything that has
+# the focus, as some pages do, so that the chart's focus ring has to outlast
+# that. The page is self-contained: maidr.js is embedded once, and no file
+# beside it is needed.
 #
 #     Rscript .github/scripts/knitr-smoke.R <out-dir>
 
@@ -72,6 +92,7 @@ writeLines(c(
   "",
   "```{css, echo = FALSE}",
   ".main-container p { font-size: 18px; }",
+  "*:focus { outline: none !important; }",
   "```",
   "",
   "## ggplot2",
@@ -166,33 +187,52 @@ writeLines(c(
 
 rmarkdown::render(rmd, output_file = "charts.html", quiet = TRUE, envir = new.env())
 
-mixed <- file.path(out, "mixed.Rmd")
-writeLines(c(
-  "---",
-  "title: \"maidr knitr smoke, widget and inline chart\"",
-  "output:",
-  "  html_document:",
-  "    self_contained: true",
-  "---",
-  "",
-  "```{r setup, include = FALSE}",
-  "library(maidr)",
-  "library(ggplot2)",
-  "```",
-  "",
-  "```{r widget}",
-  "maidr_htmlwidget(plotly::plot_ly(",
-  "  x = c(\"wid1\", \"wid2\", \"wid3\"), y = c(131, 132, 133), type = \"bar\"",
-  "))",
-  "```",
-  "",
-  "```{r inline}",
-  "after <- data.frame(kind = c(\"after1\", \"after2\"), n = c(141, 142))",
-  "ggplot(after, aes(kind, n)) + geom_col() + labs(title = \"Chart after a widget\")",
-  "```"
-), mixed)
+# A widget, then an inline chart; the widget's maidr.js from the CDN at
+# `pin`, or the bundled one when `pin` is NULL. A page that is not
+# self-contained loads its maidr.js from the CDN when it is opened.
+widget_page <- function(name, title, pin = NULL, self_contained = TRUE) {
+  rmd <- file.path(out, paste0(name, ".Rmd"))
+  writeLines(c(
+    "---",
+    sprintf("title: \"%s\"", title),
+    "output:",
+    "  html_document:",
+    sprintf("    self_contained: %s", tolower(self_contained)),
+    "---",
+    "",
+    "```{r setup, include = FALSE}",
+    "library(maidr)",
+    "library(ggplot2)",
+    if (!is.null(pin)) sprintf("options(maidr.cdn_version = \"%s\")", pin),
+    "```",
+    "",
+    "```{css, echo = FALSE}",
+    "*:focus { outline: none !important; }",
+    "```",
+    "",
+    "```{r widget}",
+    "maidr_htmlwidget(plotly::plot_ly(",
+    "  x = c(\"wid1\", \"wid2\", \"wid3\"), y = c(131, 132, 133), type = \"bar\"",
+    sprintf("), use_cdn = %s)", !is.null(pin)),
+    "```",
+    "",
+    "```{r inline}",
+    "after <- data.frame(kind = c(\"after1\", \"after2\"), n = c(141, 142))",
+    "ggplot(after, aes(kind, n)) + geom_col() + labs(title = \"Chart after a widget\")",
+    "```"
+  ), rmd)
+  # The pin the document sets lasts for the session: the pages after it
+  # are rendered without it.
+  on.exit(options(maidr.cdn_version = NULL), add = TRUE)
+  rmarkdown::render(rmd, output_file = paste0(name, ".html"), quiet = TRUE, envir = new.env())
+}
 
-rmarkdown::render(mixed, output_file = "mixed.html", quiet = TRUE, envir = new.env())
+widget_page("mixed", "maidr knitr smoke, widget and inline chart")
+widget_page("older", "maidr knitr smoke, an older maidr.js", pin = "4.14.0")
+widget_page(
+  "latest", "maidr knitr smoke, maidr.js at latest",
+  pin = "latest", self_contained = FALSE
+)
 
 slides <- file.path(out, "slides.Rmd")
 writeLines(c(
@@ -213,10 +253,58 @@ writeLines(c(
   "```{r io-bar, echo = FALSE}",
   "io <- data.frame(kind = c(\"io1\", \"io2\", \"io3\"), n = c(151, 152, 153))",
   "ggplot(io, aes(kind, n)) + geom_col()",
-  "```"
+  "```",
+  "",
+  "## The slide after the chart",
+  "",
+  "- A point after the chart"
 ), slides)
 
 rmarkdown::render(slides, output_file = "slides.html", quiet = TRUE, envir = new.env())
+
+# A deck whose maidr.js is 4.14.0, from the CDN: the widget that loads it
+# on the first slide, before the chart's, and a slide after the chart's.
+# The page carries knitr-compat.js, whose guards keep the deck's keys from
+# the chart and hand Shift+Tab from it to its slide.
+older_deck <- function(name, format) {
+  rmd <- file.path(out, paste0(name, ".Rmd"))
+  writeLines(c(
+    "---",
+    "title: \"maidr knitr smoke, an older maidr.js on slides\"",
+    sprintf("output: %s", format),
+    "---",
+    "",
+    "```{r setup, include = FALSE}",
+    "library(maidr)",
+    "library(ggplot2)",
+    "options(maidr.cdn_version = \"4.14.0\")",
+    "```",
+    "",
+    "## A widget",
+    "",
+    "```{r widget, echo = FALSE}",
+    "maidr_htmlwidget(plotly::plot_ly(",
+    "  x = c(\"dw1\", \"dw2\"), y = c(171, 172), type = \"bar\", height = 300",
+    "), use_cdn = TRUE)",
+    "```",
+    "",
+    "## A chart",
+    "",
+    "```{r chart, echo = FALSE, fig.width = 5, fig.height = 3}",
+    "deck <- data.frame(kind = c(\"od1\", \"od2\", \"od3\"), n = c(181, 182, 183))",
+    "ggplot(deck, aes(kind, n)) + geom_col()",
+    "```",
+    "",
+    "## The slide after the chart",
+    "",
+    "- A point after the chart"
+  ), rmd)
+  on.exit(options(maidr.cdn_version = NULL), add = TRUE)
+  rmarkdown::render(rmd, output_file = paste0(name, ".html"), quiet = TRUE, envir = new.env())
+}
+
+older_deck("older-ioslides", "ioslides_presentation")
+older_deck("older-slidy", "slidy_presentation")
 
 bs5 <- file.path(out, "bs5.Rmd")
 writeLines(c(

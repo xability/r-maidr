@@ -10,11 +10,9 @@ maidr_knitr_dependency()
 A single htmltools::htmlDependency()
 }
 \description{
-\code{knitr-inline.js} hands each chart to \code{maidr.js}, gives it a description,
-and keeps the shortcuts of slide decks, books and sites from firing while
-a chart has the focus; \code{knitr-inline.css} lays the charts out and draws
-their focus ring. The stylesheet is not named \verb{maidr-*.css}: \code{maidr.js}
-takes a stylesheet of that name for its own when it looks for
-\code{maidr-math.css}.
+\code{knitr-inline.js} hands each chart to \code{maidr.js}, gives it a description
+and sizes it; \code{knitr-inline.css} lays the charts out. The stylesheet is
+not named \verb{maidr-*.css}: \code{maidr.js} takes a stylesheet of that name for
+its own when it looks for \code{maidr-math.css}.
 }
 \keyword{internal}

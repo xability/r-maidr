@@ -132,14 +132,18 @@ maidr_head_dependency <- function(name, head) {
 #'   copies only the files a page references, and left a book's charts with
 #'   no stylesheet for the maths in AI chat responses. A self-contained page
 #'   drops the attachment, and has no URL to resolve it against either.
-#' * `maidr-knitr` (`maidr_knitr_dependency()`) binds the charts and keeps the
-#'   host page's keyboard shortcuts out of them.
+#' * `maidr-knitr` (`maidr_knitr_dependency()`) binds the charts, describes
+#'   them and lays them out.
+#' * `maidr-knitr-compat` (`maidr_knitr_compat_dependency()`) follows, only
+#'   on a page whose maidr.js may be older than 4.15.0 (see
+#'   `maidr_knitr_compat_needed()`).
 #'
 #' The `maidr` dependency of [save_html()], [show()] and the widgets is not
 #' changed.
 #'
 #' @return A list of htmlDependency objects: the configuration dependencies
-#'   of [maidr_html_dependencies()], the bundle, and `maidr-knitr`
+#'   of [maidr_html_dependencies()], the bundle, `maidr-knitr`, and
+#'   `maidr-knitr-compat` when the page needs it
 #' @keywords internal
 maidr_knitr_dependencies <- function() {
   deps <- maidr_html_dependencies(use_cdn = FALSE)
@@ -153,17 +157,19 @@ maidr_knitr_dependencies <- function() {
     attachment = c(math = "maidr-math.css"),
     all_files = FALSE
   ))
-  c(deps, list(maidr_knitr_dependency()))
+  deps <- c(deps, list(maidr_knitr_dependency()))
+  if (maidr_knitr_compat_needed()) {
+    deps <- c(deps, list(maidr_knitr_compat_dependency()))
+  }
+  deps
 }
 
 #' The script and stylesheet of charts a knitted document shows inline
 #'
-#' `knitr-inline.js` hands each chart to `maidr.js`, gives it a description,
-#' and keeps the shortcuts of slide decks, books and sites from firing while
-#' a chart has the focus; `knitr-inline.css` lays the charts out and draws
-#' their focus ring. The stylesheet is not named `maidr-*.css`: `maidr.js`
-#' takes a stylesheet of that name for its own when it looks for
-#' `maidr-math.css`.
+#' `knitr-inline.js` hands each chart to `maidr.js`, gives it a description
+#' and sizes it; `knitr-inline.css` lays the charts out. The stylesheet is
+#' not named `maidr-*.css`: `maidr.js` takes a stylesheet of that name for
+#' its own when it looks for `maidr-math.css`.
 #'
 #' @return A single htmltools::htmlDependency()
 #' @keywords internal
@@ -177,6 +183,80 @@ maidr_knitr_dependency <- function() {
     stylesheet = "knitr-inline.css",
     all_files = FALSE
   )
+}
+
+#' The first maidr.js that keeps a page's shortcuts off a chart itself
+#'
+#' maidr.js 4.15.0 keeps the shortcuts of the page around a chart off the
+#' keys a reader presses in it, hands Shift+Tab on a deck's slide to the
+#' slide, draws a focus ring a page's stylesheet cannot remove, and paints
+#' the chart rather than the page for high contrast (xability/maidr#1388,
+#' #1390). Before it, the knitted page's own script did all of that.
+#'
+#' @keywords internal
+MAIDR_PAGE_GUARDS_VERSION <- "4.15.0"
+
+#' Copies of what an older maidr.js leaves to a knitted page
+#'
+#' `knitr-compat.js` and `knitr-compat.css` hold copies of what maidr.js
+#' does itself from [MAIDR_PAGE_GUARDS_VERSION]: they keep the shortcuts of
+#' slide decks, books, sites and dashboard cards from firing while a chart
+#' has the focus, hand Shift+Tab at the start of a deck's slide to the
+#' slide, draw the charts' focus ring, and keep high contrast to the chart.
+#' Each stands down for a maidr.js that says, in `maidrLive.features`, that
+#' it does the same. A page carries them only when
+#' `maidr_knitr_compat_needed()` says so.
+#'
+#' @return A single htmltools::htmlDependency()
+#' @keywords internal
+maidr_knitr_compat_dependency <- function() {
+  htmltools::htmlDependency(
+    name = "maidr-knitr-compat",
+    version = as.character(utils::packageVersion("maidr")),
+    package = "maidr",
+    src = "maidr-knitr",
+    script = "knitr-compat.js",
+    stylesheet = "knitr-compat.css",
+    all_files = FALSE
+  )
+}
+
+#' Whether a knitted page may load a maidr.js older than 4.15.0
+#'
+#' A page loads one maidr.js: that of the first dependency named `maidr`
+#' the document declares. htmltools keeps the newest of the dependencies of
+#' one name, the first of them when they tie, and every `maidr` dependency
+#' carries the bundled version, the CDN one of
+#' `maidr_htmlwidget(use_cdn = TRUE)` included, whatever release its URL
+#' names. So a widget that loads from the CDN, in a chunk before the first
+#' inline chart, puts the release its URL names on the page in place of the
+#' bundle, and `maidr.cdn_version` can pin that to an older one.
+#'
+#' The first `maidr` dependency of the knit so far decides, read when a chart
+#' declares the page's dependencies: the bundled `MAIDR_VERSION` when it
+#' names no URL -- an inline chart's, or a widget's that does not load from
+#' the CDN -- or the release its URL names. One older than
+#' [MAIDR_PAGE_GUARDS_VERSION], or `latest`, which jsDelivr may answer with
+#' a release it cached a week ago, needs the copies of
+#' `maidr_knitr_compat_dependency()`.
+#'
+#' @param meta The knit's metadata so far.
+#' @return `TRUE` when the page needs `maidr_knitr_compat_dependency()`
+#' @keywords internal
+maidr_knitr_compat_needed <- function(meta = knitr::knit_meta(clean = FALSE)) {
+  version <- MAIDR_VERSION
+  for (dep in meta) {
+    if (inherits(dep, "html_dependency") && identical(dep$name, "maidr")) {
+      href <- dep$src$href
+      if (!is.null(href)) {
+        named <- regmatches(href, regexec("/maidr@([^/]+)/", href))[[1]]
+        version <- if (length(named) == 2L) named[[2]] else MAIDR_CDN_LATEST_TAG
+      }
+      break
+    }
+  }
+  identical(version, MAIDR_CDN_LATEST_TAG) ||
+    maidr_is_older_than_bundled(version, MAIDR_PAGE_GUARDS_VERSION)
 }
 
 #' Get paths to local MAIDR assets

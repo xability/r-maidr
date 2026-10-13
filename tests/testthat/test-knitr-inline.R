@@ -72,6 +72,7 @@ bar_chart_svg <- function(title = NULL) {
 # ==============================================================================
 
 test_that("the knitr page loads maidr.js deferred, with its maths stylesheet declared", {
+  local_empty_knit_meta()
   deps <- maidr:::maidr_knitr_dependencies()
   names <- vapply(deps, function(dep) dep$name, character(1))
   testthat::expect_identical(utils::tail(names, 2L), c("maidr", "maidr-knitr"))
@@ -97,21 +98,141 @@ test_that("the knitr page loads maidr.js deferred, with its maths stylesheet dec
 })
 
 test_that("the knitr page script and stylesheet are installed, and named apart from maidr's", {
-  dep <- maidr:::maidr_knitr_dependency()
-  dir <- system.file(dep$src$file, package = dep$package)
-  testthat::expect_true(file.exists(file.path(dir, dep$script)))
-  testthat::expect_true(file.exists(file.path(dir, dep$stylesheet)))
-  # maidr.js takes a stylesheet named maidr-*.css for its own when it looks
-  # for maidr-math.css.
-  pattern <- "(?:^|/)maidr(?:[.-]\\w+)*\\.css(?:$|[?#])"
-  testthat::expect_false(grepl(pattern, dep$stylesheet, perl = TRUE))
-  testthat::expect_false(grepl(
-    pattern, file.path(sprintf("%s-%s", dep$name, dep$version), dep$stylesheet),
-    perl = TRUE
+  for (dep in list(maidr:::maidr_knitr_dependency(), maidr:::maidr_knitr_compat_dependency())) {
+    dir <- system.file(dep$src$file, package = dep$package)
+    testthat::expect_true(file.exists(file.path(dir, dep$script)))
+    testthat::expect_true(file.exists(file.path(dir, dep$stylesheet)))
+    # maidr.js takes a stylesheet named maidr-*.css for its own when it looks
+    # for maidr-math.css.
+    pattern <- "(?:^|/)maidr(?:[.-]\\w+)*\\.css(?:$|[?#])"
+    testthat::expect_false(grepl(pattern, dep$stylesheet, perl = TRUE))
+    testthat::expect_false(grepl(
+      pattern, file.path(sprintf("%s-%s", dep$name, dep$version), dep$stylesheet),
+      perl = TRUE
+    ))
+    # No switch for tests is left in what ships.
+    js <- paste(readLines(file.path(dir, dep$script)), collapse = "\n")
+    testthat::expect_false(grepl("NoShims", js, fixed = TRUE))
+  }
+})
+
+test_that("a page carries copies of maidr.js's page guards only for a maidr.js without them", {
+  local_empty_knit_meta()
+  needed <- maidr:::maidr_knitr_compat_needed
+  bundled <- Filter(function(dep) dep$name == "maidr", maidr:::maidr_knitr_dependencies())[[1]]
+  cdn <- function(version) {
+    htmltools::htmlDependency(
+      name = "maidr", version = maidr:::MAIDR_VERSION,
+      src = c(href = sprintf("https://cdn.jsdelivr.net/npm/maidr@%s/dist", version)),
+      script = "maidr.js"
+    )
+  }
+  other <- htmltools::htmlDependency("plotly-main", "2.11.1", src = c(href = "https://example.org"))
+
+  # The bundle, alone or first: this package bundles maidr.js 4.15.0 or
+  # later, which guards a page itself.
+  testthat::expect_false(maidr:::maidr_is_older_than_bundled(
+    maidr:::MAIDR_VERSION, maidr:::MAIDR_PAGE_GUARDS_VERSION
   ))
-  # No switch for tests is left in what ships.
-  js <- paste(readLines(file.path(dir, dep$script)), collapse = "\n")
-  testthat::expect_false(grepl("NoShims", js, fixed = TRUE))
+  testthat::expect_false(needed(list()))
+  testthat::expect_false(needed(list(other)))
+  testthat::expect_false(needed(list(bundled, cdn("4.14.0"))))
+  # A widget's maidr.js from the CDN, first on the page: its release decides.
+  testthat::expect_true(needed(list(other, cdn("4.14.0"), bundled)))
+  testthat::expect_true(needed(list(cdn("4.9.0"))))
+  testthat::expect_true(needed(list(cdn("4.15.0-rc.1"))))
+  testthat::expect_false(needed(list(cdn("4.15.0"))))
+  testthat::expect_false(needed(list(cdn("5.0.0"))))
+  # jsDelivr may answer `latest` with a release it cached a week ago.
+  testthat::expect_true(needed(list(cdn("latest"))))
+
+  deps <- maidr:::maidr_knitr_dependencies()
+  testthat::expect_false("maidr-knitr-compat" %in% vapply(deps, `[[`, "", "name"))
+})
+
+test_that("an inline chart after a widget pinned to an older maidr.js brings the copies", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("plotly")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  meta_names <- function() {
+    vapply(knitr::knit_meta(clean = TRUE), function(dep) {
+      if (is.null(dep$name)) "" else dep$name
+    }, character(1))
+  }
+  knitr::knit_meta(clean = TRUE)
+  widget <- c(
+    "```{r widget}",
+    "maidr::maidr_htmlwidget(",
+    "  plotly::plot_ly(x = c('a', 'b'), y = c(1, 2), type = 'bar'), use_cdn = TRUE",
+    ")",
+    "```"
+  )
+  chart <- c(
+    "```{r chart}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "```"
+  )
+
+  for (pin in c("4.14.0", "latest")) {
+    withr::with_options(list(maidr.cdn_version = pin), knit_for(c(widget, chart), dir))
+    testthat::expect_true("maidr-knitr-compat" %in% meta_names(), info = pin)
+  }
+  # The bundle comes first when the chart does, and the page loads it.
+  withr::with_options(list(maidr.cdn_version = "4.14.0"), knit_for(c(chart, widget), dir))
+  testthat::expect_false("maidr-knitr-compat" %in% meta_names())
+  withr::with_options(list(maidr.cdn_version = "4.15.0"), knit_for(c(widget, chart), dir))
+  testthat::expect_false("maidr-knitr-compat" %in% meta_names())
+  knit_for(chart, dir)
+  testthat::expect_false("maidr-knitr-compat" %in% meta_names())
+})
+
+test_that("a page loads the maidr.js of its first maidr dependency, and the copies with an older one", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("plotly")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  widget <- c(
+    "```{r widget}",
+    "maidr_htmlwidget(",
+    "  plotly::plot_ly(x = c('a', 'b'), y = c(1, 2), type = 'bar'), use_cdn = TRUE",
+    ")",
+    "```"
+  )
+  chart <- c(
+    "```{r chart}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "```"
+  )
+  # The src of every script of the page, rendered as an author does.
+  scripts <- function(chunks) {
+    rmd <- file.path(dir, "page.Rmd")
+    writeLines(c(
+      "---", "title: Page", "output:", "  html_document:", "    self_contained: false", "---", "",
+      "```{r setup, include = FALSE}", "library(maidr)", "options(maidr.cdn_version = '4.14.0')",
+      "```", "", chunks
+    ), rmd)
+    out <- rmarkdown::render(rmd, quiet = TRUE, envir = new.env())
+    xml2::xml_attr(xml2::xml_find_all(xml2::read_html(out), "//script[@src]"), "src")
+  }
+  cdn <- "https://cdn.jsdelivr.net/npm/maidr@4.14.0/dist/maidr.js"
+
+  # The widget first: its maidr.js from the CDN, pinned to 4.14.0, is the
+  # page's only one, and the copies come with the chart after it.
+  first <- scripts(c(widget, chart))
+  testthat::expect_identical(grep("/maidr\\.js$", first, value = TRUE), cdn)
+  testthat::expect_true(any(endsWith(first, "/knitr-compat.js")))
+  # The chart first: the bundle is the page's only one, and needs none.
+  after <- scripts(c(chart, widget))
+  testthat::expect_identical(
+    grep("/maidr\\.js$", after, value = TRUE),
+    sprintf("page_files/maidr-%s/maidr.js", maidr:::MAIDR_VERSION)
+  )
+  testthat::expect_false(any(endsWith(after, "/knitr-compat.js")))
 })
 
 test_that("save_html() and the widgets keep their bundle as it was", {
