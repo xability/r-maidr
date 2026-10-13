@@ -107,6 +107,17 @@ the version bundled with this package; with an older one pinned by
 `maidr.cdn_version` it is ignored with a warning. See `?maidr_htmlwidget`.
 
 ``` r
+library(maidr)
+library(echarts4r)
+
+# A median and a 90% band drawn as a stacked area
+fan <- data.frame(
+  week = paste("Week", 1:8),
+  median = c(10, 12, 13, 15, 16, 18, 19, 21),
+  lower = c(8, 9, 9, 10, 10, 11, 11, 12)
+)
+fan$width <- 2 * (fan$median - fan$lower)
+
 fan |>
   e_charts(week) |>                    # a category x axis
   e_line(median, name = "Median") |>
