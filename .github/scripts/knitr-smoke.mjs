@@ -66,8 +66,11 @@
 //     holds as on `mixed.html`, the page is not marked for the copied focus
 //     ring, and, given hosts to guard, pkgdown's search box, reveal.js's
 //     search plugin and a body painted as maidr.js before 4.15.0 paints it,
-//     with the keys they act on pressed in the chart, knitr-compat.js
-//     guards no host, paints no chart and does nothing else on the page;
+//     with the keys they act on pressed in the chart, and on what the
+//     copies take for a deck, Shift+Tab pressed in the widget's chart, the
+//     page's first tab stop, knitr-compat.js guards no host, paints no
+//     chart, hands the focus to nothing and does nothing else on the page:
+//     the key leaves the page;
 //   * on an ioslides slide, `slides.html`, which cuts off what runs past its
 //     foot, a chart too large to leave room below it for maidr's text is
 //     made smaller: maidr's instructions, text and braille and review fields
@@ -858,9 +861,16 @@ const compatProbe = () => {
 // are given everything they act on while a chart has the focus -- the hosts
 // whose keys they guard, pkgdown's search box, reveal.js's search plugin,
 // and a body painted as maidr.js before 4.15.0 paints it for high contrast
-// -- and the keys each acts on are pressed in the chart. A copy that stands
-// down leaves all of it to maidr.js: it guards no host, paints no chart and
-// does nothing else on the page.
+// -- and the keys each acts on are pressed in the chart. Then Shift+Tab is
+// pressed in the widget's chart, the page's first tab stop, on what the
+// copies take for a deck (the ioslides SlideDeck given them): the copied
+// hand-off would give the reader to the slide, or to what holds the chart,
+// and only from a chart nothing on the page comes before -- not the inline
+// one, which has the widget before it. maidr.js hands the reader to a slide
+// only on a deck's own markup, which this page has none of, so the key
+// leaves the page for the browser. A copy that stands down leaves all of it
+// to maidr.js: it guards no host, paints no chart, hands the focus to
+// nothing and does nothing else on the page.
 const standDown = async (widget, name) => {
   await widget.locator(`.maidr-knitr ${plotOf}`).focus();
   await widget.waitForTimeout(settle);
@@ -887,6 +897,18 @@ const standDown = async (widget, name) => {
     await widget.keyboard.press(key);
     await widget.waitForTimeout(settle);
   }
+  await widget.locator(`.html-widget ${plotOf}`).focus();
+  await widget.waitForTimeout(settle);
+  const inWidget = await widget.evaluate(plotOf => document.activeElement
+    === document.querySelector(`.html-widget ${plotOf}`), plotOf);
+  await widget.keyboard.press('Shift+Tab');
+  await widget.waitForTimeout(settle);
+  const left = await widget.evaluate(() => document.activeElement.tagName.toLowerCase());
+  check(
+    inWidget && left === 'body',
+    `${name}: Shift+Tab from the widget, the page's first tab stop, is left to maidr.js, which hands it to no slide`
+      + ` on a page with none: the page's copy hands the focus to nothing either, and it leaves the page (${left})`,
+  );
   const stood = await widget.evaluate(() => ({
     acts: [...new Set(window.__maidrSmokeCompatActs)],
     hosts: ['SlideDeck', 'Reveal', 'Mousetrap', 'quartoOpenSearch']
