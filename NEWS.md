@@ -290,6 +290,17 @@
   `plot()` call is recorded at all: attach ROCR before maidr, or call
   `maidr::plot()`. maidr now says so when ROCR is attached after it, and
   in the "No Base R plots detected" error.
+* `plot()` of a survival `survfit` object, a Kaplan-Meier curve, is emitted
+  as a `survival` layer read from the object: one curve per stratum, each
+  time announced with its survival estimate, the times a subject was
+  censored marked so a reader can step between them, and the confidence
+  band as each point's `yMin` and `yMax` when the plot draws it. survival's
+  plot method draws from inside its own namespace, so the chart used to be
+  emitted as a scatter with no points in it. `xscale`, `yscale`, `xmax` and
+  `xlim` are read as the plot draws them; a plot drawn with `fun`,
+  `cumhaz`, `conf.times` or `conf.int = "only"`, or of a multi-state fit,
+  is shown as a picture. Needs maidr.js 4.14.0 or later, which this release
+  bundles (#375).
 * A `wordcloud::wordcloud()` chart highlights the word being read: as the
   arrow keys move, the word announced is recoloured in the reader's
   highlight colour. Each term is matched to the text R drew it as by its

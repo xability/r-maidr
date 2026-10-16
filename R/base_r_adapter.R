@@ -547,6 +547,12 @@ BaseRAdapter <- R6::R6Class(
             # read from the object (`BaseRRocrPerformanceLayerProcessor`).
             # Typed by `type` as a scatter, it was an empty point layer.
             rocr_performance_layer_type(args)
+          } else if (inherits(first_arg, "survfit")) {
+            # `plot()` of a survival `survfit` object draws its curves from
+            # inside survival's namespace, where nothing is recorded; they
+            # are read from the object (`BaseRSurvfitLayerProcessor`).
+            # Typed by `type` as a scatter, it was an empty point layer.
+            survfit_layer_type(args)
           } else if (inherits(first_arg, "igraph")) {
             # `plot.igraph()` draws a graph, not the points `type` would
             # say: a directed one is read from the graph itself.
