@@ -8,7 +8,7 @@ An R6 class inheriting from ProcessorFactory
 }
 \description{
 Each heat map of a ComplexHeatmap chart draws one matrix, read as one
-\code{heat} layer.
+\code{heat} layer, and its dendrograms, read as \code{tree} layers.
 }
 \keyword{internal}
 \section{Super class}{
@@ -41,13 +41,13 @@ Each heat map of a ComplexHeatmap chart draws one matrix, read as one
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot_type}}{The layer type; only \code{"heat"} is read}
-      \item{\code{plot_object}}{The layer information}
+      \item{\code{plot_type}}{The layer type, \code{"heat"} or \code{"tree"}}
+      \item{\code{plot_object}}{The layer information; a tree's names its \code{side}}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A ComplexHeatmapLayerProcessor
+    A ComplexHeatmapLayerProcessor or ComplexHeatmapTreeLayerProcessor
   }
 }
 

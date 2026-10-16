@@ -34,10 +34,18 @@ ch_orchestrator <- function(x) {
   get_global_registry()$get_adapter_for_plot(x)$create_orchestrator(x)
 }
 
+# The grid with only the subplots holding a heat layer, rows with none left
+# out: where the heat maps are among their dendrograms' subplots (#390).
+ch_heat_subplots <- function(subplots) {
+  heat <- function(s) length(s$layers) && identical(s$layers[[1]]$type, "heat")
+  rows <- lapply(subplots, function(row) Filter(heat, row))
+  Filter(length, rows)
+}
+
 ch_layer <- function(x) {
   orchestrator <- ch_orchestrator(x)
   expect_identical(orchestrator$unsupported_reasons(), character(0))
-  orchestrator$generate_maidr_data()$subplots[[1]][[1]]$layers[[1]]
+  ch_heat_subplots(orchestrator$generate_maidr_data()$subplots)[[1]][[1]]$layers[[1]]
 }
 
 ch_points <- function(layer) {
@@ -87,7 +95,7 @@ ch_svg <- function(orchestrator) {
 
 expect_selectors_paint_values <- function(x) {
   orchestrator <- ch_orchestrator(x)
-  layer <- orchestrator$generate_maidr_data()$subplots[[1]][[1]]$layers[[1]]
+  layer <- ch_heat_subplots(orchestrator$generate_maidr_data()$subplots)[[1]][[1]]$layers[[1]]
   expect_layer_paints_values(ch_svg(orchestrator), layer, ch_drawn(x)@ht_list[[1]])
 }
 
@@ -238,7 +246,7 @@ ch_list_matrices <- function() {
 ch_grid <- function(x) {
   orchestrator <- ch_orchestrator(x)
   expect_identical(orchestrator$unsupported_reasons(), character(0))
-  orchestrator$generate_maidr_data()$subplots
+  ch_heat_subplots(orchestrator$generate_maidr_data()$subplots)
 }
 
 ch_subplot_ids <- function(subplots) {
@@ -254,7 +262,8 @@ test_that("a horizontal list is one row of heat maps, each read exactly", {
   rows <- ComplexHeatmap::row_order(drawn)
   cols <- lapply(ComplexHeatmap::column_order(drawn), unlist, use.names = FALSE)
 
-  expect_identical(ch_subplot_ids(subplots), list(c("maidr-subplot-1-1", "maidr-subplot-1-2")))
+  # The row tree first, left of `a`.
+  expect_identical(ch_subplot_ids(subplots), list(c("maidr-subplot-1-2", "maidr-subplot-1-3")))
   a <- subplots[[1]][[1]]$layers[[1]]
   b <- subplots[[1]][[2]]$layers[[1]]
   expect_identical(c(a$id, b$id), c("maidr-layer-1", "maidr-layer-2"))
@@ -279,8 +288,9 @@ test_that("a vertical list is one column of heat maps, bottom first", {
   rows <- ComplexHeatmap::row_order(drawn)
   cols <- unlist(ComplexHeatmap::column_order(drawn), use.names = FALSE)
 
-  # `c` is drawn below `a`; the grid's rows run bottom first.
-  expect_identical(ch_subplot_ids(subplots), list("maidr-subplot-1-1", "maidr-subplot-2-1"))
+  # `c` is drawn below `a`; the grid's rows run bottom first, and each
+  # heat map's row tree is left of it.
+  expect_identical(ch_subplot_ids(subplots), list("maidr-subplot-1-2", "maidr-subplot-2-2"))
   c <- subplots[[1]][[1]]$layers[[1]]
   a <- subplots[[2]][[1]]$layers[[1]]
   expect_identical(c(a$axes$z$label, c$axes$z$label), c("a", "c"))
@@ -330,7 +340,7 @@ test_that("each heat map's selectors name its own cells", {
   for (x in lists) {
     orchestrator <- ch_orchestrator(x)
     svg <- ch_svg(orchestrator)
-    subplots <- orchestrator$generate_maidr_data()$subplots
+    subplots <- ch_heat_subplots(orchestrator$generate_maidr_data()$subplots)
     heatmaps <- ch_drawn(x)@ht_list
     # In drawn order: the one row left to right, or the column's rows,
     # written bottom first, top to bottom.
@@ -366,8 +376,9 @@ test_that("a discrete heat map in a list is skipped, and alone falls back", {
     "'kind' is a heat map of categories",
     class = "maidr_complexheatmap_skipped"
   )
-  subplots <- orchestrator$generate_maidr_data()$subplots
-  expect_identical(ch_subplot_ids(subplots), list("maidr-subplot-1-1"))
+  subplots <- ch_heat_subplots(orchestrator$generate_maidr_data()$subplots)
+  # Beside its row tree, below its column tree.
+  expect_identical(ch_subplot_ids(subplots), list("maidr-subplot-1-2"))
   expect_identical(subplots[[1]][[1]]$layers[[1]]$axes$z$label, "a")
 
   discrete <- matrix(sample(c("lo", "hi"), 30, replace = TRUE), 5, 6)

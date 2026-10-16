@@ -301,7 +301,27 @@
 * A heat map of categories (a character matrix) in a list with a numeric
   one is left out, with a message naming it; alone, or in a list with no
   numeric heat map, it falls back to an image. Annotations, between heat
-  maps or around them, dendrograms and legends are drawn and not read.
+  maps or around them, and legends are drawn and not read.
+* Each dendrogram a ComplexHeatmap draws is read as a `tree` layer,
+  experimentally (#390), from the same drawing, and placed where it is
+  drawn: the row tree beside the heat map, left or right, the column tree
+  above or below it. Its nodes are named as a pheatmap's are: a leaf by
+  the row or column the heat layer names it, a cluster by the first and
+  last of them it spans and the height it merged at. A split side whose
+  slices are clustered (`cluster_row_slices = TRUE`, the default) is one
+  tree, each slice's dendrogram joined under the one drawn over the
+  slices, whose clusters are named by the height the slices merged at
+  rather than the height they are drawn at; with
+  `cluster_row_slices = FALSE` each slice's dendrogram is a tree of its
+  own, a layer of the same subplot, titled by its slice. A side not
+  clustered or drawn with `show_row_dend = FALSE` or
+  `show_column_dend = FALSE` has none. The dendrogram is drawn as lines
+  with nothing to mark a node, so its nodes are announced but not
+  highlighted. In a list the dendrograms are those drawn: a horizontal
+  list's rows share one row tree, from the main heat map, beside the heat
+  map that draws it, and each heat map has its own column tree above or
+  below it; a vertical list the reverse. The dendrograms of a heat map of
+  categories left out of a list are not read.
 
 ### webR
 
