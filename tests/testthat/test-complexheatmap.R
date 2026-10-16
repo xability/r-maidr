@@ -172,7 +172,31 @@ test_that("a missing cell is a hole, and labels follow what is drawn", {
   expect_identical(unlist(layer$data$x), colnames(m))
 })
 
+# Whether ComplexHeatmap can rasterize a body here at all. Its raster path
+# draws the cells into a temporary PNG with grDevices::png() (type "cairo"
+# when R reports cairo) and reads it back; where no bitmap device can be
+# opened -- macOS without XQuartz, as on the CI runners, where png() falls
+# back to an X11 module that cannot load -- the PNG is never written and
+# draw() itself stops, with or without maidr. Probed as ComplexHeatmap's own
+# draw() of a tiny raster heat map on a null device.
+ch_raster_works <- function() {
+  grDevices::pdf(NULL)
+  device <- grDevices::dev.cur()
+  # A failed raster draw can take this device down with it.
+  on.exit(if (device %in% grDevices::dev.list()) grDevices::dev.off(device))
+  tryCatch(
+    {
+      suppressWarnings(suppressMessages(ComplexHeatmap::draw(
+        ComplexHeatmap::Heatmap(matrix(1:4, 2), use_raster = TRUE)
+      )))
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+}
+
 test_that("a raster body is read without highlighting, and says so", {
+  skip_if_not(ch_raster_works(), "ComplexHeatmap cannot rasterize a heat map body here")
   m <- ch_matrix()
   ht <- ch_heatmap(m, use_raster = TRUE, cluster_rows = FALSE, cluster_columns = FALSE)
   expect_message(layer <- ch_layer(ht), "use_raster", class = "maidr_complexheatmap_raster")
