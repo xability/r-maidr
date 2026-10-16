@@ -808,7 +808,9 @@ knitr_chart_title <- function(json) {
 #' A name for a chart with no alt text, caption or title
 #'
 #' Its kind, from the type of its first layer, and what it plots against
-#' what when both axes are labelled: "Bar chart of n by kind".
+#' what when both axes are labelled: "Bar chart of n by kind". A `tree`
+#' layer is passed over for another: a pheatmap's row dendrogram is its
+#' first subplot, and the chart is a heat map.
 #'
 #' @param json The maidr-data JSON
 #' @return One string; "Chart" when the JSON cannot be read
@@ -816,7 +818,14 @@ knitr_chart_title <- function(json) {
 #' @noRd
 knitr_chart_kind <- function(json) {
   layer <- tryCatch(
-    jsonlite::parse_json(json)$subplots[[1L]][[1L]]$layers[[1L]],
+    {
+      layers <- unlist(lapply(
+        unlist(jsonlite::parse_json(json)$subplots, recursive = FALSE),
+        function(subplot) subplot$layers
+      ), recursive = FALSE)
+      other <- Filter(function(l) !identical(l$type, "tree"), layers)
+      c(other, layers)[[1L]]
+    },
     error = function(e) NULL
   )
   type <- if (is.character(layer$type) && length(layer$type) == 1L) layer$type else ""

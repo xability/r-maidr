@@ -7,7 +7,8 @@
 An R6 class inheriting from ProcessorFactory
 }
 \description{
-A pheatmap draws one matrix, read as one \code{heat} layer.
+A pheatmap draws one matrix, read as one \code{heat} layer, and a dendrogram
+on each clustered side, each read as a \code{tree} layer.
 }
 \keyword{internal}
 \section{Super class}{
@@ -40,13 +41,13 @@ A pheatmap draws one matrix, read as one \code{heat} layer.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot_type}}{The layer type; only \code{"heat"} is read}
-      \item{\code{plot_object}}{The layer information}
+      \item{\code{plot_type}}{The layer type, \code{"heat"} or \code{"tree"}}
+      \item{\code{plot_object}}{The layer information; a tree's names its \code{side}}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A PheatmapHeatmapLayerProcessor
+    A PheatmapHeatmapLayerProcessor or PheatmapTreeLayerProcessor
   }
 }
 

@@ -1,12 +1,20 @@
 #' pheatmap Plot Orchestrator
 #'
 #' @description
-#' Reads the object `pheatmap::pheatmap()` returns as one subplot holding one
-#' `heat` layer ([PheatmapHeatmapLayerProcessor]), and draws its `gtable`
-#' for the SVG. Experimental.
+#' Reads the object `pheatmap::pheatmap()` returns as a `heat` layer
+#' ([PheatmapHeatmapLayerProcessor]) and, for each side with a drawn
+#' dendrogram, a `tree` layer ([PheatmapTreeLayerProcessor]), and draws its
+#' `gtable` for the SVG. Experimental. Annotation tracks are not read.
 #'
-#' Only the matrix is read. The dendrograms set the order the cells are read
-#' in but are not read themselves, and neither are annotation tracks.
+#' **Grid.** Each layer is a subplot placed where pheatmap draws it: the row
+#' tree left of the matrix, the column tree above it, and nothing in the
+#' corner above the row tree -- `[[row tree, heat], [empty, column tree]]`,
+#' as far as each side is drawn. The grid's rows run **bottom first**. No
+#' subplot of it can be measured in the SVG (the trees carry no selectors
+#' and the corner none at all), so maidr.js orders it as written, where the
+#' up arrow moves to the next row; written bottom first, up moves from the
+#' matrix to the column tree above it, and the reader starts in the bottom
+#' left subplot, the row tree.
 #'
 #' When the cells' values cannot be read -- not drawn with [pheatmap()],
 #' which keeps them, and with no legend (`legend = FALSE`) or one labelled
@@ -46,11 +54,10 @@ PheatmapPlotOrchestrator <- R6::R6Class(
       }
       private$.layout <- self$extract_layout()
 
+      factory <- get_global_registry()$get_processor_factory("pheatmap")
       layer_info <- list(index = 1L, type = "heat")
       private$.layers <- list(layer_info)
-      processor <- get_global_registry()$get_processor_factory("pheatmap")$create_processor(
-        "heat", layer_info
-      )
+      processor <- factory$create_processor("heat", layer_info)
       private$.layer_processors <- list(processor)
       result <- processor$process(plot, private$.layout, gt = private$.gtable)
       processor$set_last_result(result)
@@ -63,18 +70,24 @@ PheatmapPlotOrchestrator <- R6::R6Class(
         return(invisible(self))
       }
       validate_axes(result$axes, context = "pheatmap orchestrator")
+      heat <- pheatmap_layer_object(result, 1L)
 
-      private$.combined_data <- list(list(list(
-        id = "maidr-subplot-1-1",
-        layers = list(list(
-          id = "maidr-layer-1",
-          selectors = result$selectors,
-          type = result$type,
-          data = result$data,
-          title = result$title,
-          axes = result$axes
-        ))
-      )))
+      trees <- list()
+      for (side in c("row", "col")) {
+        info <- list(index = length(private$.layers) + 1L, type = "tree", side = side)
+        tree_processor <- factory$create_processor("tree", info)
+        tree <- tree_processor$process(plot, private$.layout, gt = private$.gtable)
+        tree_processor$set_last_result(tree)
+        if (is.null(tree)) {
+          next
+        }
+        validate_axes(tree$axes, context = "pheatmap orchestrator")
+        private$.layers <- c(private$.layers, list(info))
+        private$.layer_processors <- c(private$.layer_processors, list(tree_processor))
+        trees[[side]] <- pheatmap_layer_object(tree, info$index)
+      }
+
+      private$.combined_data <- pheatmap_subplot_grid(heat, trees$row, trees$col)
       invisible(self)
     },
 
@@ -164,6 +177,46 @@ PheatmapPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' One layer of a pheatmap as the payload carries it
+#' @param result A processor's result
+#' @param index The layer's number
+#' @return The layer; with no `selectors` when it has none
+#' @keywords internal
+pheatmap_layer_object <- function(result, index) {
+  layer <- list(id = paste0("maidr-layer-", index))
+  if (!is.null(result$selectors)) {
+    layer$selectors <- result$selectors
+  }
+  c(layer, result[c("type", "data", "title", "axes")])
+}
+
+#' A pheatmap's subplot grid: each layer where it is drawn, rows bottom first
+#'
+#' See [PheatmapPlotOrchestrator] for why the rows run bottom first.
+#'
+#' @param heat The heat layer
+#' @param row_tree,col_tree The tree layers, or NULL for a side with none
+#' @return A list of rows of subplots
+#' @keywords internal
+pheatmap_subplot_grid <- function(heat, row_tree = NULL, col_tree = NULL) {
+  subplot <- function(row, col, layer = NULL) {
+    list(
+      id = paste0("maidr-subplot-", row, "-", col),
+      layers = if (is.null(layer)) list() else list(layer)
+    )
+  }
+  bottom <- c(if (!is.null(row_tree)) list(row_tree), list(heat))
+  grid <- list(lapply(seq_along(bottom), function(col) subplot(1L, col, bottom[[col]])))
+  if (!is.null(col_tree)) {
+    grid[[2L]] <- if (is.null(row_tree)) {
+      list(subplot(2L, 1L, col_tree))
+    } else {
+      list(subplot(2L, 1L), subplot(2L, 2L, col_tree))
+    }
+  }
+  grid
+}
 
 #' Draw a pheatmap on the current device, as `print()` on it does
 #' @param plot The pheatmap object

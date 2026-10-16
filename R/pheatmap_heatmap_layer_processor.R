@@ -257,6 +257,35 @@ pheatmap_matrix_fits <- function(values, fill) {
     (is.null(colnames(fill)) || identical(colnames(values), colnames(fill)))
 }
 
+#' The labels of one axis of a pheatmap, in drawn order
+#'
+#' The drawn labels when the axis shows them (`labels_row`, the k-means
+#' clusters' names); else the matrix's dimnames; else, as for an unnamed
+#' matrix, each row's or column's number in the input, in tree order. The
+#' heat layer names its rows and columns by these, and a dendrogram its
+#' leaves.
+#'
+#' @param gt The gtable
+#' @param name `"row_names"` or `"col_names"`
+#' @param dimnames The fill matrix's names along the axis
+#' @param tree The axis' `hclust`, or NA when it was not clustered
+#' @param count The number of rows or columns drawn
+#' @return Character vector
+#' @keywords internal
+pheatmap_axis_labels <- function(gt, name, dimnames, tree, count) {
+  drawn <- pheatmap_grob(gt, name)
+  if (!is.null(drawn) && length(drawn$label) == count) {
+    return(as.character(drawn$label))
+  }
+  if (length(dimnames) == count) {
+    return(as.character(dimnames))
+  }
+  if (inherits(tree, "hclust") && length(tree$order) == count) {
+    return(as.character(tree$order))
+  }
+  as.character(seq_len(count))
+}
+
 #' pheatmap Heatmap Layer Processor
 #'
 #' @description
@@ -396,12 +425,8 @@ PheatmapHeatmapLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' @description The labels of one axis, in drawn order
-    #'
-    #' The drawn labels when the axis shows them (`labels_row`, the k-means
-    #' clusters' names); else the matrix's dimnames; else, as for an unnamed
-    #' matrix, each row's or column's number in the input, in tree order.
-    #'
+    #' @description The labels of one axis, in drawn order; see
+    #'   [pheatmap_axis_labels()]
     #' @param gt The gtable
     #' @param name `"row_names"` or `"col_names"`
     #' @param dimnames The fill matrix's names along the axis
@@ -409,17 +434,7 @@ PheatmapHeatmapLayerProcessor <- R6::R6Class(
     #' @param count The number of rows or columns drawn
     #' @return Character vector
     labels = function(gt, name, dimnames, tree, count) {
-      drawn <- pheatmap_grob(gt, name)
-      if (!is.null(drawn) && length(drawn$label) == count) {
-        return(as.character(drawn$label))
-      }
-      if (length(dimnames) == count) {
-        return(as.character(dimnames))
-      }
-      if (inherits(tree, "hclust") && length(tree$order) == count) {
-        return(as.character(tree$order))
-      }
-      as.character(seq_len(count))
+      pheatmap_axis_labels(gt, name, dimnames, tree, count)
     },
 
     #' @description One selector per cell, rows bottom first
