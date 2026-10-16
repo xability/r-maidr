@@ -1358,8 +1358,10 @@ drop_empty_selectors <- function(node) {
 #' for `bar` and `hist` (`src/model/bar.ts`), a per-series grid for the
 #' segmented bars and `mosaic` (`src/model/segmented.ts`), and nothing at all
 #' for `point` and `pie`, whose models read `layer.selectors as string`
-#' (`src/model/scatter.ts`, `src/model/pie.ts`). `dot` and `lollipop` are
-#' built by the `bar` model; `heat` reads a string or a per-cell grid
+#' (`src/model/scatter.ts`, `src/model/pie.ts`) -- as do `volcano` and
+#' `manhattan`, built by the scatter model (`src/model/volcano.ts`). `dot`
+#' and `lollipop` are built by the `bar` model; `heat` reads a string or a
+#' per-cell grid
 #' (`src/model/heatmap.ts`). maidr.js 3.x read a one-element array as the
 #' string it held, which is why every processor here that returns
 #' `list(selector)` was fine until the bundle moved to 4.0 (#316).
@@ -1373,7 +1375,7 @@ drop_empty_selectors <- function(node) {
 #' @keywords internal
 SINGLE_SELECTOR_LAYER_TYPES <- c(
   "bar", "hist", "dot", "lollipop",
-  "point",
+  "point", "volcano", "manhattan",
   "pie",
   "dodged_bar", "stacked_bar", "stacked_normalized_bar", "mosaic",
   "heat"

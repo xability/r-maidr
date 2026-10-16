@@ -436,11 +436,13 @@ own, as they do here.
 | `error_bar` | `geom_errorbar()`, `geom_errorbarh()`, `geom_linerange()`, `geom_pointrange()`, `geom_crossbar()`, `geom_ribbon()` as a band other than a `median_hilow` summary |
 | `gantt` | `geom_segment()`, `geom_curve()`, `maidr_gantt()` |
 | `hexbin` | `geom_hex()`, `stat_bin_2d()` |
+| `manhattan` | `maidr_manhattan()` |
 | `percentile_band` | `ggdist::stat_lineribbon()`, `ggdist::geom_lineribbon()` of a `median_qi()` summary, `stat_summary(geom = "ribbon", fun.data = median_hilow)` (with its `stat_summary()` median line) |
 | `polygon` | `geom_polygon()` |
 | `pr_curve` | `maidr_pr_curve()`, `autoplot()` of a `yardstick::pr_curve()` |
 | `roc` | `maidr_roc()`, `pROC::ggroc()`, `autoplot()` of a `yardstick::roc_curve()` |
 | `rug` | `geom_rug()` |
+| `volcano` | `maidr_volcano()` |
 
 #### Base R
 
