@@ -73,6 +73,7 @@ Suggests:
     pROC,
     ROCR,
     survival,
+    survminer,
     yardstick,
     dplyr,
     ggdist,

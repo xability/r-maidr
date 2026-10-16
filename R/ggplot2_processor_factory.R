@@ -55,6 +55,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "stacked_area" = Ggplot2AreaLayerProcessor$new(layer_info),
         "stacked_normalized_area" = Ggplot2AreaLayerProcessor$new(layer_info),
         "step" = Ggplot2StepLayerProcessor$new(layer_info),
+        "survival" = Ggplot2SurvivalLayerProcessor$new(layer_info),
         "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
         # A field drawn as curves of constant value, the level being a
         # number on every row rather than a fill colour.
@@ -109,6 +110,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "stacked_area",
         "stacked_normalized_area",
         "step",
+        "survival",
         "smooth",
         "contour",
         "gantt",

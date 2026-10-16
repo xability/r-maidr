@@ -121,6 +121,7 @@ reference:
       - maidr_pr_curve
       - maidr_volcano
       - maidr_manhattan
+      - maidr_survival
 
   - title: Turning interception on and off
     desc: >

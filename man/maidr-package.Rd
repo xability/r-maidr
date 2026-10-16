@@ -83,6 +83,8 @@ Among them:
 \item ggplot2 volcano plots - \code{\link{maidr_volcano}()} [experimental]
 \item ggplot2 Manhattan plots - \code{\link{maidr_manhattan}()}
 [experimental]
+\item ggplot2 Kaplan-Meier curves - \code{\link{maidr_survival}()},
+\code{survminer::ggsurvplot()} [experimental]
 \item ggplot2 percentile bands - \code{ggdist::stat_lineribbon()},
 \code{stat_summary(geom = "ribbon", fun.data = median_hilow)}
 [experimental]

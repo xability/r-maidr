@@ -388,6 +388,19 @@
 
 ### ggplot2
 
+* Added Kaplan-Meier survival curve support [experimental]:
+  `maidr_survival()` draws a `survfit` object's curves -- `ggplot() +
+  maidr_survival(fit)`, from the origin `plot()` of the fit starts at -- or
+  curves from data, with `censored`, `ymin` and `ymax` aesthetics, and with
+  `conf.int = TRUE` the stepped confidence band beneath them and a mark at
+  each censored time. A declared layer is emitted as a `survival` layer:
+  one curve per stratum, each time announced with its survival estimate
+  and, when the band is drawn, its interval, and the censored times marked
+  so a reader can step between them. A `survminer::ggsurvplot()` figure
+  handed to `show()` or `save_html()` is redrawn as one such layer from the
+  data it carries; its risk table is left out, with a message, and a figure
+  of `fun = "event"` or `"cumhaz"` keeps the step reading. A `geom_step()`
+  keeps its step reading (#382).
 * Added volcano and Manhattan plot support [experimental]: `maidr_volcano()`
   and `maidr_manhattan()` are `geom_point()` with the significance threshold
   the chart is read against -- required, since a guessed line would put

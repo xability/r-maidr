@@ -176,23 +176,17 @@ survfit_curves <- function(fit, args) {
   yscale <- survfit_scale(args[["yscale"]])
   xmax <- survfit_xmax(args)
 
-  # The origin the plot starts every curve at (survival >= 3.0).
-  fit0 <- survival::survfit0(fit, fit$start.time)
-  sizes <- if (is.null(fit0$strata)) length(fit0$time) else as.integer(fit0$strata)
-  labels <- names(fit0$strata)
-  ends <- cumsum(sizes)
+  rows <- survfit_frame(fit)
+  labels <- attr(rows, "strata")
+  strata <- if (is.null(labels)) 1L else seq_along(labels)
 
-  lapply(seq_along(sizes), function(s) {
-    who <- seq_len(sizes[[s]]) + ends[[s]] - sizes[[s]]
-    time <- as.numeric(fit0$time[who])
-    surv <- as.numeric(fit0$surv[who])
-    censor <- if (!is.null(fit0$n.censor)) {
-      fit0$n.censor[who] > 0
-    } else {
-      fit0$n.event[who] == 0
-    }
-    lower <- if (band) as.numeric(fit0$lower[who])
-    upper <- if (band) as.numeric(fit0$upper[who])
+  lapply(strata, function(s) {
+    who <- rows$stratum == s
+    time <- rows$time[who]
+    surv <- rows$surv[who]
+    censor <- rows$censored[who]
+    lower <- if (band) rows$lower[who]
+    upper <- if (band) rows$upper[who]
 
     cut <- survfit_cut(time, xmax)
     time <- cut$time
@@ -222,6 +216,45 @@ survfit_curves <- function(fit, args) {
       point
     })
   })
+}
+
+#' A `survfit` object's curves as rows, from the origin the plot starts at
+#'
+#' One row per time each stratum reports, after `survival::survfit0()`'s
+#' added origin: the time, the survival estimate, the band's bounds (`NA`
+#' where the fit kept none), whether a subject was censored there
+#' (`n.censor`, or a time with no event when the fit counts no censoring)
+#' and the stratum's index. Shared by the Base R reading of `plot()` and by
+#' [maidr_survival()], so both read one object the same way.
+#'
+#' @param fit A `survfit` object accepted by [survfit_readable()]
+#' @return A data frame with columns `time`, `surv`, `lower`, `upper`,
+#'   `censored` and `stratum`, and the strata's names as its `"strata"`
+#'   attribute (NULL without strata)
+#' @keywords internal
+survfit_frame <- function(fit) {
+  # The origin the plot starts every curve at (survival >= 3.0).
+  fit0 <- survival::survfit0(fit, fit$start.time)
+  sizes <- if (is.null(fit0$strata)) length(fit0$time) else as.integer(fit0$strata)
+  n <- length(fit0$time)
+  bound <- function(values) {
+    if (is.null(values)) rep(NA_real_, n) else as.numeric(values)
+  }
+  censored <- if (!is.null(fit0$n.censor)) {
+    fit0$n.censor > 0
+  } else {
+    fit0$n.event == 0
+  }
+  rows <- data.frame(
+    time = as.numeric(fit0$time),
+    surv = as.numeric(fit0$surv),
+    lower = bound(fit0$lower),
+    upper = bound(fit0$upper),
+    censored = as.logical(censored),
+    stratum = rep(seq_along(sizes), sizes)
+  )
+  attr(rows, "strata") <- names(fit0$strata)
+  rows
 }
 
 #' Where `plot()` of a `survfit` object cuts a curve that runs past `xmax`
