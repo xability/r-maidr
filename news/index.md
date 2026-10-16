@@ -424,6 +424,24 @@
 
 #### ggplot2
 
+- Added volcano and Manhattan plot support \[experimental\]:
+  [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md) and
+  [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
+  are
+  [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+  with the significance threshold the chart is read against – required,
+  since a guessed line would put every point on the wrong side of it –
+  and `label` and `region` aesthetics for each point’s gene or SNP and
+  its group or chromosome. A declared layer is emitted as a `volcano` or
+  `manhattan` layer, so a reader hears how many points clear the
+  threshold, steps through only those with the rotor, and hears each
+  point’s name and chromosome.
+  [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md)
+  also takes an `effect` cutoff on the magnitude of x, and both take
+  `direction = "below"` for a raw p value axis. An undeclared
+  [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+  keeps its scatter reading
+  ([\#374](https://github.com/xability/r-maidr/issues/374)).
 - Added precision-recall curve support: a precision-recall curve is
   emitted as a `pr_curve` layer, one curve per classifier, so a reader
   hears each point’s recall and precision, its threshold and how far its

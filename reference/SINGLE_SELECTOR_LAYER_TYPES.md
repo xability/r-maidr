@@ -7,11 +7,12 @@ ARRAY means something else for these types: one selector per data point
 for `bar` and `hist` (`src/model/bar.ts`), a per-series grid for the
 segmented bars and `mosaic` (`src/model/segmented.ts`), and nothing at
 all for `point` and `pie`, whose models read `layer.selectors as string`
-(`src/model/scatter.ts`, `src/model/pie.ts`). `dot` and `lollipop` are
-built by the `bar` model; `heat` reads a string or a per-cell grid
-(`src/model/heatmap.ts`). maidr.js 3.x read a one-element array as the
-string it held, which is why every processor here that returns
-`list(selector)` was fine until the bundle moved to 4.0 (#316).
+(`src/model/scatter.ts`, `src/model/pie.ts`) – as do `volcano` and
+`manhattan`, built by the scatter model (`src/model/volcano.ts`). `dot`
+and `lollipop` are built by the `bar` model; `heat` reads a string or a
+per-cell grid (`src/model/heatmap.ts`). maidr.js 3.x read a one-element
+array as the string it held, which is why every processor here that
+returns `list(selector)` was fine until the bundle moved to 4.0 (#316).
 
 ## Usage
 

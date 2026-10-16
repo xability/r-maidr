@@ -147,6 +147,14 @@ them, whatever its layer type. Among them:
   [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md)
   \[experimental\]
 
+- ggplot2 volcano plots -
+  [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md)
+  \[experimental\]
+
+- ggplot2 Manhattan plots -
+  [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
+  \[experimental\]
+
 - ggplot2 percentile bands -
   [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html),
   `stat_summary(geom = "ribbon", fun.data = median_hilow)`

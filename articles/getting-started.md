@@ -578,6 +578,9 @@ with no mark is stable. Among them:
   [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md)
   \[experimental\] and precision-recall curves via
   [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md)
+  \[experimental\], volcano and Manhattan plots via
+  [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md) and
+  [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
   \[experimental\] and percentile bands via
   [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html)
   or a `median_hilow` ribbon of

@@ -79,6 +79,7 @@ run_example()
 #>   - stacked_bar
 #>   - step
 #>   - violin
+#>   - volcano
 #> 
 #> base_r examples:
 #>   - bar

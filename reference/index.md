@@ -28,6 +28,10 @@ picture alone cannot say it
   that a path layer draws a ROC curve
 - [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md) :
   Declare that a path layer draws a precision-recall curve
+- [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md) :
+  Declare that a point layer draws a volcano plot
+- [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
+  : Declare that a point layer draws a Manhattan plot
 
 ## Turning interception on and off
 

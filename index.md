@@ -499,11 +499,13 @@ experimental ones follow in a section of their own, as they do here.
 | `error_bar` | [`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_errorbarh()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_pointrange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_crossbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_ribbon()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html) as a band other than a `median_hilow` summary |
 | `gantt` | [`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md) |
 | `hexbin` | [`geom_hex()`](https://ggplot2.tidyverse.org/reference/geom_hex.html), [`stat_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html) |
+| `manhattan` | [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md) |
 | `percentile_band` | [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html), [`ggdist::geom_lineribbon()`](https://mjskay.github.io/ggdist/reference/geom_lineribbon.html) of a `median_qi()` summary, `stat_summary(geom = "ribbon", fun.data = median_hilow)` (with its [`stat_summary()`](https://ggplot2.tidyverse.org/reference/stat_summary.html) median line) |
 | `polygon` | [`geom_polygon()`](https://ggplot2.tidyverse.org/reference/geom_polygon.html) |
 | `pr_curve` | [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md), [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html) of a [`yardstick::pr_curve()`](https://yardstick.tidymodels.org/reference/pr_curve.html) |
 | `roc` | [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md), [`pROC::ggroc()`](https://rdrr.io/pkg/pROC/man/ggroc.html), [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html) of a [`yardstick::roc_curve()`](https://yardstick.tidymodels.org/reference/roc_curve.html) |
 | `rug` | [`geom_rug()`](https://ggplot2.tidyverse.org/reference/geom_rug.html) |
+| `volcano` | [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md) |
 
 #### Base R
 

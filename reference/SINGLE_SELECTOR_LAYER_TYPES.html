@@ -6,8 +6,10 @@ ARRAY means something else for these types: one selector per data point
 for bar and hist (src/model/bar.ts), a per-series grid for the
 segmented bars and mosaic (src/model/segmented.ts), and nothing at all
 for point and pie, whose models read layer.selectors as string
-(src/model/scatter.ts, src/model/pie.ts). dot and lollipop are
-built by the bar model; heat reads a string or a per-cell grid
+(src/model/scatter.ts, src/model/pie.ts) – as do volcano and
+manhattan, built by the scatter model (src/model/volcano.ts). dot
+and lollipop are built by the bar model; heat reads a string or a
+per-cell grid
 (src/model/heatmap.ts). maidr.js 3.x read a one-element array as the
 string it held, which is why every processor here that returns
 list(selector) was fine until the bundle moved to 4.0 (#316)."><meta property="og:description" content="In maidr.js 4.x the shape of selectors is a contract, not a
@@ -17,8 +19,10 @@ ARRAY means something else for these types: one selector per data point
 for bar and hist (src/model/bar.ts), a per-series grid for the
 segmented bars and mosaic (src/model/segmented.ts), and nothing at all
 for point and pie, whose models read layer.selectors as string
-(src/model/scatter.ts, src/model/pie.ts). dot and lollipop are
-built by the bar model; heat reads a string or a per-cell grid
+(src/model/scatter.ts, src/model/pie.ts) – as do volcano and
+manhattan, built by the scatter model (src/model/volcano.ts). dot
+and lollipop are built by the bar model; heat reads a string or a
+per-cell grid
 (src/model/heatmap.ts). maidr.js 3.x read a one-element array as the
 string it held, which is why every processor here that returns
 list(selector) was fine until the bundle moved to 4.0 (#316)."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
@@ -53,8 +57,10 @@ ARRAY means something else for these types: one selector per data point
 for bar and hist (src/model/bar.ts), a per-series grid for the
 segmented bars and mosaic (src/model/segmented.ts), and nothing at all
 for point and pie, whose models read layer.selectors as string
-(src/model/scatter.ts, src/model/pie.ts). dot and lollipop are
-built by the bar model; heat reads a string or a per-cell grid
+(src/model/scatter.ts, src/model/pie.ts) – as do volcano and
+manhattan, built by the scatter model (src/model/volcano.ts). dot
+and lollipop are built by the bar model; heat reads a string or a
+per-cell grid
 (src/model/heatmap.ts). maidr.js 3.x read a one-element array as the
 string it held, which is why every processor here that returns
 list(selector) was fine until the bundle moved to 4.0 (#316).">
@@ -63,7 +69,7 @@ list(selector) was fine until the bundle moved to 4.0 (#316).">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-21">
+<meta name="DC.date" content="2026-10-16">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -124,8 +130,10 @@ ARRAY means something else for these types: one selector per data point
 for <code>bar</code> and <code>hist</code> (<code>src/model/bar.ts</code>), a per-series grid for the
 segmented bars and <code>mosaic</code> (<code>src/model/segmented.ts</code>), and nothing at all
 for <code>point</code> and <code>pie</code>, whose models read <code>layer.selectors as string</code>
-(<code>src/model/scatter.ts</code>, <code>src/model/pie.ts</code>). <code>dot</code> and <code>lollipop</code> are
-built by the <code>bar</code> model; <code>heat</code> reads a string or a per-cell grid
+(<code>src/model/scatter.ts</code>, <code>src/model/pie.ts</code>) – as do <code>volcano</code> and
+<code>manhattan</code>, built by the scatter model (<code>src/model/volcano.ts</code>). <code>dot</code>
+and <code>lollipop</code> are built by the <code>bar</code> model; <code>heat</code> reads a string or a
+per-cell grid
 (<code>src/model/heatmap.ts</code>). maidr.js 3.x read a one-element array as the
 string it held, which is why every processor here that returns
 <code>list(selector)</code> was fine until the bundle moved to 4.0 (#316).</p>
