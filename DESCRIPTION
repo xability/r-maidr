@@ -72,6 +72,7 @@ Suggests:
     sm,
     pROC,
     ROCR,
+    survival,
     yardstick,
     dplyr,
     ggdist,

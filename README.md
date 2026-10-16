@@ -470,6 +470,7 @@ own, as they do here.
 | `stacked_normalized_bar` | `barplot()` of proportions |
 | `strip` | `stripchart()` |
 | `subseries` | `monthplot()` |
+| `survival` | survival's `plot()` of a `survfit` object: one Kaplan-Meier curve per stratum, with its censored times and, when drawn, its confidence band |
 | `termplot` | `termplot()` |
 | `violin` | `vioplot::vioplot()` |
 | `word_cloud` | `wordcloud::wordcloud()` |

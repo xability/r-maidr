@@ -45,6 +45,9 @@ BaseRProcessorFactory <- R6::R6Class(
         # `plot()` of a ROCR `performance` object: its curves read from the
         # object, a `pr_curve` when ROCR titles them Recall and Precision.
         "rocr_performance" = BaseRRocrPerformanceLayerProcessor$new(layer_info),
+        # `plot()` of a survival `survfit` object: one Kaplan-Meier curve
+        # per stratum, read from the object.
+        "survival" = BaseRSurvfitLayerProcessor$new(layer_info),
         "lollipop" = BaseRSpikeLayerProcessor$new(layer_info),
         # The same spikes, drawn per lag rather than per observation. The
         # separate name routes it to the subclass that replays the recorded
@@ -139,6 +142,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "subseries",
         "step",
         "rocr_performance",
+        "survival",
         "lollipop",
         "correlogram",
         "point",
