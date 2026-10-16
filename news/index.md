@@ -343,8 +343,21 @@
   are the values the colours were drawn from, not, say, p-values printed
   over them. A chart with neither, nor a legend with numbers
   (`legend = FALSE`), falls back to an image.
-- The dendrograms and annotation tracks are not read, and neither are
-  ‘ComplexHeatmap’ charts.
+- Each dendrogram a pheatmap draws is read as a `tree` layer of its own,
+  experimentally
+  ([\#383](https://github.com/xability/r-maidr/issues/383)), placed
+  where it is drawn: the row tree left of the heat map, the column tree
+  above it. Up and down move between a cluster and its two halves, left
+  and right between the halves, in the order they are drawn. A leaf is
+  the row or column the heat layer names it, and a cluster is announced
+  by the first and last of them it spans and the height it merged at, “d
+  to e (height 2.99)”. With `kmeans_k` the row tree is the one drawn
+  over the cluster centres; a side not clustered, or drawn with
+  `treeheight_row = 0` or `treeheight_col = 0`, has none. pheatmap draws
+  one link per merge and nothing at a leaf, so a tree’s nodes are
+  announced but not highlighted.
+- Annotation tracks are not read, and neither are ‘ComplexHeatmap’
+  charts.
 
 #### webR
 

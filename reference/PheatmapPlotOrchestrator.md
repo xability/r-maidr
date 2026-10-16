@@ -2,12 +2,23 @@
 
 Reads the object
 [`pheatmap::pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html)
-returns as one subplot holding one `heat` layer
-([PheatmapHeatmapLayerProcessor](https://r.maidr.ai/reference/PheatmapHeatmapLayerProcessor.md)),
-and draws its `gtable` for the SVG. Experimental.
+returns as a `heat` layer
+([PheatmapHeatmapLayerProcessor](https://r.maidr.ai/reference/PheatmapHeatmapLayerProcessor.md))
+and, for each side with a drawn dendrogram, a `tree` layer
+([PheatmapTreeLayerProcessor](https://r.maidr.ai/reference/PheatmapTreeLayerProcessor.md)),
+and draws its `gtable` for the SVG. Experimental. Annotation tracks are
+not read.
 
-Only the matrix is read. The dendrograms set the order the cells are
-read in but are not read themselves, and neither are annotation tracks.
+**Grid.** Each layer is a subplot placed where pheatmap draws it: the
+row tree left of the matrix, the column tree above it, and nothing in
+the corner above the row tree –
+`[[row tree, heat], [empty, column tree]]`, as far as each side is
+drawn. The grid's rows run **bottom first**. No subplot of it can be
+measured in the SVG (the trees carry no selectors and the corner none at
+all), so maidr.js orders it as written, where the up arrow moves to the
+next row; written bottom first, up moves from the matrix to the column
+tree above it, and the reader starts in the bottom left subplot, the row
+tree.
 
 When the cells' values cannot be read – not drawn with
 [`pheatmap()`](https://r.maidr.ai/reference/pheatmap.md), which keeps

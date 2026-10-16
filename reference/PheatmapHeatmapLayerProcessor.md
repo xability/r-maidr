@@ -168,11 +168,8 @@ List with `x`, `y` and `points`, its `"source"` attribute `"matrix"`,
 
 ### `PheatmapHeatmapLayerProcessor$labels()`
 
-The labels of one axis, in drawn order
-
-The drawn labels when the axis shows them (`labels_row`, the k-means
-clusters' names); else the matrix's dimnames; else, as for an unnamed
-matrix, each row's or column's number in the input, in tree order.
+The labels of one axis, in drawn order; see
+[`pheatmap_axis_labels()`](https://r.maidr.ai/reference/pheatmap_axis_labels.md)
 
 #### Usage
 
