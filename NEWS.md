@@ -285,6 +285,13 @@
   document carries the chart library, three to six megabytes. A plotly
   bar chart has been through the whole path in a browser. `show(as_widget =
   TRUE)` and the Shiny functions have not been tried.
+* Under webR, maidr loads xml2 as it loads. webR's builds of xml2 and
+  systemfonts each carry a libxml2, and since xml2 was rebuilt on
+  2026-10-12 an xml2 loaded after systemfonts (which svglite loads when a
+  chart is drawn) ran against the other copy: parsing the chart's SVG
+  aborted R's worker, and `show()` never returned. With systemfonts already
+  loaded when maidr loads, maidr warns and says to load maidr first in a
+  new session (#380).
 
 ### Base R
 

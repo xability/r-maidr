@@ -234,6 +234,14 @@ announce_masking <- function(package) {
 
 # Auto-initialize systems when package is loaded
 .onLoad <- function(libname, pkgname) {
+  # Before anything here can load systemfonts: see the function.
+  tryCatch(
+    maidr_webr_load_xml2_first(),
+    error = function(e) {
+      warning("Failed to load xml2 under webR: ", e$message)
+    }
+  )
+
   # Set default options (respects user's .Rprofile settings)
   initialize_maidr_options()
 
