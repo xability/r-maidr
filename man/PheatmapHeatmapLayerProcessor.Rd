@@ -143,11 +143,8 @@ run bottom first, as maidr.js's heat grid does.
 \if{html}{\out{<a id="method-PheatmapHeatmapLayerProcessor-labels"></a>}}
 \if{latex}{\out{\hypertarget{method-PheatmapHeatmapLayerProcessor-labels}{}}}
 \subsection{\code{PheatmapHeatmapLayerProcessor$labels()}}{
-  The labels of one axis, in drawn order
-
-The drawn labels when the axis shows them (\code{labels_row}, the k-means
-clusters' names); else the matrix's dimnames; else, as for an unnamed
-matrix, each row's or column's number in the input, in tree order.
+  The labels of one axis, in drawn order; see
+\code{\link[=pheatmap_axis_labels]{pheatmap_axis_labels()}}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{PheatmapHeatmapLayerProcessor$labels(gt, name, dimnames, tree, count)}

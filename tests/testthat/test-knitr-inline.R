@@ -463,6 +463,14 @@ test_that("a chart is named by fig.alt, then fig.cap, then its title, then its k
     maidr:::knitr_chart_kind('{"subplots":[[{"layers":[{"type":"stacked_bar"}]}]]}'),
     "Stacked bar chart"
   )
+  # A pheatmap's row dendrogram comes first; the chart is its heat map.
+  testthat::expect_identical(
+    maidr:::knitr_chart_kind(paste0(
+      '{"subplots":[[{"layers":[{"type":"tree"}]},{"layers":[{"type":"heat",',
+      '"axes":{"x":{"label":"Columns"},"y":{"label":"Rows"}}}]}],[{"layers":[]}]]}'
+    )),
+    "Heat map of Rows by Columns"
+  )
   testthat::expect_false(grepl("maidr-knitr-alt", untitled, fixed = TRUE))
   testthat::expect_false(grepl("maidr-knitr-caption", untitled, fixed = TRUE))
 })
