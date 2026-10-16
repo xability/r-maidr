@@ -23,7 +23,9 @@ save_html(
 
   A ggplot2 object, a lattice (trellis) object, the object
   [`pheatmap::pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html)
-  returns (experimental), or NULL for Base R auto-detection
+  returns (experimental), a 'ComplexHeatmap' `Heatmap` or a
+  `HeatmapList` holding one (experimental), or NULL for Base R
+  auto-detection
 
 - file:
 
