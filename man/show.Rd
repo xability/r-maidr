@@ -16,7 +16,8 @@ show(
 )
 }
 \arguments{
-\item{plot}{A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+\item{plot}{A ggplot2 object, a lattice (trellis) object, the object
+\code{pheatmap::pheatmap()} returns (experimental), or NULL for Base R
 auto-detection}
 
 \item{use_cdn}{Logical. Controls where MAIDR.js is loaded from:

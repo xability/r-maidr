@@ -258,6 +258,13 @@ announce_masking <- function(package) {
   )
 
   tryCatch(
+    initialize_pheatmap_system(),
+    error = function(e) {
+      warning("Failed to initialize pheatmap system: ", e$message)
+    }
+  )
+
+  tryCatch(
     {
       initialize_base_r_system()
     },

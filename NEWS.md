@@ -229,6 +229,25 @@
   line keeps its reading. Needs maidr.js 4.14.0 or later, which this
   release bundles.
 
+### pheatmap
+
+* The clustered heat map `pheatmap::pheatmap()` draws is now read,
+  experimentally (#376). `show()`, `save_html()`, `show(as_widget = TRUE)`
+  and `render_maidr()` take the object it returns, and emit one `heat`
+  layer in the order the trees put the rows and columns in, named by the
+  labels drawn, each cell highlighted as it is reached. 'pheatmap' is in
+  Suggests.
+* `pheatmap()` returns its trees and its drawing, not its matrix, so a
+  cell's value is the one the chart shows: the number printed in the cell
+  with `display_numbers`, or else the middle of the legend band its colour
+  stands for -- with the default 100 colours, to within a hundredth of the
+  range. With `scale = "row"` or `"column"` that is the scaled value the
+  legend shows, not the input. A cell drawn in `na_col` is a hole. A chart
+  with neither a numeric legend nor printed numbers (`legend = FALSE`)
+  falls back to an image.
+* The dendrograms and annotation tracks are not read, and neither are
+  'ComplexHeatmap' charts.
+
 ### webR
 
 * `show()` works under webR, where it used to stop at `utils::browseURL()`.

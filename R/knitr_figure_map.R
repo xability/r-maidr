@@ -554,6 +554,8 @@ knit_chart_content <- function(plot, options) {
     "base_r"
   } else if (inherits(plot, "trellis")) {
     "lattice"
+  } else if (inherits(plot, "pheatmap")) {
+    "pheatmap"
   } else {
     "ggplot2"
   }
