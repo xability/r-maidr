@@ -11,7 +11,9 @@ COMPLEXHEATMAP_CELLS_GROB
 combination of row and column slice, \code{row_split}/\code{row_km} by
 \code{column_split}/\code{column_km}, a single one without splits -- as one rect
 grob with a generated name (\verb{GRID.rect.<n>}). Each is renamed to this
-prefix followed by \verb{-<kr>-<kc>}, its row and column slice in drawn order,
-so each cell is the SVG element \verb{#maidr-complexheatmap-cells-<kr>-<kc>.1.<k>}.
+prefix followed by \verb{-<h>-<kr>-<kc>}: the heat map's place among the heat
+maps of the list, and its row and column slice in drawn order, so each
+cell is the SVG element \verb{#maidr-complexheatmap-cells-<h>-<kr>-<kc>.1.<k>}.
+The heat map's place, not its \code{name}, which may hold any character.
 }
 \keyword{internal}

@@ -4,13 +4,16 @@
 \alias{ComplexHeatmapLayerProcessor}
 \title{ComplexHeatmap Heatmap Layer Processor}
 \description{
-Reads the one \code{heat} layer of a ComplexHeatmap heat map from the
-\code{HeatmapList} its drawing returned (\code{\link[=complexheatmap_capture]{complexheatmap_capture()}}).
+Reads the \code{heat} layer of one ComplexHeatmap heat map from the
+\code{HeatmapList} its drawing returned (\code{\link[=complexheatmap_capture]{complexheatmap_capture()}}): the one
+heat map of a chart, or one of a list's.
 
-\strong{Order.} The rows and columns are read in the order drawn,
-\code{row_order()} and \code{column_order()} of the drawn list: by the dendrograms
-when clustered, by \code{row_order}/\code{column_order} when given. Rows are top
-first, as maidr.js reads \code{data.points}.
+\strong{Order.} The rows and columns are read in the order drawn, the heat
+map's own row and column order in the drawn list: by the dendrograms
+when clustered, by \code{row_order}/\code{column_order} when given, and in a list
+by the order the list shares -- the main heat map's rows in a horizontal
+list, its columns in a vertical one. Rows are top first, as maidr.js
+reads \code{data.points}.
 
 \strong{Splits.} A heat map split into slices (\code{row_split}, \code{row_km},
 \code{column_split}, \code{column_km}) is read as one grid, its slices put side by
@@ -96,9 +99,10 @@ says so.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{plot}}{The \code{Heatmap} or \code{HeatmapList} passed in}
-      \item{\code{layout}}{The figure's layout: its title and its rows' title}
+      \item{\code{layout}}{The layer's title and its rows' title}
       \item{\code{built}}{Unused}
-      \item{\code{gt}}{The capture, from \code{\link[=complexheatmap_capture]{complexheatmap_capture()}}}
+      \item{\code{gt}}{The capture, from \code{\link[=complexheatmap_capture]{complexheatmap_capture()}}, its \code{heatmap}
+and \code{cells} those of the heat map read}
       \item{\code{grob_id}}{Unused}
       \item{\code{panel_id}}{Unused}
       \item{\code{panel_ctx}}{Unused}

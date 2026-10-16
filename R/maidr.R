@@ -22,7 +22,7 @@
 #'
 #' @param plot A ggplot2 object, a lattice (trellis) object, the object
 #'   `pheatmap::pheatmap()` returns (experimental), a 'ComplexHeatmap'
-#'   `Heatmap` or a `HeatmapList` holding one (experimental), or NULL for
+#'   `Heatmap` or `HeatmapList` (experimental), or NULL for
 #'   Base R auto-detection
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
@@ -598,7 +598,7 @@ warn_panel_fallback <- function(orchestrator) {
 #'
 #' @param plot A ggplot2 object, a lattice (trellis) object, the object
 #'   `pheatmap::pheatmap()` returns (experimental), a 'ComplexHeatmap'
-#'   `Heatmap` or a `HeatmapList` holding one (experimental), or NULL for
+#'   `Heatmap` or `HeatmapList` (experimental), or NULL for
 #'   Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:

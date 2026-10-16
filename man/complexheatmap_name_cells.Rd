@@ -4,12 +4,14 @@
 \alias{complexheatmap_name_cells}
 \title{Give the cells of a ComplexHeatmap body names the selectors can rely on}
 \usage{
-complexheatmap_name_cells(grob, heatmap)
+complexheatmap_name_cells(grob, heatmap, h = 1L)
 }
 \arguments{
 \item{grob}{The gTree the drawing was grabbed as}
 
 \item{heatmap}{The \code{Heatmap} drawn, its row and column order set}
+
+\item{h}{The heat map's place among the heat maps of the list}
 }
 \value{
 A list: \code{grob}, with the cells renamed; \code{cells}, a list of the

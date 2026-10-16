@@ -2,8 +2,8 @@
 #'
 #' @description
 #' Reads a 'ComplexHeatmap' heat map -- a `Heatmap`, or a `HeatmapList`
-#' holding exactly one -- as one subplot holding one `heat` layer
-#' ([ComplexHeatmapLayerProcessor]). Experimental.
+#' holding one or more -- as one subplot per heat map, each holding one
+#' `heat` layer ([ComplexHeatmapLayerProcessor]). Experimental.
 #'
 #' The object is drawn once, with `ComplexHeatmap::draw()`, and the drawing
 #' is grabbed as a grid tree ([complexheatmap_capture()]). The SVG is that
@@ -13,10 +13,25 @@
 #' undrawn `Heatmap` runs again on every draw. Pass what `draw()` returned
 #' to read the very chart that was shown.
 #'
-#' Only the matrix is read. The dendrograms set the order the cells are read
-#' in but are not read themselves, and neither are annotations or legends.
-#' A list of more than one heat map, or a matrix that is not numeric (a
-#' discrete heat map of categories), falls back to an image.
+#' **Lists.** A list of several heat maps (`ht1 + ht2`, `ht1 %v% ht2`) is
+#' read heat map by heat map, each from its own matrix, labels and drawn
+#' order -- which the drawing shares across the list, the rows of a
+#' horizontal list and the columns of a vertical one -- into a subplot of
+#' its own. A horizontal list is one row of subplots, left to right; a
+#' vertical list one column of them, its rows written **bottom first**, as
+#' pheatmap's grid is ([PheatmapPlotOrchestrator]): a heat layer's
+#' selectors are a grid, which maidr.js does not measure a subplot by, so
+#' it orders the subplots as written, where Up moves to the next row. Each
+#' heat map's title is its own column title, and the chart's the one
+#' `draw()` was given for the whole list.
+#'
+#' Only the matrices are read. The dendrograms set the order the cells are
+#' read in but are not read themselves, and neither are annotations, between
+#' heat maps or around them, or legends. A heat map whose matrix is not
+#' numeric (a discrete heat map of categories) is left out of a list that
+#' holds a numeric one, with a message (class
+#' `maidr_complexheatmap_skipped`) naming it; a chart with no numeric heat
+#' map falls back to an image.
 #'
 #' @format An R6 class
 #' @keywords internal
@@ -30,7 +45,33 @@ ComplexHeatmapPlotOrchestrator <- R6::R6Class(
     .layer_processors = list(),
     .combined_data = list(),
     .unsupported = character(0),
-    .canvas = NULL
+    .canvas = NULL,
+
+    # Read the k-th heat map of the drawing as the n-th layer, in a subplot
+    # of its own.
+    read_heatmap = function(plot, k, n) {
+      layer_info <- list(index = n, type = "heat")
+      processor <- get_global_registry()$get_processor_factory("complexheatmap")$create_processor(
+        "heat", layer_info
+      )
+      view <- private$.capture
+      view$heatmap <- view$heatmaps[[k]]$heatmap
+      view$cells <- view$heatmaps[[k]]$cells
+      layout <- if (length(view$heatmaps) == 1L) private$.layout else self$heatmap_layout(k)
+      result <- processor$process(plot, layout, gt = view)
+      processor$set_last_result(result)
+      validate_axes(result$axes, context = "ComplexHeatmap orchestrator")
+      private$.layers[[n]] <- layer_info
+      private$.layer_processors[[n]] <- processor
+      list(layers = list(list(
+        id = paste0("maidr-layer-", n),
+        selectors = result$selectors,
+        type = result$type,
+        data = result$data,
+        title = result$title,
+        axes = result$axes
+      )))
+    }
   ),
   public = list(
     #' @description Read a ComplexHeatmap object
@@ -45,10 +86,8 @@ ComplexHeatmapPlotOrchestrator <- R6::R6Class(
       private$.canvas <- chart_canvas_size(width, height, asked = asked)
 
       count <- complexheatmap_count(plot)
-      if (count != 1L) {
-        private$.unsupported <- paste0(
-          "it holds ", count, " heat maps, and only a single heat map is read"
-        )
+      if (count == 0L) {
+        private$.unsupported <- "it holds no heat map"
         return(invisible(self))
       }
       capture <- tryCatch(
@@ -60,49 +99,68 @@ ComplexHeatmapPlotOrchestrator <- R6::R6Class(
         return(invisible(self))
       }
       private$.capture <- capture
-      if (!is.numeric(capture$heatmap@matrix) || length(capture$heatmap@matrix) == 0L) {
-        private$.unsupported <- "its matrix is not a non-empty numeric matrix"
+      heatmaps <- capture$heatmaps
+      numeric <- vapply(heatmaps, function(h) complexheatmap_is_numeric(h$heatmap), logical(1))
+      if (!any(numeric)) {
+        private$.unsupported <- if (count == 1L) {
+          "its matrix is not a non-empty numeric matrix"
+        } else {
+          paste0("none of its ", count, " heat maps is a non-empty numeric matrix")
+        }
         return(invisible(self))
       }
+      complexheatmap_inform_skipped(heatmaps[!numeric])
       private$.layout <- self$extract_layout()
 
-      layer_info <- list(index = 1L, type = "heat")
-      private$.layers <- list(layer_info)
-      processor <- get_global_registry()$get_processor_factory("complexheatmap")$create_processor(
-        "heat", layer_info
+      subplots <- list()
+      for (k in which(numeric)) {
+        subplots[[length(subplots) + 1L]] <- private$read_heatmap(plot, k, length(subplots) + 1L)
+      }
+      private$.combined_data <- complexheatmap_subplot_grid(
+        subplots, capture$drawn@direction
       )
-      private$.layer_processors <- list(processor)
-      result <- processor$process(plot, private$.layout, gt = capture)
-      processor$set_last_result(result)
-      validate_axes(result$axes, context = "ComplexHeatmap orchestrator")
-
-      private$.combined_data <- list(list(list(
-        id = "maidr-subplot-1-1",
-        layers = list(list(
-          id = "maidr-layer-1",
-          selectors = result$selectors,
-          type = result$type,
-          data = result$data,
-          title = result$title,
-          axes = result$axes
-        ))
-      )))
       invisible(self)
     },
 
     #' @description Read the chart's title and its rows' title
     #'
     #' The title is the column title `draw()` was given for the whole list,
-    #' else the heat map's own column title when it is one string; the rows'
-    #' title likewise from the row titles. A title per slice of a split names
-    #' no axis and is not read.
+    #' else, for a single heat map, its own column title when it is one
+    #' string; the rows' title likewise from the row titles. A title per
+    #' slice of a split names no axis and is not read.
     #' @return List with `title` and `row_title`
     extract_layout = function() {
       drawn <- private$.capture$drawn
+      if (length(private$.capture$heatmaps) > 1L) {
+        return(list(
+          title = complexheatmap_title(drawn@column_title),
+          row_title = complexheatmap_title(drawn@row_title)
+        ))
+      }
       heatmap <- private$.capture$heatmap
       list(
         title = complexheatmap_title(drawn@column_title, heatmap@column_title),
         row_title = complexheatmap_title(drawn@row_title, heatmap@row_title)
+      )
+    },
+
+    #' @description The title and rows' title of one heat map of a list
+    #'
+    #' Its own column title, and the rows' title `draw()` was given, else its
+    #' own row title, else, in a horizontal list, whose rows are shared, the
+    #' main heat map's: the one row title 'ComplexHeatmap' draws for them.
+    #' @param k The heat map's place among the list's heat maps
+    #' @return List with `title` and `row_title`
+    heatmap_layout = function(k) {
+      drawn <- private$.capture$drawn
+      heatmap <- private$.capture$heatmaps[[k]]$heatmap
+      main <- drawn@ht_list[[drawn@ht_list_param$main_heatmap]]
+      shared <- if (identical(drawn@direction, "horizontal") && inherits(main, "Heatmap")) {
+        main@row_title
+      }
+      list(
+        title = complexheatmap_title(heatmap@column_title),
+        row_title = complexheatmap_title(drawn@row_title, heatmap@row_title, shared)
       )
     },
 
@@ -214,20 +272,79 @@ complexheatmap_title <- function(...) {
   ""
 }
 
+#' The subplot grid of a ComplexHeatmap chart, one subplot per heat map read
+#'
+#' A horizontal list is one row, left to right; a vertical list is one
+#' column, its rows written bottom first. See
+#' [ComplexHeatmapPlotOrchestrator] for why.
+#'
+#' @param subplots The subplots, in drawn order: left to right, or top to
+#'   bottom
+#' @param direction The drawn list's `direction`, `"horizontal"` or
+#'   `"vertical"`
+#' @return A list of rows of subplots, each given its id
+#' @keywords internal
+complexheatmap_subplot_grid <- function(subplots, direction) {
+  place <- function(subplot, row, col) {
+    c(list(id = paste0("maidr-subplot-", row, "-", col)), subplot)
+  }
+  if (identical(direction, "vertical")) {
+    return(lapply(seq_along(subplots), function(row) {
+      list(place(subplots[[length(subplots) - row + 1L]], row, 1L))
+    }))
+  }
+  list(lapply(seq_along(subplots), function(col) place(subplots[[col]], 1L, col)))
+}
+
+#' Whether a ComplexHeatmap heat map is read: a non-empty numeric matrix
+#' @param heatmap A `Heatmap`
+#' @return Logical
+#' @keywords internal
+complexheatmap_is_numeric <- function(heatmap) {
+  is.numeric(heatmap@matrix) && length(heatmap@matrix) > 0L
+}
+
+#' Say which heat maps of a list are drawn and not read
+#'
+#' A message of class `maidr_complexheatmap_skipped` naming them, or none.
+#'
+#' @param heatmaps The skipped entries of a capture's `heatmaps`
+#' @return NULL (invisible)
+#' @keywords internal
+complexheatmap_inform_skipped <- function(heatmaps) {
+  if (length(heatmaps) == 0L) {
+    return(invisible(NULL))
+  }
+  names <- paste0("'", vapply(heatmaps, function(h) h$heatmap@name, character(1)), "'")
+  one <- length(names) == 1L
+  if (!one) {
+    names <- paste(paste(names[-length(names)], collapse = ", "), "and", names[length(names)])
+  }
+  rlang::inform(
+    paste0(
+      "maidr: ", names, if (one) " is a heat map" else " are heat maps",
+      " of categories, not numbers, and ", if (one) "is" else "are", " drawn but not read."
+    ),
+    class = "maidr_complexheatmap_skipped"
+  )
+  invisible(NULL)
+}
+
 #' Draw a ComplexHeatmap object once, and grab the drawing
 #'
 #' `ComplexHeatmap::draw()` draws on an off-screen device the size of the
 #' canvas, and the drawing is grabbed with `grid::grid.grabExpr()`: a gTree
 #' that redraws it, its viewports included, which [create_enhanced_svg()]
-#' draws again for the SVG. The cells of the heat map body are then given
-#' names the selectors can rely on ([complexheatmap_name_cells()]).
+#' draws again for the SVG. The cells of each heat map's body are then
+#' given names the selectors can rely on ([complexheatmap_name_cells()]).
 #'
-#' @param plot A `Heatmap`, or a `HeatmapList` holding one
+#' @param plot A `Heatmap` or `HeatmapList`
 #' @param canvas The canvas size, from [chart_canvas_size()]
 #' @return A list: `grob`, the gTree; `drawn`, the `HeatmapList` the draw
-#'   returned; `heatmap`, the one `Heatmap` in it, with its row and column
-#'   order as drawn; `cells`, the names given to the body's cells, by slice,
-#'   or NULL when they cannot be selected
+#'   returned; `heatmaps`, one entry per `Heatmap` in it, in drawn order,
+#'   each a list of `heatmap`, with its row and column order as drawn, and
+#'   `cells`, the names given to its body's cells, by slice, or NULL when
+#'   they cannot be selected; and `heatmap` and `cells`, those of the first
 #' @keywords internal
 complexheatmap_capture <- function(plot, canvas) {
   if (!requireNamespace("ComplexHeatmap", quietly = TRUE)) {
@@ -240,9 +357,17 @@ complexheatmap_capture <- function(plot, canvas) {
     height = canvas[["height"]]
   )
   is_heatmap <- vapply(drawn@ht_list, function(h) inherits(h, "Heatmap"), logical(1))
-  heatmap <- drawn@ht_list[[which(is_heatmap)[1]]]
-  named <- complexheatmap_name_cells(grob, heatmap)
-  list(grob = named$grob, drawn = drawn, heatmap = heatmap, cells = named$cells)
+  heatmaps <- list()
+  for (heatmap in drawn@ht_list[is_heatmap]) {
+    k <- length(heatmaps) + 1L
+    named <- complexheatmap_name_cells(grob, heatmap, k)
+    grob <- named$grob
+    heatmaps[[k]] <- list(heatmap = heatmap, cells = named$cells)
+  }
+  list(
+    grob = grob, drawn = drawn, heatmaps = heatmaps,
+    heatmap = heatmaps[[1]]$heatmap, cells = heatmaps[[1]]$cells
+  )
 }
 
 #' Draw a ComplexHeatmap object on the current device, as printing it does

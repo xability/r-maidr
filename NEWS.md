@@ -271,8 +271,8 @@
 * Heat maps drawn by the Bioconductor package 'ComplexHeatmap' are now
   read, experimentally (#381). `show()`, `save_html()`,
   `show(as_widget = TRUE)` and `render_maidr()` take a `Heatmap`, or a
-  `HeatmapList` holding one -- what `draw()` returns, annotations and all
-  -- and emit one `heat` layer whose cells are the heat map's own matrix,
+  `HeatmapList` -- what `draw()` returns, annotations and all -- and emit
+  a `heat` layer per heat map whose cells are the heat map's own matrix,
   exactly, in the order drawn: clustered, reordered, split by `row_split`,
   `row_km`, `column_split` or `column_km`. A missing value is a hole. The
   rows and columns are named by the labels drawn, or with the names hidden
@@ -288,9 +288,20 @@
 * A body drawn as an image (`use_raster = TRUE`, which 'ComplexHeatmap'
   picks itself above 2000 rows or columns) is read but not highlighted,
   and a message says so; `use_raster = FALSE` highlights it.
-* A list of more than one heat map, or a heat map of categories (a
-  character matrix), falls back to an image. Annotations, dendrograms and
-  legends are drawn and not read.
+* A list of several heat maps, `ht1 + ht2` or `ht1 %v% ht2`, is read too:
+  each heat map is a `heat` layer of its own, from its own matrix, exactly,
+  with its own labels, in the order the list shares -- the main heat map's
+  rows in a horizontal list, its columns in a vertical one -- and each in
+  a subplot of its own, so a reader moves from one heat map to the next as
+  between panels. A horizontal list is one row of subplots, left to right;
+  a vertical list is one column, which a reader starts at the bottom of,
+  as with pheatmap's trees. Each heat map's cells are highlighted, its
+  title is its own column title, and its rows' title the one drawn for
+  them (#391).
+* A heat map of categories (a character matrix) in a list with a numeric
+  one is left out, with a message naming it; alone, or in a list with no
+  numeric heat map, it falls back to an image. Annotations, between heat
+  maps or around them, dendrograms and legends are drawn and not read.
 
 ### webR
 

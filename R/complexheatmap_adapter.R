@@ -67,7 +67,8 @@ ComplexHeatmapAdapter <- R6::R6Class(
 #' ComplexHeatmap Processor Factory
 #'
 #' @description
-#' A ComplexHeatmap heat map draws one matrix, read as one `heat` layer.
+#' Each heat map of a ComplexHeatmap chart draws one matrix, read as one
+#' `heat` layer.
 #'
 #' @format An R6 class inheriting from ProcessorFactory
 #' @keywords internal
