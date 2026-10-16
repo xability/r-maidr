@@ -155,6 +155,11 @@ them, whatever its layer type. Among them:
   [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
   \[experimental\]
 
+- ggplot2 Kaplan-Meier curves -
+  [`maidr_survival()`](https://r.maidr.ai/reference/maidr_survival.md),
+  [`survminer::ggsurvplot()`](https://rdrr.io/pkg/survminer/man/ggsurvplot.html)
+  \[experimental\]
+
 - ggplot2 percentile bands -
   [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html),
   `stat_summary(geom = "ribbon", fun.data = median_hilow)`

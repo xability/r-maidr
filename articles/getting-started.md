@@ -581,6 +581,8 @@ with no mark is stable. Among them:
   \[experimental\], volcano and Manhattan plots via
   [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md) and
   [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
+  \[experimental\], Kaplan-Meier curves via
+  [`maidr_survival()`](https://r.maidr.ai/reference/maidr_survival.md)
   \[experimental\] and percentile bands via
   [`ggdist::stat_lineribbon()`](https://mjskay.github.io/ggdist/reference/stat_lineribbon.html)
   or a `median_hilow` ribbon of

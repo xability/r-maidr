@@ -505,6 +505,7 @@ experimental ones follow in a section of their own, as they do here.
 | `pr_curve` | [`maidr_pr_curve()`](https://r.maidr.ai/reference/maidr_pr_curve.md), [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html) of a [`yardstick::pr_curve()`](https://yardstick.tidymodels.org/reference/pr_curve.html) |
 | `roc` | [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md), [`pROC::ggroc()`](https://rdrr.io/pkg/pROC/man/ggroc.html), [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html) of a [`yardstick::roc_curve()`](https://yardstick.tidymodels.org/reference/roc_curve.html) |
 | `rug` | [`geom_rug()`](https://ggplot2.tidyverse.org/reference/geom_rug.html) |
+| `survival` | [`maidr_survival()`](https://r.maidr.ai/reference/maidr_survival.md) of a `survfit` object or of data, a [`survminer::ggsurvplot()`](https://rdrr.io/pkg/survminer/man/ggsurvplot.html) figure: one Kaplan-Meier curve per stratum, with its censored times and, when drawn, its confidence band |
 | `volcano` | [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md) |
 
 #### Base R
@@ -821,6 +822,8 @@ picture alone cannot say it
   Declare that a point layer draws a volcano plot
 - [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
   : Declare that a point layer draws a Manhattan plot
+- [`maidr_survival()`](https://r.maidr.ai/reference/maidr_survival.md) :
+  Declare a Kaplan-Meier curve
 
 ## Turning interception on and off
 

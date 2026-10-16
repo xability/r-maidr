@@ -78,6 +78,7 @@ run_example()
 #>   - smooth
 #>   - stacked_bar
 #>   - step
+#>   - survival
 #>   - violin
 #>   - volcano
 #> 

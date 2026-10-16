@@ -514,6 +514,27 @@
 
 #### ggplot2
 
+- Added Kaplan-Meier survival curve support \[experimental\]:
+  [`maidr_survival()`](https://r.maidr.ai/reference/maidr_survival.md)
+  draws a `survfit` object’s curves – `ggplot() + maidr_survival(fit)`,
+  from the origin
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of the fit
+  starts at – or curves from data, with `censored`, `ymin` and `ymax`
+  aesthetics, and with `conf.int = TRUE` the stepped confidence band
+  beneath them and a mark at each censored time. A declared layer is
+  emitted as a `survival` layer: one curve per stratum, each time
+  announced with its survival estimate and, when the band is drawn, its
+  interval, and the censored times marked so a reader can step between
+  them. A
+  [`survminer::ggsurvplot()`](https://rdrr.io/pkg/survminer/man/ggsurvplot.html)
+  figure handed to [`show()`](https://r.maidr.ai/reference/show.md) or
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) is redrawn
+  as one such layer from the data it carries; its risk table is left
+  out, with a message, and a figure of `fun = "event"` or `"cumhaz"`
+  keeps the step reading. A
+  [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  keeps its step reading
+  ([\#382](https://github.com/xability/r-maidr/issues/382)).
 - Added volcano and Manhattan plot support \[experimental\]:
   [`maidr_volcano()`](https://r.maidr.ai/reference/maidr_volcano.md) and
   [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)

@@ -32,6 +32,8 @@ picture alone cannot say it
   Declare that a point layer draws a volcano plot
 - [`maidr_manhattan()`](https://r.maidr.ai/reference/maidr_manhattan.md)
   : Declare that a point layer draws a Manhattan plot
+- [`maidr_survival()`](https://r.maidr.ai/reference/maidr_survival.md) :
+  Declare a Kaplan-Meier curve
 
 ## Turning interception on and off
 
