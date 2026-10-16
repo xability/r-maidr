@@ -442,6 +442,7 @@ own, as they do here.
 | `pr_curve` | `maidr_pr_curve()`, `autoplot()` of a `yardstick::pr_curve()` |
 | `roc` | `maidr_roc()`, `pROC::ggroc()`, `autoplot()` of a `yardstick::roc_curve()` |
 | `rug` | `geom_rug()` |
+| `survival` | `maidr_survival()` of a `survfit` object or of data, a `survminer::ggsurvplot()` figure: one Kaplan-Meier curve per stratum, with its censored times and, when drawn, its confidence band |
 | `volcano` | `maidr_volcano()` |
 
 #### Base R

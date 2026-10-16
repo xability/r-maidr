@@ -190,6 +190,9 @@
 #' @export
 show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
                  width = NULL, height = NULL, hover_mode = NULL, ...) {
+  # A survminer figure is a list around a ggplot; its curves are read.
+  plot <- ggsurvplot_as_ggplot(plot)
+
   # Attaching maidr masks methods::show(). An object that is not a ggplot2
   # plot -- an S4 object, a vector -- is that generic's to print, so it is
   # handed over rather than failed on (#320). Decided on the object rather
@@ -655,6 +658,7 @@ warn_panel_fallback <- function(orchestrator) {
 #' @export
 save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL,
                       width = NULL, height = NULL, hover_mode = NULL, ...) {
+  plot <- ggsurvplot_as_ggplot(plot)
   check_chart_size(width, "width")
   check_chart_size(height, "height")
   check_hover_mode(hover_mode)

@@ -68,6 +68,13 @@ Ggplot2Adapter <- R6::R6Class(
         }
       }
 
+      # A Kaplan-Meier curve is a step whose author said so: `maidr_survival()`
+      # draws with a geom of its own, which carries the censoring and the
+      # band through the build. A plain `geom_step()` keeps its step reading.
+      if (geom_class == "GeomSurvival") {
+        return("survival")
+      }
+
       # geom_step() draws a stairstep: the value is piecewise constant, held
       # across an interval and then jumped, rather than interpolated between
       # samples the way a line implies. GeomStep *inherits* GeomPath, so this
