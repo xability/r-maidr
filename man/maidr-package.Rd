@@ -80,6 +80,9 @@ Among them:
 \item ggplot2 ROC curves - \code{\link{maidr_roc}()} [experimental]
 \item ggplot2 precision-recall curves - \code{\link{maidr_pr_curve}()}
 [experimental]
+\item ggplot2 volcano plots - \code{\link{maidr_volcano}()} [experimental]
+\item ggplot2 Manhattan plots - \code{\link{maidr_manhattan}()}
+[experimental]
 \item ggplot2 percentile bands - \code{ggdist::stat_lineribbon()},
 \code{stat_summary(geom = "ribbon", fun.data = median_hilow)}
 [experimental]

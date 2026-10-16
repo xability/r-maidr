@@ -507,6 +507,19 @@ Ggplot2Adapter <- R6::R6Class(
         return("hexbin")
       }
 
+      # A volcano or Manhattan plot is a scatter read through a threshold,
+      # and only the author can say which line that is, so it is read only
+      # when declared: `maidr_volcano()` and `maidr_manhattan()` draw with
+      # geoms of their own. The bundled maidr.js carries both traces (pinned
+      # in `tests/testthat/test-volcano.R`), so unlike `roc` there is no
+      # older reading to fall back to.
+      if (geom_class == "GeomVolcano") {
+        return("volcano")
+      }
+      if (geom_class == "GeomManhattan") {
+        return("manhattan")
+      }
+
       if (geom_class == "GeomPoint") {
         return("point")
       }

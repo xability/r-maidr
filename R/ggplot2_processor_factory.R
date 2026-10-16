@@ -67,6 +67,10 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         # rows are staggered, so it reads through a processor of its own.
         "hexbin" = Ggplot2HexbinLayerProcessor$new(layer_info),
         "point" = Ggplot2PointLayerProcessor$new(layer_info),
+        # A volcano or Manhattan plot is a scatter with a declared threshold
+        # and a name for each point; one processor emits both.
+        "volcano" = Ggplot2VolcanoLayerProcessor$new(layer_info),
+        "manhattan" = Ggplot2VolcanoLayerProcessor$new(layer_info),
         # A rug marks observations rather than pairs of them, and addresses
         # its ticks through a wrapper ggplot2 leaves unnamed, so it reads
         # through a processor of its own and emits `point`.
@@ -111,6 +115,8 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "heat",
         "hexbin",
         "point",
+        "volcano",
+        "manhattan",
         "rug",
         "polygon",
         "box",

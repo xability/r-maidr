@@ -15,8 +15,10 @@ ARRAY means something else for these types: one selector per data point
 for \code{bar} and \code{hist} (\code{src/model/bar.ts}), a per-series grid for the
 segmented bars and \code{mosaic} (\code{src/model/segmented.ts}), and nothing at all
 for \code{point} and \code{pie}, whose models read \verb{layer.selectors as string}
-(\code{src/model/scatter.ts}, \code{src/model/pie.ts}). \code{dot} and \code{lollipop} are
-built by the \code{bar} model; \code{heat} reads a string or a per-cell grid
+(\code{src/model/scatter.ts}, \code{src/model/pie.ts}) -- as do \code{volcano} and
+\code{manhattan}, built by the scatter model (\code{src/model/volcano.ts}). \code{dot}
+and \code{lollipop} are built by the \code{bar} model; \code{heat} reads a string or a
+per-cell grid
 (\code{src/model/heatmap.ts}). maidr.js 3.x read a one-element array as the
 string it held, which is why every processor here that returns
 \code{list(selector)} was fine until the bundle moved to 4.0 (#316).
