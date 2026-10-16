@@ -273,6 +273,13 @@ announce_masking <- function(package) {
   )
 
   tryCatch(
+    initialize_complexheatmap_system(),
+    error = function(e) {
+      warning("Failed to initialize ComplexHeatmap system: ", e$message)
+    }
+  )
+
+  tryCatch(
     {
       initialize_base_r_system()
     },

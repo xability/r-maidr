@@ -10,11 +10,12 @@ is_maidr_plot_object(x)
 \item{x}{Any object}
 }
 \value{
-TRUE for a ggplot2, trellis or pheatmap object
+TRUE for a ggplot2, trellis, pheatmap or ComplexHeatmap object
 }
 \description{
-A ggplot2 object, a lattice (trellis) object or the object
-\code{pheatmap::pheatmap()} returns. Base R charts are not
+A ggplot2 object, a lattice (trellis) object, the object
+\code{pheatmap::pheatmap()} returns, or a 'ComplexHeatmap' \code{Heatmap} or
+\code{HeatmapList}. Base R charts are not
 objects: they are recorded as they are drawn, and \code{show()} and
 \code{save_html()} take them with no argument.
 }

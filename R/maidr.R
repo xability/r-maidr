@@ -21,8 +21,9 @@
 #' refused, with the message \code{maidr_htmlwidget()} gives.
 #'
 #' @param plot A ggplot2 object, a lattice (trellis) object, the object
-#'   `pheatmap::pheatmap()` returns (experimental), or NULL for Base R
-#'   auto-detection
+#'   `pheatmap::pheatmap()` returns (experimental), a 'ComplexHeatmap'
+#'   `Heatmap` or a `HeatmapList` holding one (experimental), or NULL for
+#'   Base R auto-detection
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
 #'     \item \code{TRUE}: Use the jsDelivr CDN (requires internet), which
@@ -283,6 +284,9 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
       } else if (inherits(plot, "pheatmap")) {
         open_default_device()
         draw_pheatmap_natively(plot)
+      } else if (is_complexheatmap(plot)) {
+        open_default_device()
+        draw_complexheatmap_natively(plot)
       } else {
         # ggplot2: Print to native graphics device with ggplot2's own
         # method, not the one maidr registered, which would run the support
@@ -352,16 +356,17 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
 
 #' Whether an object is a plot maidr renders from the object itself
 #'
-#' A ggplot2 object, a lattice (trellis) object or the object
-#' `pheatmap::pheatmap()` returns. Base R charts are not
+#' A ggplot2 object, a lattice (trellis) object, the object
+#' `pheatmap::pheatmap()` returns, or a 'ComplexHeatmap' `Heatmap` or
+#' `HeatmapList`. Base R charts are not
 #' objects: they are recorded as they are drawn, and \code{show()} and
 #' \code{save_html()} take them with no argument.
 #'
 #' @param x Any object
-#' @return TRUE for a ggplot2, trellis or pheatmap object
+#' @return TRUE for a ggplot2, trellis, pheatmap or ComplexHeatmap object
 #' @keywords internal
 is_maidr_plot_object <- function(x) {
-  inherits(x, c("ggplot", "trellis", "pheatmap"))
+  inherits(x, c("ggplot", "trellis", "pheatmap")) || is_complexheatmap(x)
 }
 
 #' Create HTML document with maidr enhancements using the orchestrator
@@ -589,8 +594,9 @@ warn_panel_fallback <- function(orchestrator) {
 #' jsDelivr rather than the copy bundled with this package.
 #'
 #' @param plot A ggplot2 object, a lattice (trellis) object, the object
-#'   `pheatmap::pheatmap()` returns (experimental), or NULL for Base R
-#'   auto-detection
+#'   `pheatmap::pheatmap()` returns (experimental), a 'ComplexHeatmap'
+#'   `Heatmap` or a `HeatmapList` holding one (experimental), or NULL for
+#'   Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{

@@ -72,6 +72,8 @@ create_fallback_image <- function(plot = NULL, format = "png",
         pages <- lattice_draw_picture(plot)
       } else if (inherits(plot, "pheatmap")) {
         draw_pheatmap_natively(plot)
+      } else if (is_complexheatmap(plot)) {
+        draw_complexheatmap_natively(plot)
       } else {
         stop("Unknown plot type")
       }
