@@ -170,6 +170,19 @@
   into a chart and Shift+Tab out of it, after which the page’s keys work
   again. The focus ring stays visible on a page whose CSS removes
   outlines, and in forced colours.
+- From 4.15.0, which this release bundles, maidr.js itself keeps the
+  page’s keys off a chart that has the focus, hands Shift+Tab from a
+  chart at the start of a slide to the slide, draws the focus ring, and
+  paints the chart rather than the page for high contrast (see Bug
+  Fixes; xability/maidr#1388,
+  [\#1390](https://github.com/xability/r-maidr/issues/1390)). A knitted
+  page now leaves all of that to it, and carries a copy of its own only
+  where its maidr.js may be older: after a
+  `maidr_htmlwidget(use_cdn = TRUE)` that comes before the page’s first
+  chart – whose maidr.js the page then loads instead of the bundled one
+  – when `maidr.cdn_version` or `MAIDR_CDN_VERSION` names a release
+  before 4.15.0, or `"latest"`, which the CDN may answer with an older
+  release for up to a week.
 
 #### lattice
 
@@ -377,6 +390,19 @@
   [`maidr::plot()`](https://r.maidr.ai/reference/base-r-wrappers.md).
   maidr now says so when ROCR is attached after it, and in the “No Base
   R plots detected” error.
+- [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a
+  survival `survfit` object, a Kaplan-Meier curve, is emitted as a
+  `survival` layer read from the object: one curve per stratum, each
+  time announced with its survival estimate, the times a subject was
+  censored marked so a reader can step between them, and the confidence
+  band as each point’s `yMin` and `yMax` when the plot draws it.
+  survival’s plot method draws from inside its own namespace, so the
+  chart used to be emitted as a scatter with no points in it. `xscale`,
+  `yscale`, `xmax` and `xlim` are read as the plot draws them; a plot
+  drawn with `fun`, `cumhaz`, `conf.times` or `conf.int = "only"`, or of
+  a multi-state fit, is shown as a picture. Needs maidr.js 4.14.0 or
+  later, which this release bundles
+  ([\#375](https://github.com/xability/r-maidr/issues/375)).
 - A
   [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html)
   chart highlights the word being read: as the arrow keys move, the word
@@ -469,11 +495,11 @@
   every `lower` below 0.5 and every `upper` above it, the bands nested –
   and a series name the chart does not have is a warning. It is passed
   to the ECharts adapter’s `percentileBands` option, which maidr.js
-  reads from 4.15.0; the maidr.js bundled with this release is 4.14.0,
-  so the option takes effect with `use_cdn = TRUE` and is otherwise
-  checked, then ignored with a warning, until the bundle is raised. Draw
-  the fan over a category x axis: over a numeric one ECharts stacks the
-  series on the x values, and draws no band.
+  reads from 4.15.0, the version bundled with this release. A widget
+  with `use_cdn = TRUE` whose `maidr.cdn_version` pins an older maidr.js
+  has the option checked, then ignored with a warning. Draw the fan over
+  a category x axis: over a numeric one ECharts stacks the series on the
+  x values, and draws no band.
 - [`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
   takes `hover_mode`, which it hands to a highcharter or echarts4r
   widget’s bind hook to write into the chart the adapter reads, as
@@ -499,9 +525,8 @@
 - `options(maidr.hover_mode = )` sets it for every chart that sets none,
   the charts of an R Markdown or Quarto document and those printed at
   the console included.
-- maidr.js reads it from the release after 4.14.0. The 4.14.0 bundled
-  with this release ignores it, as every older maidr.js does, so it
-  takes effect with `use_cdn = TRUE` until the bundle is raised.
+- maidr.js reads it from 4.15.0, the version bundled with this release.
+  An older maidr.js, which `maidr.cdn_version` can pin, ignores it.
 
 ### Performance
 
@@ -560,15 +585,17 @@
   16px divided by the root’s size (1.6 on a 10px root), whatever size
   maidr.js had given their text and whatever the reader’s default, so a
   maidr.js that sizes its dialogs for such a page itself would have
-  shown 22.4px body text under a 20px title. With the bundled maidr.js
-  4.13.0 their body text is still 14px under a 20px title at a browser’s
-  default font size
+  shown 22.4px body text under a 20px title. maidr.js sizes its dialogs
+  for such a page itself from 4.14.0 (xability/maidr#1360): with the
+  bundled maidr.js 4.15.0, their body text is 14px under a 20px title at
+  a browser’s default font size
   ([\#354](https://github.com/xability/r-maidr/issues/354)).
 - High contrast, turned on in a chart a knitted page shows inline (new
   in this version, above), paints the chart, as it painted the chart’s
   frame, and leaves the page around it in its own colours. maidr.js
-  paints the page’s body for high contrast, which inline is the whole
-  page, so the whole page turned black. A chart made with
+  before 4.15.0 painted the page’s body for high contrast, which inline
+  is the whole page, so the whole page turned black; the bundled 4.15.0
+  paints the chart itself (xability/maidr#1388). A chart made with
   [`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
   on such a page, which maidr binds in the page itself, is painted in
   place of the page as well, and the page keeps its colours when the
@@ -633,12 +660,11 @@
 - Such a chart with `fig.alt` or a caption keeps the description
   maidr.js gives it. The page described the chart by its alt text and
   caption alone, in place of whatever maidr.js had described it by. From
-  the maidr.js release after 4.14.0, which describes every chart by its
-  keyboard instructions before the reader enters it
-  (xability/maidr#1384), that would have kept the instructions from a
-  reader until they entered the chart. The alt text and caption are
-  still read first, then maidr’s instructions. With the bundled 4.14.0
-  nothing changes
+  maidr.js 4.15.0, the version bundled with this release, which
+  describes every chart by its keyboard instructions before the reader
+  enters it (xability/maidr#1384), that would have kept the instructions
+  from a reader until they entered the chart. The alt text and caption
+  are still read first, then maidr’s instructions
   ([\#370](https://github.com/xability/r-maidr/issues/370)).
 - Such a chart is shown at the size of the figure it stands for, as
   knitr shows the chunk’s figure: `fig.width` times `dpi` over

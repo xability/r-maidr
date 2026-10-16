@@ -130,11 +130,10 @@ than the y, so neither the picture nor the reading is a band. A width
 series stacks on a negative lower edge only under
 `stackStrategy = "all"`.
 
-The option is read by maidr.js 4.15.0 and later. The copy bundled with
-this version of the package is older, so with `use_cdn = FALSE`, or a
-`maidr.cdn_version` pinned below 4.15.0, `percentile_bands` is checked
-and then ignored with a warning, and the series read as they would be
-without it.
+The option is read by maidr.js 4.15.0 and later, the version bundled
+with this package. With `use_cdn = TRUE` and a `maidr.cdn_version`
+pinned below 4.15.0, `percentile_bands` is checked and then ignored with
+a warning, and the series read as they would be without it.
 
 ## Examples
 
@@ -167,7 +166,6 @@ fan |>
          lineStyle = list(opacity = 0)) |>
   e_area(width, stack = "band", name = "90% interval", symbol = "none") |>
   maidr_htmlwidget(
-    use_cdn = TRUE,
     percentile_bands = list(
       median = "Median",
       bands = data.frame(series = "90% interval", lower = 0.05, upper = 0.95)

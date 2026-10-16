@@ -204,8 +204,8 @@ A fan chart drawn in echarts4r – a median line, and each band an area of
 its width stacked on an invisible line at its lower edge – is read as a
 percentile band once `maidr_htmlwidget(percentile_bands = )` names the
 median’s series, each band’s filled series and the quantiles of its
-edges, as fractions. It needs maidr.js 4.15.0 or later, which
-`use_cdn = TRUE` loads; see
+edges, as fractions. It needs maidr.js 4.15.0 or later, the version
+bundled with this package; see
 [`?maidr_htmlwidget`](https://r.maidr.ai/reference/maidr_htmlwidget.md).
 
 ## lattice Charts \[experimental\]
@@ -433,9 +433,8 @@ save_html(p, "plot.html", hover_mode = "off")
 options(maidr.hover_mode = "click")
 ```
 
-maidr.js reads the hover mode from the release after 4.14.0; the 4.14.0
-bundled with this package ignores it, so it takes effect with
-`use_cdn = TRUE`.
+maidr.js reads the hover mode from 4.15.0, the version bundled with this
+package; an older one, which `maidr.cdn_version` can pin, ignores it.
 
 ### Screen Reader Announcements
 

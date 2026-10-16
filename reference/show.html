@@ -32,7 +32,7 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-11">
+<meta name="DC.date" content="2026-10-13">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -154,9 +154,10 @@ chart's starting value for the reader's Hover Mode setting: a reader
 who has changed that setting keeps theirs. <code>NULL</code> (the default)
 takes <code>getOption("maidr.hover_mode")</code>, and when that is unset
 writes nothing, so maidr.js uses the reader's setting, whose default is
-<code>"pointermove"</code>. Read by the maidr.js releases after 4.14.0; the
-4.14.0 bundled with this package ignores it, so it takes effect with
-<code>use_cdn = TRUE</code>. See <code><a href="maidr-options.html">?"maidr-options"</a></code>.</p></dd>
+<code>"pointermove"</code>. Read by maidr.js 4.15.0 and later, the version
+bundled with this package; an older one, which
+<code>maidr.cdn_version</code> can pin, ignores it. See
+<code><a href="maidr-options.html">?"maidr-options"</a></code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

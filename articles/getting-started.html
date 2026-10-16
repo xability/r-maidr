@@ -61,7 +61,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-10">
+<meta name="DC.date" content="2026-10-13">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -337,9 +337,8 @@ of its width stacked on an invisible line at its lower edge – is read as
 a percentile band once
 <code>maidr_htmlwidget(percentile_bands = )</code> names the median’s
 series, each band’s filled series and the quantiles of its edges, as
-fractions. It needs maidr.js 4.15.0 or later, which
-<code>use_cdn = TRUE</code> loads; see
-<code><a href="../reference/maidr_htmlwidget.html">?maidr_htmlwidget</a></code>.</p>
+fractions. It needs maidr.js 4.15.0 or later, the version bundled with
+this package; see <code><a href="../reference/maidr_htmlwidget.html">?maidr_htmlwidget</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="lattice-charts-experimental">lattice Charts [experimental]<a class="anchor" aria-label="anchor" href="#lattice-charts-experimental"></a>
@@ -578,9 +577,9 @@ reader who has keeps theirs.</p>
 <span></span>
 <span><span class="co"># The default for every chart that sets none, documents included</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.hover_mode <span class="op">=</span> <span class="st">"click"</span><span class="op">)</span></span></code></pre></div>
-<p>maidr.js reads the hover mode from the release after 4.14.0; the
-4.14.0 bundled with this package ignores it, so it takes effect with
-<code>use_cdn = TRUE</code>.</p>
+<p>maidr.js reads the hover mode from 4.15.0, the version bundled with
+this package; an older one, which <code>maidr.cdn_version</code> can
+pin, ignores it.</p>
 </div>
 <div class="section level3">
 <h3 id="screen-reader-announcements">Screen Reader Announcements<a class="anchor" aria-label="anchor" href="#screen-reader-announcements"></a>

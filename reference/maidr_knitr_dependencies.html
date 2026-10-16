@@ -39,7 +39,7 @@ copy, the bundle&#x27;s own changed in two ways, and one more:">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-03">
+<meta name="DC.date" content="2026-10-13">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -107,7 +107,8 @@ copy, the bundle's own changed in two ways, and one more:</p>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list of htmlDependency objects: the configuration dependencies
-of <code><a href="maidr_html_dependencies.html">maidr_html_dependencies()</a></code>, the bundle, and <code>maidr-knitr</code></p>
+of <code><a href="maidr_html_dependencies.html">maidr_html_dependencies()</a></code>, the bundle, <code>maidr-knitr</code>, and
+<code>maidr-knitr-compat</code> when the page needs it</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -123,8 +124,11 @@ as an attachment, so every renderer copies it with the bundle: bookdown
 copies only the files a page references, and left a book's charts with
 no stylesheet for the maths in AI chat responses. A self-contained page
 drops the attachment, and has no URL to resolve it against either.</p></li>
-<li><p><code>maidr-knitr</code> (<code><a href="maidr_knitr_dependency.html">maidr_knitr_dependency()</a></code>) binds the charts and keeps the
-host page's keyboard shortcuts out of them.</p></li>
+<li><p><code>maidr-knitr</code> (<code><a href="maidr_knitr_dependency.html">maidr_knitr_dependency()</a></code>) binds the charts, describes
+them and lays them out.</p></li>
+<li><p><code>maidr-knitr-compat</code> (<code><a href="maidr_knitr_compat_dependency.html">maidr_knitr_compat_dependency()</a></code>) follows, only
+on a page whose maidr.js may be older than 4.15.0 (see
+<code><a href="maidr_knitr_compat_needed.html">maidr_knitr_compat_needed()</a></code>).</p></li>
 </ul><p>The <code>maidr</code> dependency of <code><a href="save_html.html">save_html()</a></code>, <code><a href="show.html">show()</a></code> and the widgets is not
 changed.</p>
     </div>

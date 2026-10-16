@@ -41,7 +41,7 @@ drawn in the browser; nothing about it is recomputed in R.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-10">
+<meta name="DC.date" content="2026-10-13">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -201,11 +201,10 @@ to <code><a href="https://echarts4r.john-coene.com/reference/init.html" class="e
 x values rather than the y, so neither the picture nor the reading is a
 band. A width series stacks on a negative lower edge only under
 <code>stackStrategy = "all"</code>.</p>
-<p>The option is read by maidr.js 4.15.0 and later. The copy bundled with
-this version of the package is older, so with <code>use_cdn = FALSE</code>, or a
-<code>maidr.cdn_version</code> pinned below 4.15.0, <code>percentile_bands</code> is checked
-and then ignored with a warning, and the series read as they would be
-without it.</p>
+<p>The option is read by maidr.js 4.15.0 and later, the version bundled with
+this package. With <code>use_cdn = TRUE</code> and a <code>maidr.cdn_version</code> pinned below
+4.15.0, <code>percentile_bands</code> is checked and then ignored with a warning, and
+the series read as they would be without it.</p>
     </div>
 
     <div class="section level2">
@@ -238,7 +237,6 @@ without it.</p>
 <span class="r-in"><span>         lineStyle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>opacity <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://echarts4r.john-coene.com/reference/e_area.html" class="external-link">e_area</a></span><span class="op">(</span><span class="va">width</span>, stack <span class="op">=</span> <span class="st">"band"</span>, name <span class="op">=</span> <span class="st">"90% interval"</span>, symbol <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">maidr_htmlwidget</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    use_cdn <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    percentile_bands <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>      median <span class="op">=</span> <span class="st">"Median"</span>,</span></span>
 <span class="r-in"><span>      bands <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>series <span class="op">=</span> <span class="st">"90% interval"</span>, lower <span class="op">=</span> <span class="fl">0.05</span>, upper <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span></span>

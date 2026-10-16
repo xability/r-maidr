@@ -129,10 +129,11 @@ system.
   draws and those printed at the console; a plotly widget, which the
   MAIDR core reads by itself, takes none. It is only where the reader
   starts: a reader who has changed the Hover Mode setting keeps theirs.
-  Read by the maidr.js releases after 4.14.0; the 4.14.0 bundled with
-  this package ignores it. Anything else is an error when a chart is
-  drawn. Default: unset, which writes nothing, so maidr.js uses the
-  reader's setting, `"pointermove"` unless they changed it.
+  Read by maidr.js 4.15.0 and later, the version bundled with this
+  package; an older one, which `maidr.cdn_version` can pin, ignores it.
+  Anything else is an error when a chart is drawn. Default: unset, which
+  writes nothing, so maidr.js uses the reader's setting, `"pointermove"`
+  unless they changed it.
 
 ## Setting Options
 

@@ -116,11 +116,22 @@ affected.
 An echarts4r fan chart – a median line with bands drawn as stacked areas
 – is read as a percentile band once `percentile_bands` names its series
 and the quantiles of each band’s edges. The option needs maidr.js 4.15.0
-or later, which `use_cdn = TRUE` loads; with the bundled 4.14.0 it is
-ignored with a warning. See
+or later, the version bundled with this package; with an older one
+pinned by `maidr.cdn_version` it is ignored with a warning. See
 [`?maidr_htmlwidget`](https://r.maidr.ai/reference/maidr_htmlwidget.md).
 
 ``` r
+
+library(maidr)
+library(echarts4r)
+
+# A median and a 90% band drawn as a stacked area
+fan <- data.frame(
+  week = paste("Week", 1:8),
+  median = c(10, 12, 13, 15, 16, 18, 19, 21),
+  lower = c(8, 9, 9, 10, 10, 11, 11, 12)
+)
+fan$width <- 2 * (fan$median - fan$lower)
 
 fan |>
   e_charts(week) |>                    # a category x axis
@@ -129,7 +140,6 @@ fan |>
          lineStyle = list(opacity = 0)) |>
   e_area(width, stack = "band", name = "90% interval", symbol = "none") |>
   maidr_htmlwidget(
-    use_cdn = TRUE,
     percentile_bands = list(
       median = "Median",
       bands = data.frame(series = "90% interval", lower = 0.05, upper = 0.95)
@@ -236,9 +246,8 @@ options(maidr.hover_mode = "click")
 ```
 
 Left unset, nothing is written and the reader’s setting decides.
-maidr.js reads it from the release after 4.14.0; the 4.14.0 bundled with
-this package ignores it, so it takes effect with `use_cdn = TRUE` until
-the bundle is raised.
+maidr.js reads it from 4.15.0, the version bundled with this package; an
+older one, which `maidr.cdn_version` can pin, ignores it.
 
 ### R Markdown and Quarto
 
@@ -524,6 +533,7 @@ experimental ones follow in a section of their own, as they do here.
 | `stacked_normalized_bar` | [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of proportions |
 | `strip` | [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `subseries` | [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `survival` | survival’s [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a `survfit` object: one Kaplan-Meier curve per stratum, with its censored times and, when drawn, its confidence band |
 | `termplot` | [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `violin` | [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html) |
 | `word_cloud` | [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html) |

@@ -18,7 +18,8 @@ maidr_knitr_dependencies()
 
 A list of htmlDependency objects: the configuration dependencies of
 [`maidr_html_dependencies()`](https://r.maidr.ai/reference/maidr_html_dependencies.md),
-the bundle, and `maidr-knitr`
+the bundle, `maidr-knitr`, and `maidr-knitr-compat` when the page needs
+it
 
 ## Details
 
@@ -38,8 +39,12 @@ the bundle, and `maidr-knitr`
 
 - `maidr-knitr`
   ([`maidr_knitr_dependency()`](https://r.maidr.ai/reference/maidr_knitr_dependency.md))
-  binds the charts and keeps the host page's keyboard shortcuts out of
-  them.
+  binds the charts, describes them and lays them out.
+
+- `maidr-knitr-compat`
+  ([`maidr_knitr_compat_dependency()`](https://r.maidr.ai/reference/maidr_knitr_compat_dependency.md))
+  follows, only on a page whose maidr.js may be older than 4.15.0 (see
+  [`maidr_knitr_compat_needed()`](https://r.maidr.ai/reference/maidr_knitr_compat_needed.md)).
 
 The `maidr` dependency of
 [`save_html()`](https://r.maidr.ai/reference/save_html.md),
