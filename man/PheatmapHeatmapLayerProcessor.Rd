@@ -13,7 +13,7 @@ rows are top first, as maidr.js reads \code{data.points}.
 
 \strong{Values.} Each cell's value is, in order of preference:
 \itemize{
-\item exact: the matrix \code{\link[pheatmap:pheatmap]{pheatmap()}} -- maidr's wrapper -- kept with the
+\item exact: the matrix \code{\link[=pheatmap]{pheatmap()}} -- maidr's wrapper -- kept with the
 chart (\code{"maidr_matrix"}), the matrix as drawn;
 \item otherwise the number printed in the cell, with \code{display_numbers};
 \item otherwise the middle of the legend band the cell's colour stands for,

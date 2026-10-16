@@ -14,7 +14,7 @@ for the SVG. Experimental.
 Only the matrix is read. The dendrograms set the order the cells are read
 in but are not read themselves, and neither are annotation tracks.
 
-When the cells' values cannot be read -- not drawn with \code{\link[pheatmap:pheatmap]{pheatmap()}},
+When the cells' values cannot be read -- not drawn with \code{\link[=pheatmap]{pheatmap()}},
 which keeps them, and with no legend (\code{legend = FALSE}) or one labelled
 with words, and no numbers printed in the cells -- the chart falls back
 to an image rather than being read without them.

@@ -8,6 +8,6 @@ PHEATMAP_VALUE_NOTES
 }
 \description{
 By where the values were read from; see \link{PheatmapHeatmapLayerProcessor}.
-A matrix kept by \code{\link[pheatmap:pheatmap]{pheatmap()}} is exact and says nothing.
+A matrix kept by \code{\link[=pheatmap]{pheatmap()}} is exact and says nothing.
 }
 \keyword{internal}
