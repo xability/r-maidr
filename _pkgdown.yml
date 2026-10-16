@@ -138,9 +138,11 @@ reference:
     desc: >
       The Base R plotting functions and methods::show(), each replaced on
       the search path by a wrapper that records the call and passes through
-      to the original
+      to the original, and pheatmap::pheatmap(), whose wrapper keeps the
+      matrix it draws
     contents:
       - base-r-wrappers
+      - pheatmap
 
   - title: Shiny integration
     desc: Functions for using maidr in Shiny applications

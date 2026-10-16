@@ -364,6 +364,13 @@ announce_masking <- function(package) {
     error = function(e) NULL
   )
 
+  # pheatmap attached after maidr masks maidr's pheatmap(), which keeps the
+  # matrix a chart was drawn from; said as it happens.
+  tryCatch(
+    setHook(packageEvent("pheatmap", "attach"), .maidr_pheatmap_attach_hook),
+    error = function(e) NULL
+  )
+
   # A document's own library(maidr): installed into the running knit now.
   # A later render in this session, which loads nothing, installs it from the
   # first plot it draws instead (see ensure_knitr_integration()).
@@ -405,6 +412,7 @@ announce_masking <- function(package) {
   drop_hook("attach", .maidr_wordcloud_attach_hook, package = "wordcloud")
   drop_hook("onLoad", .maidr_lattice_onload_hook, package = "lattice")
   drop_hook("attach", .maidr_rocr_attach_hook, package = "ROCR")
+  drop_hook("attach", .maidr_pheatmap_attach_hook, package = "pheatmap")
 
   # lattice outlives maidr, and would otherwise keep printing through a
   # function from a namespace that is gone.

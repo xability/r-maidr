@@ -8,9 +8,10 @@
 #' Only the matrix is read. The dendrograms set the order the cells are read
 #' in but are not read themselves, and neither are annotation tracks.
 #'
-#' When the cells' values cannot be read -- no legend (`legend = FALSE`),
-#' a legend labelled with words, and no numbers printed in the cells -- the
-#' chart falls back to an image rather than being read without them.
+#' When the cells' values cannot be read -- not drawn with [pheatmap()],
+#' which keeps them, and with no legend (`legend = FALSE`) or one labelled
+#' with words, and no numbers printed in the cells -- the chart falls back
+#' to an image rather than being read without them.
 #'
 #' @format An R6 class
 #' @keywords internal
@@ -55,8 +56,9 @@ PheatmapPlotOrchestrator <- R6::R6Class(
       processor$set_last_result(result)
       if (is.null(result)) {
         private$.unsupported <- paste(
-          "the values of its cells cannot be read: it prints no numbers",
-          "in them and has no legend with numeric labels"
+          "the values of its cells cannot be read: it was not drawn with",
+          "maidr::pheatmap(), prints no numbers in its cells and has no",
+          "legend with numeric labels"
         )
         return(invisible(self))
       }

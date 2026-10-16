@@ -11,19 +11,28 @@ Reads the one \code{heat} layer of a pheatmap from its drawn gtable.
 it in that order: the cells' fill matrix, the row and column labels. Its
 rows are top first, as maidr.js reads \code{data.points}.
 
-\strong{Values.} \code{pheatmap()} does not return the matrix, only the colours it
-drew. A value is therefore what the chart shows:
+\strong{Values.} Each cell's value is, in order of preference:
 \itemize{
-\item the number printed in the cell, with \code{display_numbers};
+\item exact: the matrix \code{\link[pheatmap:pheatmap]{pheatmap()}} -- maidr's wrapper -- kept with the
+chart (\code{"maidr_matrix"}), the matrix as drawn;
+\item otherwise the number printed in the cell, with \code{display_numbers};
 \item otherwise the middle of the legend band the cell's colour stands for,
 rounded to the band's width -- with the default 100 colours, to a
 hundredth of the range drawn.
 }
 
-Either way it is the matrix as drawn, so with \code{scale = "row"} or
+\code{pheatmap::pheatmap()} itself does not return its matrix, so a chart it
+drew directly has only the last two. Neither is exact, and the layer's
+title says which was used, as does a message (class
+\code{maidr_pheatmap_values}). A kept matrix or printed numbers are used only
+when each value lies in the legend band of its cell's colour, so numbers
+printed over the cells that are not their values -- p-values, say -- are
+not read as them.
+
+Every source is the matrix as drawn, so with \code{scale = "row"} or
 \code{"column"} it is the scaled value (a z-score) the legend shows, not the
-input. A cell drawn in \code{na_col} is a hole (\code{null}). A value outside the
-caller's \code{breaks} is drawn in the end colour, and read as that band.
+input, and with \code{kmeans_k} the cluster centres. A cell drawn in \code{na_col}
+is a hole (\code{null}).
 
 \strong{Selectors.} The cells are one rect grob drawn column by column, each
 column top to bottom. Each is selected by its own id, in a grid whose rows
@@ -125,7 +134,8 @@ run bottom first, as maidr.js's heat grid does.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    List with \code{x}, \code{y} and \code{points}, or NULL
+    List with \code{x}, \code{y} and \code{points}, its \code{"source"} attribute
+\code{"matrix"}, \code{"printed"} or \code{"legend"}; or NULL
   }
 }
 

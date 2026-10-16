@@ -33,7 +33,8 @@
 #'
 #' `vioplot::vioplot()`, `wordcloud::wordcloud()` and
 #' `quantmod::chartSeries()` are wrapped as well, once their package is
-#' loaded.
+#' loaded. So is `pheatmap::pheatmap()`, whose wrapper keeps the matrix it
+#' draws rather than recording a call; see [pheatmap()].
 #'
 #' ## `show()` and `methods::show()`
 #'

@@ -8,6 +8,17 @@
 #' @keywords internal
 PHEATMAP_CELLS_GROB <- "maidr-pheatmap-cells"
 
+#' What a pheatmap layer's title says of values that are not exact
+#'
+#' By where the values were read from; see [PheatmapHeatmapLayerProcessor].
+#' A matrix kept by [pheatmap()] is exact and says nothing.
+#'
+#' @keywords internal
+PHEATMAP_VALUE_NOTES <- list(
+  printed = "values as printed in the cells, rounded",
+  legend = "approximate values, read from the colour legend to within one colour band"
+)
+
 #' A grob of a pheatmap's gtable, by its layout name
 #'
 #' @param gt The gtable `pheatmap()` returned
@@ -199,7 +210,51 @@ pheatmap_printed_numbers <- function(text, n, m) {
     return(NULL)
   }
   values[missing] <- NA_real_
-  matrix(values, n, m)
+  decimals <- nchar(sub("^[^.]*\\.?", "", sub("[eE].*$", "", labels[!missing])))
+  structure(
+    matrix(values, n, m),
+    precision = 0.5 * 10^-max(c(0L, decimals))
+  )
+}
+
+#' Whether values agree with the colours their cells were drawn in
+#'
+#' Each value must lie in the legend band of its cell's colour, give or take
+#' `tolerance`; a value beyond the outermost breaks is drawn in the end
+#' colour, so those two bands are open-ended. This is how a matrix kept
+#' with the chart, or numbers printed in its cells, are known to be the
+#' values the colours were drawn from -- and not, say, p-values a caller
+#' printed over them.
+#'
+#' @param values A numeric matrix, the shape of `fill`
+#' @param fill The cells' fill colours
+#' @param bands The legend's bands, from [pheatmap_legend_bands()]
+#' @param tolerance How far outside its band a value may lie
+#' @return TRUE when every finite value agrees
+#' @keywords internal
+pheatmap_values_agree <- function(values, fill, bands, tolerance) {
+  at <- match(pheatmap_colour_key(as.vector(fill)), bands$colour)
+  v <- as.vector(values)
+  check <- is.finite(v)
+  if (any(is.na(at[check]))) {
+    return(FALSE)
+  }
+  lo <- bands$lo[at[check]]
+  hi <- bands$hi[at[check]]
+  lo[lo <= min(bands$lo)] <- -Inf
+  hi[hi >= max(bands$hi)] <- Inf
+  all(v[check] >= lo - tolerance & v[check] <= hi + tolerance)
+}
+
+#' Whether a matrix kept with a pheatmap is the one its cells were drawn from
+#' @param values The `"maidr_matrix"` attribute, or NULL
+#' @param fill The cells' fill colours
+#' @return TRUE when it has the cells' shape and names
+#' @keywords internal
+pheatmap_matrix_fits <- function(values, fill) {
+  is.matrix(values) && is.numeric(values) && identical(dim(values), dim(fill)) &&
+    (is.null(rownames(fill)) || identical(rownames(values), rownames(fill))) &&
+    (is.null(colnames(fill)) || identical(colnames(values), colnames(fill)))
 }
 
 #' pheatmap Heatmap Layer Processor
@@ -212,18 +267,27 @@ pheatmap_printed_numbers <- function(text, n, m) {
 #' it in that order: the cells' fill matrix, the row and column labels. Its
 #' rows are top first, as maidr.js reads `data.points`.
 #'
-#' **Values.** `pheatmap()` does not return the matrix, only the colours it
-#' drew. A value is therefore what the chart shows:
+#' **Values.** Each cell's value is, in order of preference:
 #'
-#' * the number printed in the cell, with `display_numbers`;
+#' * exact: the matrix [pheatmap()] -- maidr's wrapper -- kept with the
+#'   chart (`"maidr_matrix"`), the matrix as drawn;
+#' * otherwise the number printed in the cell, with `display_numbers`;
 #' * otherwise the middle of the legend band the cell's colour stands for,
 #'   rounded to the band's width -- with the default 100 colours, to a
 #'   hundredth of the range drawn.
 #'
-#' Either way it is the matrix as drawn, so with `scale = "row"` or
+#' `pheatmap::pheatmap()` itself does not return its matrix, so a chart it
+#' drew directly has only the last two. Neither is exact, and the layer's
+#' title says which was used, as does a message (class
+#' `maidr_pheatmap_values`). A kept matrix or printed numbers are used only
+#' when each value lies in the legend band of its cell's colour, so numbers
+#' printed over the cells that are not their values -- p-values, say -- are
+#' not read as them.
+#'
+#' Every source is the matrix as drawn, so with `scale = "row"` or
 #' `"column"` it is the scaled value (a z-score) the legend shows, not the
-#' input. A cell drawn in `na_col` is a hole (`null`). A value outside the
-#' caller's `breaks` is drawn in the end colour, and read as that band.
+#' input, and with `kmeans_k` the cluster centres. A cell drawn in `na_col`
+#' is a hole (`null`).
 #'
 #' **Selectors.** The cells are one rect grob drawn column by column, each
 #' column top to bottom. Each is selected by its own id, in a grid whose rows
@@ -256,11 +320,24 @@ PheatmapHeatmapLayerProcessor <- R6::R6Class(
       if (is.null(data)) {
         return(NULL)
       }
+      title <- layout$title %||% ""
+      note <- PHEATMAP_VALUE_NOTES[[attr(data, "source")]]
+      if (!is.null(note)) {
+        title <- if (nzchar(title)) paste0(title, " (", note, ")") else note
+        rlang::inform(
+          paste0(
+            "maidr: announcing this pheatmap's cells with ", note, ". ",
+            "For exact values, draw it with maidr::pheatmap()."
+          ),
+          class = "maidr_pheatmap_values"
+        )
+      }
+      attr(data, "source") <- NULL
       list(
         type = "heat",
         data = data,
         selectors = self$generate_selectors(plot, gt),
-        title = layout$title %||% "",
+        title = title,
         axes = build_axes(x = "Columns", y = "Rows", z = "value")
       )
     },
@@ -268,7 +345,8 @@ PheatmapHeatmapLayerProcessor <- R6::R6Class(
     #' @description The cells' values and labels, rows top first
     #' @param plot The pheatmap object
     #' @param built The gtable, its cells named [PHEATMAP_CELLS_GROB]
-    #' @return List with `x`, `y` and `points`, or NULL
+    #' @return List with `x`, `y` and `points`, its `"source"` attribute
+    #'   `"matrix"`, `"printed"` or `"legend"`; or NULL
     extract_data = function(plot, built = NULL) {
       gt <- built
       matrix_grob <- pheatmap_grob(gt, "matrix")
@@ -279,24 +357,42 @@ PheatmapHeatmapLayerProcessor <- R6::R6Class(
       }
       n <- nrow(fill)
       m <- ncol(fill)
+      bands <- pheatmap_legend_bands(pheatmap_grob(gt, "legend"))
+      agrees <- function(values, tolerance) {
+        is.null(bands) || pheatmap_values_agree(values, fill, bands, tolerance)
+      }
+      exact <- 1e-6 * if (is.null(bands)) 1 else max(1, diff(range(c(bands$lo, bands$hi))))
 
-      values <- pheatmap_printed_numbers(pheatmap_child(matrix_grob, "text"), n, m)
+      source <- "matrix"
+      values <- attr(plot, "maidr_matrix", exact = TRUE)
+      if (!pheatmap_matrix_fits(values, fill) || !agrees(values, exact)) {
+        source <- "printed"
+        values <- pheatmap_printed_numbers(pheatmap_child(matrix_grob, "text"), n, m)
+        if (!is.null(values) && !agrees(values, attr(values, "precision") + exact)) {
+          values <- NULL
+        }
+      }
       if (is.null(values)) {
-        bands <- pheatmap_legend_bands(pheatmap_grob(gt, "legend"))
         if (is.null(bands)) {
           return(NULL)
         }
+        source <- "legend"
         at <- match(pheatmap_colour_key(as.vector(fill)), bands$colour)
         middle <- (bands$lo + bands$hi) / 2
         width <- min(bands$hi - bands$lo)
         digits <- if (is.finite(width) && width > 0) max(0L, ceiling(-log10(width))) else 6L
         values <- matrix(round(middle[at], digits), n, m)
       }
+      values <- unname(values)
+      attributes(values) <- list(dim = c(n, m))
 
-      list(
-        x = as.list(self$labels(gt, "col_names", colnames(fill), plot$tree_col, m)),
-        y = as.list(self$labels(gt, "row_names", rownames(fill), plot$tree_row, n)),
-        points = lapply(seq_len(n), function(i) as.list(values[i, ]))
+      structure(
+        list(
+          x = as.list(self$labels(gt, "col_names", colnames(fill), plot$tree_col, m)),
+          y = as.list(self$labels(gt, "row_names", rownames(fill), plot$tree_row, n)),
+          points = lapply(seq_len(n), function(i) as.list(values[i, ]))
+        ),
+        source = source
       )
     },
 
