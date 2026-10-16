@@ -47,7 +47,7 @@ the wrappers pass straight through.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-08">
+<meta name="DC.date" content="2026-10-16">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -272,7 +272,8 @@ R 4.0, and <code><a href="show.html">show()</a></code> from methods: the S4 disp
 <code><a href="show.html">show()</a></code> hands back any object that is not a plot.</p>
 <p><code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code>, <code><a href="https://rdrr.io/pkg/wordcloud/man/wordcloud.html" class="external-link">wordcloud::wordcloud()</a></code> and
 <code><a href="https://rdrr.io/pkg/quantmod/man/chartSeries.html" class="external-link">quantmod::chartSeries()</a></code> are wrapped as well, once their package is
-loaded.</p>
+loaded. So is <code><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap::pheatmap()</a></code>, whose wrapper keeps the matrix it
+draws rather than recording a call; see <code><a href="pheatmap.html">pheatmap()</a></code>.</p>
 </div>
 
 <div class="section">

@@ -52,7 +52,8 @@ on again; the options turn parts of it off.
 
 The Base R plotting functions and methods::show(), each replaced on the
 search path by a wrapper that records the call and passes through to the
-original
+original, and pheatmap::pheatmap(), whose wrapper keeps the matrix it
+draws
 
 - [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
@@ -113,6 +114,8 @@ original
   [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   [`split(`*`<screen>`*`)`](https://r.maidr.ai/reference/base-r-wrappers.md)
   : Functions maidr masks on attach
+- [`pheatmap()`](https://r.maidr.ai/reference/pheatmap.md) : Draw a
+  clustered heat map with pheatmap, keeping its values for maidr
 
 ## Shiny integration
 

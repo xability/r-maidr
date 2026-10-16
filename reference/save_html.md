@@ -21,8 +21,9 @@ save_html(
 
 - plot:
 
-  A ggplot2 object, a lattice (trellis) object, or NULL for Base R
-  auto-detection
+  A ggplot2 object, a lattice (trellis) object, the object
+  [`pheatmap::pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html)
+  returns (experimental), or NULL for Base R auto-detection
 
 - file:
 

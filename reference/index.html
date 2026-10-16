@@ -198,7 +198,7 @@
       </dl></div><div class="section level2">
       <h2 id="what-attaching-maidr-masks">What attaching maidr masks<a class="anchor" aria-label="anchor" href="#what-attaching-maidr-masks"></a></h2>
 
-      <div class="section-desc"><p>The Base R plotting functions and methods::show(), each replaced on the search path by a wrapper that records the call and passes through to the original</p></div>
+      <div class="section-desc"><p>The Base R plotting functions and methods::show(), each replaced on the search path by a wrapper that records the call and passes through to the original, and pheatmap::pheatmap(), whose wrapper keeps the matrix it draws</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -211,6 +211,13 @@
 
         </dt>
         <dd>Functions maidr masks on attach</dd>
+
+        <dt>
+
+          <code><a href="pheatmap.html">pheatmap()</a></code>
+
+        </dt>
+        <dd>Draw a clustered heat map with pheatmap, keeping its values for maidr</dd>
       </dl></div><div class="section level2">
       <h2 id="shiny-integration">Shiny integration<a class="anchor" aria-label="anchor" href="#shiny-integration"></a></h2>
 

@@ -176,7 +176,10 @@ that is not a plot.
 [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html)
 and
 [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html)
-are wrapped as well, once their package is loaded.
+are wrapped as well, once their package is loaded. So is
+[`pheatmap::pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html),
+whose wrapper keeps the matrix it draws rather than recording a call;
+see [`pheatmap()`](https://r.maidr.ai/reference/pheatmap.md).
 
 ### [`show()`](https://r.maidr.ai/reference/show.md) and [`methods::show()`](https://rdrr.io/r/methods/show.html)
 
