@@ -220,7 +220,8 @@ R 4.0, and \code{show()} from methods: the S4 display generic, which maidr's
 
 \code{vioplot::vioplot()}, \code{wordcloud::wordcloud()} and
 \code{quantmod::chartSeries()} are wrapped as well, once their package is
-loaded.
+loaded. So is \code{pheatmap::pheatmap()}, whose wrapper keeps the matrix it
+draws rather than recording a call; see \code{\link[=pheatmap]{pheatmap()}}.
 }
 
 \subsection{\code{show()} and \code{methods::show()}}{

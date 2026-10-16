@@ -70,6 +70,8 @@ create_fallback_image <- function(plot = NULL, format = "png",
       } else if (inherits(plot, "trellis")) {
         # lattice: drawn by lattice, for the same reason, from its first page.
         pages <- lattice_draw_picture(plot)
+      } else if (inherits(plot, "pheatmap")) {
+        draw_pheatmap_natively(plot)
       } else {
         stop("Unknown plot type")
       }
