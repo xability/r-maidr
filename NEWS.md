@@ -264,7 +264,33 @@
   with `treeheight_row = 0` or `treeheight_col = 0`, has none. pheatmap
   draws one link per merge and nothing at a leaf, so a tree's nodes are
   announced but not highlighted.
-* Annotation tracks are not read, and neither are 'ComplexHeatmap' charts.
+* Annotation tracks are not read.
+
+### ComplexHeatmap
+
+* Heat maps drawn by the Bioconductor package 'ComplexHeatmap' are now
+  read, experimentally (#381). `show()`, `save_html()`,
+  `show(as_widget = TRUE)` and `render_maidr()` take a `Heatmap`, or a
+  `HeatmapList` holding one -- what `draw()` returns, annotations and all
+  -- and emit one `heat` layer whose cells are the heat map's own matrix,
+  exactly, in the order drawn: clustered, reordered, split by `row_split`,
+  `row_km`, `column_split` or `column_km`. A missing value is a hole. The
+  rows and columns are named by the labels drawn, or with the names hidden
+  by the matrix's dimnames, and each cell is highlighted as it is reached.
+  'ComplexHeatmap' is in Suggests.
+* The object is drawn once with `ComplexHeatmap::draw()`, and the chart
+  and its reading come from that one drawing. An undrawn `Heatmap` with
+  `row_km` or `column_km` is clustered afresh on every draw; pass what
+  `draw()` returned to read the chart that was shown.
+* The slices of a split heat map are read as one grid, side by side in the
+  order drawn: the gaps between them are not cells, and moving past the
+  last row or column of a slice reaches the first of the next.
+* A body drawn as an image (`use_raster = TRUE`, which 'ComplexHeatmap'
+  picks itself above 2000 rows or columns) is read but not highlighted,
+  and a message says so; `use_raster = FALSE` highlights it.
+* A list of more than one heat map, or a heat map of categories (a
+  character matrix), falls back to an image. Annotations, dendrograms and
+  legends are drawn and not read.
 
 ### webR
 

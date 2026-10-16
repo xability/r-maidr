@@ -85,6 +85,7 @@ Suggests:
     lattice,
     latticeExtra,
     pheatmap,
+    ComplexHeatmap,
     withr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)

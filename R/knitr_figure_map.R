@@ -556,6 +556,8 @@ knit_chart_content <- function(plot, options) {
     "lattice"
   } else if (inherits(plot, "pheatmap")) {
     "pheatmap"
+  } else if (is_complexheatmap(plot)) {
+    "complexheatmap"
   } else {
     "ggplot2"
   }
