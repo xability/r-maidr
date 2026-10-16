@@ -157,3 +157,62 @@ test_that("a declined survfit plot is shown as a picture, not an empty scatter",
   types <- vapply(layers %||% list(), function(l) l$type, "")
   testthat::expect_false(any(types %in% c("point", "survival")))
 })
+
+test_that("with the band, each stratum draws three polylines and its curve is the first", {
+  fit <- survival::survfit(survival::Surv(time, status) ~ sex, data = lung())
+  layer <- survfit_layers(function() plot(fit, conf.int = TRUE, mark.time = TRUE))[[1]]
+  # Curve, lower, upper for each of two strata: lines-1..6, the curves 1 and
+  # 4. The censoring marks are points, not polylines, and change nothing.
+  testthat::expect_identical(
+    layer$selectors,
+    list(
+      "#graphics-plot-1-lines-1\\.1 polyline",
+      "#graphics-plot-1-lines-4\\.1 polyline"
+    )
+  )
+})
+
+test_that("a polyline the plot did not draw drops the highlight, not misplaces it", {
+  fit <- survival::survfit(survival::Surv(time, status) ~ sex, data = lung())
+  layers <- survfit_layers(function() {
+    plot(fit)
+    lines(c(0, 1000), c(0.5, 0.5))
+  })
+  types <- vapply(layers, function(l) l$type, "")
+  layer <- layers[[which(types == "survival")]]
+  # Three polylines for two curves: no index can be trusted.
+  testthat::expect_length(layer$selectors, 0)
+  testthat::expect_length(layer$data, 2)
+})
+
+test_that("a cut at xmax that lands on a censored time is no censored time", {
+  fit <- survival::survfit(survival::Surv(time, status) ~ 1, data = lung())
+  fit0 <- survival::survfit0(fit)
+  # The first censored time after the start; the cut falls between it and
+  # the time before, so the plot moves that censored time back to xmax.
+  k <- which(fit0$n.censor > 0 & seq_along(fit0$time) > 2)[1]
+  xmax <- (fit0$time[k - 1] + fit0$time[k]) / 2
+
+  points <- survfit_layers(function() {
+    plot(fit, xmax = xmax, conf.int = FALSE)
+  })[[1]]$data[[1]]
+  testthat::expect_length(points, k)
+  testthat::expect_equal(points[[k]]$x, xmax)
+  testthat::expect_equal(points[[k]]$y, fit0$surv[k - 1])
+  testthat::expect_null(points[[k]]$censored)
+
+  # At the censored time itself nothing is cut there: it is drawn, and stays
+  # censored, and the cut is the time after it.
+  points <- survfit_layers(function() {
+    plot(fit, xmax = fit0$time[k], conf.int = FALSE)
+  })[[1]]$data[[1]]
+  testthat::expect_true(isTRUE(points[[k]]$censored))
+  testthat::expect_equal(points[[k + 1]]$x, fit0$time[k])
+  testthat::expect_null(points[[k + 1]]$censored)
+})
+
+test_that("a survival without survfit0() is shown as a picture", {
+  fit <- survival::survfit(survival::Surv(time, status) ~ 1, data = lung())
+  testthat::local_mocked_bindings(survfit0_available = function() FALSE)
+  testthat::expect_identical(maidr:::survfit_layer_type(list(fit)), "unknown")
+})

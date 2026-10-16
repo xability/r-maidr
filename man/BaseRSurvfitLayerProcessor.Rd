@@ -182,8 +182,9 @@ from the recorded \code{survfit} object
 \subsection{\code{BaseRSurvfitLayerProcessor$generate_selectors()}}{
   One selector per stratum: the curve's own polyline,
 skipping the two bound polylines drawn after it when the band is
-drawn. None when the drawing has fewer polylines than that, rather
-than outlines on the wrong lines.
+drawn. None when the drawing has any other number of polylines --
+a \code{lines()} added after the plot, say -- rather than outlines on the
+wrong lines.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSurvfitLayerProcessor$generate_selectors(layer_info, gt = NULL)}

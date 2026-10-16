@@ -97,8 +97,9 @@ BaseRSurvfitLayerProcessor <- R6::R6Class(
 
     #' @description One selector per stratum: the curve's own polyline,
     #'   skipping the two bound polylines drawn after it when the band is
-    #'   drawn. None when the drawing has fewer polylines than that, rather
-    #'   than outlines on the wrong lines.
+    #'   drawn. None when the drawing has any other number of polylines --
+    #'   a `lines()` added after the plot, say -- rather than outlines on the
+    #'   wrong lines.
     #' @param layer_info Layer information with the recorded call
     #' @param gt Gtable of the replayed drawing (optional)
     #' @return List of selectors
@@ -110,7 +111,9 @@ BaseRSurvfitLayerProcessor <- R6::R6Class(
       }
       curves <- survfit_stratum_count(fit)
       per_curve <- if (survfit_band_drawn(fit, layer_info$plot_call$args)) 3L else 1L
-      if (length(selectors) < curves * per_curve) {
+      # Only the exact count proves the layout: a polyline the plot did not
+      # draw -- a `lines()` added after it -- would shift every index.
+      if (length(selectors) != curves * per_curve) {
         return(list())
       }
       selectors[seq(1L, by = per_curve, length.out = curves)]
@@ -316,9 +319,21 @@ survfit_layer_type <- function(args) {
 #' @keywords internal
 survfit_readable <- function(fit) {
   inherits(fit, "survfit") && !inherits(fit, "survfitms") &&
-    requireNamespace("survival", quietly = TRUE) &&
+    survfit0_available() &&
     is.numeric(fit$time) && is.numeric(fit$surv) &&
     (!is.matrix(fit$surv) || ncol(fit$surv) == 1L)
+}
+
+#' Whether survival has `survfit0()`
+#'
+#' It adds the origin the plot starts every curve at, and first shipped in
+#' survival 3.0; with an older survival the chart is shown as a picture.
+#'
+#' @return TRUE or FALSE
+#' @keywords internal
+survfit0_available <- function() {
+  requireNamespace("survival", quietly = TRUE) &&
+    exists("survfit0", envir = asNamespace("survival"), inherits = FALSE)
 }
 
 #' Whether `plot()` of a `survfit` object draws something other than the
