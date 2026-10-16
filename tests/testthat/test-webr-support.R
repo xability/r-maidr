@@ -191,6 +191,50 @@ test_that("is_webr() is FALSE on a native build", {
   expect_false(maidr:::is_webr())
 })
 
+test_that("under webR, xml2 is loaded before systemfonts can be (#380)", {
+  loaded <- NULL
+  load <- function(name) loaded <<- c(loaded, name)
+  testthat::local_mocked_bindings(is_webr = function() TRUE, .package = "maidr")
+
+  expect_true(maidr:::maidr_webr_load_xml2_first(loaded = c("base", "grid"), load = load))
+  expect_equal(loaded, "xml2")
+
+  # Already loaded: nothing to do.
+  loaded <- NULL
+  maidr:::maidr_webr_load_xml2_first(loaded = c("xml2", "systemfonts"), load = load)
+  expect_null(loaded)
+
+  # Too late: said, and nothing loaded.
+  expect_warning(
+    ok <- maidr:::maidr_webr_load_xml2_first(loaded = "systemfonts", load = load),
+    "systemfonts was loaded before xml2"
+  )
+  expect_false(ok)
+  expect_null(loaded)
+})
+
+test_that("a native build leaves xml2 to load when it is needed", {
+  loaded <- NULL
+  testthat::local_mocked_bindings(is_webr = function() FALSE, .package = "maidr")
+
+  maidr:::maidr_webr_load_xml2_first(loaded = "base", load = function(name) loaded <<- name)
+
+  expect_null(loaded)
+})
+
+test_that("in webR, maidr has xml2 loaded and reads a chart's SVG once svglite has drawn", {
+  skip_if_not(identical(R.version$os, "emscripten"), "needs webR (emscripten)")
+  expect_true(isNamespaceLoaded("xml2"))
+
+  # What crashed webR's wasm: xml2 parsing svglite's SVG with systemfonts'
+  # libxml2 (#380).
+  svg <- svglite::svgstring(width = 3, height = 2)
+  grid::grid.text("x")
+  grDevices::dev.off()
+  doc <- xml2::read_xml(paste(svg(), collapse = "\n"))
+  expect_equal(xml2::xml_name(doc), "svg")
+})
+
 test_that("the page script hands the document to maidrWebRShow or embeds it", {
   js <- maidr:::maidr_webr_show_js("<p>100% \"quoted\"</p>")
 

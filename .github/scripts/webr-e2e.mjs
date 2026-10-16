@@ -98,6 +98,10 @@ const browser = await chromium.launch(launch);
 const tab = await browser.newPage({ viewport: { width: 900, height: 800 } });
 const errors = [];
 tab.on('pageerror', error => errors.push(String(error)));
+// What the page and webR's worker print, to show when a step hangs: a webR
+// whose wasm aborts leaves the call that was running unanswered for good.
+const consoleLines = [];
+tab.on('console', message => consoleLines.push(`${message.type()}: ${message.text()}`));
 
 if (process.env.WEBR_E2E_FETCH_VIA_NODE === '1') {
   await tab.route(/^https:\/\/(?!127\.)/, async route => {
@@ -125,6 +129,24 @@ if (process.env.WEBR_E2E_FETCH_VIA_NODE === '1') {
 const until = (fn, ms = 30000) =>
   tab.waitForFunction(fn, null, { timeout: ms }).then(() => true, () => false);
 
+// A step that runs R on the page gets a time limit. Drawing takes seconds, so
+// a step that has not answered in two minutes never will, and the job says so now rather
+// than at its own time limit.
+const bounded = (promise, what, stepTimeout = 120000) => {
+  let timer;
+  const expired = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const tail = consoleLines.slice(-40).join('\n') || '(nothing)';
+      const pageErrors = errors.join('\n') || '(none)';
+      reject(new Error(
+        `${what}: no answer from webR within ${stepTimeout / 1000}s.\n`
+        + `--- the page's console, last lines:\n${tail}\n--- page errors:\n${pageErrors}`,
+      ));
+    }, stepTimeout);
+  });
+  return Promise.race([promise, expired]).finally(() => clearTimeout(timer));
+};
+
 const failures = [];
 const check = (ok, what) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`);
@@ -145,7 +167,7 @@ try {
   check(loaded === true, 'maidr installs from the repository and loads in webR');
 
   // The session's own `show()`, with nothing set up on the page for it.
-  const message = await tab.evaluate(async () => {
+  const message = await bounded(tab.evaluate(async () => {
     const shelter = await new window.webR.Shelter();
     const out = await shelter.captureR(`
       suppressPackageStartupMessages({ library(maidr); library(ggplot2) })
@@ -160,7 +182,7 @@ try {
       .join('\\n');
     await shelter.purge();
     return text;
-  });
+  }), 'show() from a webR session');
   console.log(`     R said: ${JSON.stringify(message)}`);
   await until(() => {
     const frame = document.querySelector('#maidr-output > iframe');
@@ -221,9 +243,9 @@ try {
     window.maidrWebRShow = html => { window.__received = html.length; };
   });
   const before = await tab.evaluate(() => document.querySelectorAll('iframe').length);
-  await tab.evaluate(async () => {
+  await bounded(tab.evaluate(async () => {
     await window.webR.evalRVoid('show(ggplot(data.frame(x = "a", y = 1), aes(x, y)) + geom_col())');
-  });
+  }), 'show() to a page-defined maidrWebRShow');
   check(await until(() => window.__received > 0, 10000), 'a page-defined maidrWebRShow receives the document');
   check(
     (await tab.evaluate(() => document.querySelectorAll('iframe').length)) === before,
@@ -235,13 +257,16 @@ try {
     delete window.maidrWebRShow;
     document.querySelectorAll('#maidr-output iframe').forEach(frame => frame.remove());
   });
-  await tab.evaluate(async () => {
-    await window.webR.installPackages(['plotly'], { repos: ['https://repo.r-wasm.org/'], quiet: true });
+  // Installing plotly and what it needs takes longer than drawing.
+  await bounded(tab.evaluate(
+    () => window.webR.installPackages(['plotly'], { repos: ['https://repo.r-wasm.org/'], quiet: true }),
+  ), 'installing plotly', 600000);
+  await bounded(tab.evaluate(async () => {
     await window.webR.evalRVoid(`
       suppressPackageStartupMessages(library(maidr))
       show(plotly::plot_ly(x = c("Mon", "Tue", "Wed"), y = c(20, 14, 23), type = "bar"))
     `);
-  });
+  }), 'show() of a plotly widget');
   check(
     await until(() => {
       const frame = document.querySelector('#maidr-output > iframe');
