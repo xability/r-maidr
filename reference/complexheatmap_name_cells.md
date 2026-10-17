@@ -13,7 +13,7 @@ is read without highlighting.
 ## Usage
 
 ``` r
-complexheatmap_name_cells(grob, heatmap)
+complexheatmap_name_cells(grob, heatmap, h = 1L)
 ```
 
 ## Arguments
@@ -25,6 +25,10 @@ complexheatmap_name_cells(grob, heatmap)
 - heatmap:
 
   The `Heatmap` drawn, its row and column order set
+
+- h:
+
+  The heat map's place among the heat maps of the list
 
 ## Value
 

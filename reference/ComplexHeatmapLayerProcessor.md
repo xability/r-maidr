@@ -1,13 +1,16 @@
 # ComplexHeatmap Heatmap Layer Processor
 
-Reads the one `heat` layer of a ComplexHeatmap heat map from the
+Reads the `heat` layer of one ComplexHeatmap heat map from the
 `HeatmapList` its drawing returned
-([`complexheatmap_capture()`](https://r.maidr.ai/reference/complexheatmap_capture.md)).
+([`complexheatmap_capture()`](https://r.maidr.ai/reference/complexheatmap_capture.md)):
+the one heat map of a chart, or one of a list's.
 
-**Order.** The rows and columns are read in the order drawn,
-`row_order()` and `column_order()` of the drawn list: by the dendrograms
-when clustered, by `row_order`/`column_order` when given. Rows are top
-first, as maidr.js reads `data.points`.
+**Order.** The rows and columns are read in the order drawn, the heat
+map's own row and column order in the drawn list: by the dendrograms
+when clustered, by `row_order`/`column_order` when given, and in a list
+by the order the list shares – the main heat map's rows in a horizontal
+list, its columns in a vertical one. Rows are top first, as maidr.js
+reads `data.points`.
 
 **Splits.** A heat map split into slices (`row_split`, `row_km`,
 `column_split`, `column_km`) is read as one grid, its slices put side by
@@ -101,7 +104,7 @@ Read the layer
 
 - `layout`:
 
-  The figure's layout: its title and its rows' title
+  The layer's title and its rows' title
 
 - `built`:
 
@@ -110,7 +113,8 @@ Read the layer
 - `gt`:
 
   The capture, from
-  [`complexheatmap_capture()`](https://r.maidr.ai/reference/complexheatmap_capture.md)
+  [`complexheatmap_capture()`](https://r.maidr.ai/reference/complexheatmap_capture.md),
+  its `heatmap` and `cells` those of the heat map read
 
 - `grob_id`:
 

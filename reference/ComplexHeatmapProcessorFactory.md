@@ -1,6 +1,7 @@
 # ComplexHeatmap Processor Factory
 
-A ComplexHeatmap heat map draws one matrix, read as one `heat` layer.
+Each heat map of a ComplexHeatmap chart draws one matrix, read as one
+`heat` layer.
 
 ## Format
 
