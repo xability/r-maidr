@@ -14,14 +14,16 @@ unchanged}
 }
 \value{
 What \code{pheatmap::pheatmap()} returns, invisibly, with the drawn
-matrix as its \code{"maidr_matrix"} attribute
+matrix as its \code{"maidr_matrix"} attribute and, when it has annotations,
+them as its \code{"maidr_annotations"} attribute
 }
 \description{
 A wrapper of \code{pheatmap::pheatmap()} that \code{library(maidr)} puts on the
 search path. It calls the original with every argument unchanged, draws
 exactly what it draws and returns what it returns, with one addition: the
 matrix the chart was drawn from, kept with the result so that \code{\link[=show]{show()}}
-and \code{\link[=save_html]{save_html()}} announce each cell's exact value.
+and \code{\link[=save_html]{save_html()}} announce each cell's exact value, and its annotation
+data frames, so that every annotation track is read exactly too.
 }
 \details{
 \code{pheatmap::pheatmap()} returns its trees and its drawing but not its
@@ -33,7 +35,10 @@ legend, and says so.
 
 The matrix kept is the one drawn: the input after \code{scale = "row"} or
 \code{"column"}, computed as pheatmap computes it; the k-means centres with
-\code{kmeans_k}; in the order of the row and column trees.
+\code{kmeans_k}; in the order of the row and column trees. The annotations
+kept are \code{annotation_row}, \code{annotation_col} (or the older \code{annotation})
+and \code{annotation_colors} as passed; they are matched to the drawn rows and
+columns when read, as pheatmap matches them.
 }
 \section{Attach order}{
 

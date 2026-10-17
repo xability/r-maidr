@@ -10,7 +10,11 @@ An R6 class
 Reads the object \code{pheatmap::pheatmap()} returns as a \code{heat} layer
 (\link{PheatmapHeatmapLayerProcessor}) and, for each side with a drawn
 dendrogram, a \code{tree} layer (\link{PheatmapTreeLayerProcessor}), and draws its
-\code{gtable} for the SVG. Experimental. Annotation tracks are not read.
+\code{gtable} for the SVG. Each variable of \code{annotation_col} and
+\code{annotation_row} it can read exactly is a further layer of the heat
+layer's subplot, after it -- the column tracks, then the row tracks, each
+in its data frame's column order (\link{PheatmapAnnotationLayerProcessor},
+\code{\link[=pheatmap_annotation_tracks]{pheatmap_annotation_tracks()}}). Experimental.
 
 \strong{Grid.} Each layer is a subplot placed where pheatmap draws it: the row
 tree left of the matrix, the column tree above it, and nothing in the

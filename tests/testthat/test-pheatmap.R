@@ -33,9 +33,12 @@ ph_layers <- function(p) {
   unlist(lapply(subplots, `[[`, "layers"), recursive = FALSE)
 }
 
+# The matrix's heat layer, not an annotation track's
 ph_layer <- function(p) {
   layers <- ph_layers(p)
-  layers[vapply(layers, function(l) identical(l$type, "heat"), logical(1))][[1]]
+  layers[vapply(layers, function(l) {
+    identical(l$type, "heat") && !grepl("annotation\\)$", l$title)
+  }, logical(1))][[1]]
 }
 
 ph_points <- function(layer) {
@@ -524,4 +527,269 @@ test_that("a tree whose links are not where they should be gets no marks", {
   expect_null(ph_tree(p, "Row dendrogram")$selectors)
   expect_false("selectors" %in% names(ph_tree(p, "Row dendrogram")))
   expect_length(ph_tree(p, "Column dendrogram")$selectors, 9L)
+})
+
+# The annotation tracks (#393) ---------------------------------------------
+#
+# Each track is checked against the data frame passed, matched here to the
+# drawn rows and columns by name, as pheatmap matches it, and its selectors
+# against the exported SVG: one rect per value, painted the colour pheatmap
+# gave it. A track is a layer of the heat layer's subplot, in the shape the
+# ComplexHeatmap reader gives its tracks: a `heat` row for a numeric one, a
+# `step` series whose points carry their level for a categorical one.
+
+ph_annotations <- function() {
+  m <- ph_matrix()
+  list(
+    m = m,
+    col = data.frame(
+      Group = factor(c("ctl", "trt", "ctl", "trt", "trt"), levels = c("trt", "ctl")),
+      Dose = c(1, 2.5, NA, 4, 3.25),
+      row.names = colnames(m)
+    ),
+    row = data.frame(Pathway = c("A", "B", "A", "C"), row.names = rownames(m))
+  )
+}
+
+# The layers of the subplot the heat layer is in
+ph_heat_subplot <- function(p) {
+  orchestrator <- get_global_registry()$get_adapter_for_plot(p)$create_orchestrator(p)
+  subplots <- unlist(orchestrator$generate_maidr_data()$subplots, recursive = FALSE)
+  holds_heat <- vapply(subplots, function(s) {
+    length(s$layers) > 0L && identical(s$layers[[1]]$type, "heat") && is.null(s$layers[[1]]$name)
+  }, logical(1))
+  subplots[holds_heat][[1]]$layers
+}
+
+ph_track <- function(p, name) {
+  layers <- ph_layers(p)
+  layers[vapply(layers, function(l) identical(l$name, name), logical(1))][[1]]
+}
+
+ph_track_names <- function(layers) {
+  unlist(lapply(layers, function(l) l$name))
+}
+
+# A step track's points as a data frame: x, y (NA for a hole), label
+ph_steps <- function(layer) {
+  points <- layer$data[[1]]
+  data.frame(
+    x = vapply(points, `[[`, "", "x"),
+    y = vapply(points, function(q) if (is.null(q$y)) NA_real_ else as.numeric(q$y), numeric(1)),
+    label = vapply(points, function(q) q$label %||% NA_character_, character(1)),
+    stringsAsFactors = FALSE
+  )
+}
+
+test_that("annotation tracks are layers of the heat layer's subplot, after it", {
+  a <- ph_annotations()
+  p <- ph_draw(a$m, annotation_col = a$col, annotation_row = a$row, main = "Expression")
+  layers <- ph_heat_subplot(p)
+  # The heat layer, then the column tracks, then the row tracks, each in
+  # its data frame's column order.
+  expect_identical(vapply(layers, `[[`, "", "type"), c("heat", "step", "heat", "step"))
+  expect_identical(ph_track_names(layers), c("Group", "Dose", "Pathway"))
+  expect_identical(unique(vapply(layers, `[[`, "", "title")), "Expression")
+  # The grid is the one drawn without them.
+  expect_identical(ph_grid(p), ph_grid(ph_draw(a$m)))
+})
+
+test_that("with maidr's pheatmap() every track is read exactly, in drawn order", {
+  a <- ph_annotations()
+  p <- ph_draw(a$m, annotation_col = a$col, annotation_row = a$row)
+  expect_no_message(heat <- ph_layer(p), class = "maidr_pheatmap_annotations")
+  rows <- rownames(a$m)[p$tree_row$order]
+  cols <- colnames(a$m)[p$tree_col$order]
+
+  dose <- ph_track(p, "Dose")
+  expect_identical(dose$type, "heat")
+  expect_identical(dose$data$x, heat$data$x)
+  expect_identical(unlist(dose$data$y), "Dose")
+  expect_identical(as.vector(ph_points(dose)), a$col[cols, "Dose"])
+  expect_identical(dose$axes, list(
+    x = list(label = "Columns"), y = list(label = "Annotation"), z = list(label = "Dose")
+  ))
+
+  group <- ph_steps(ph_track(p, "Group"))
+  expect_identical(ph_track(p, "Group")$type, "step")
+  expect_identical(group$x, unlist(heat$data$x))
+  expect_identical(group$label, as.character(a$col[cols, "Group"]))
+  # A level's number is its place among the factor's levels.
+  expect_identical(group$y, as.numeric(as.integer(a$col[cols, "Group"])))
+  expect_identical(ph_track(p, "Group")$axes, list(
+    x = list(label = "Columns"), y = list(label = "Group")
+  ))
+
+  # A row track is one row too, top row first, named as the heat layer's
+  # rows are.
+  pathway <- ph_steps(ph_track(p, "Pathway"))
+  expect_identical(pathway$x, rows)
+  expect_identical(pathway$x, unlist(heat$data$y))
+  expect_identical(pathway$label, a$row[rows, "Pathway"])
+  expect_identical(ph_track(p, "Pathway")$axes$x$label, "Rows")
+})
+
+test_that("a track's levels follow annotation_colors, and an unmatched name is a hole", {
+  a <- ph_annotations()
+  colours <- list(Pathway = c(C = "#1B9E77", B = "#D95F02", A = "#7570B3"))
+  row <- data.frame(Pathway = c("A", "B", "C"), row.names = c("gene1", "gene2", "nothing"))
+  p <- ph_draw(a$m, annotation_row = row, annotation_colors = colours, cluster_cols = FALSE)
+  pathway <- ph_steps(ph_track(p, "Pathway"))
+  drawn <- row[rownames(a$m)[p$tree_row$order], "Pathway"]
+  expect_identical(pathway$label, drawn)
+  expect_identical(pathway$y, as.numeric(match(drawn, c("C", "B", "A"))))
+  expect_true(anyNA(drawn))
+
+  # A numeric track in the caller's colours -- two, which the legend's ramp
+  # of four does not repeat -- is checked against those colours.
+  p <- ph_draw(
+    a$m, annotation_col = a$col[, "Dose", drop = FALSE],
+    annotation_colors = list(Dose = c("white", "firebrick")), cluster_rows = FALSE
+  )
+  expect_no_message(dose <- ph_track(p, "Dose"), class = "maidr_pheatmap_annotations")
+  expect_identical(as.vector(ph_points(dose)), a$col[colnames(a$m)[p$tree_col$order], "Dose"])
+})
+
+test_that("a missing level serialises as a hole", {
+  a <- ph_annotations()
+  row <- data.frame(Pathway = c("A", "B"), row.names = c("gene1", "gene2"))
+  p <- ph_draw(a$m, annotation_row = row, cluster_rows = FALSE, cluster_cols = FALSE)
+  file <- withr::local_tempfile(fileext = ".html")
+  save_html(p, file = file)
+  html <- gsub("&quot;", "\"", paste(readLines(file, warn = FALSE), collapse = "\n"), fixed = TRUE)
+  expect_match(html, '{"x":"gene3","y":null}', fixed = TRUE)
+  expect_match(html, '{"x":"gene1","y":1,"label":"A"}', fixed = TRUE)
+})
+
+test_that("each track's selectors name the one rect drawn for each value", {
+  a <- ph_annotations()
+  p <- ph_draw(a$m, annotation_col = a$col, annotation_row = a$row)
+  orchestrator <- get_global_registry()$get_adapter_for_plot(p)$create_orchestrator(p)
+  svg <- xml2::read_xml(paste(build_interactive_svg(orchestrator), collapse = "\n"))
+  layers <- unlist(lapply(
+    unlist(orchestrator$generate_maidr_data()$subplots, recursive = FALSE),
+    `[[`, "layers"
+  ), recursive = FALSE)
+
+  for (side in c("row", "col")) {
+    fill <- pheatmap_grob(p$gtable, paste0(side, "_annotation"))$gp$fill
+    for (j in seq_len(ncol(fill))) {
+      name <- colnames(fill)[j]
+      layer <- layers[vapply(layers, function(l) identical(l$name, name), logical(1))][[1]]
+      ids <- if (identical(layer$type, "step")) {
+        # One selector; its matches, in document order, are the points.
+        expect_length(layer$selectors, 1L)
+        strsplit(layer$selectors[[1]], ", ", fixed = TRUE)[[1]]
+      } else {
+        expect_length(layer$selectors, 1L)
+        unlist(layer$selectors[[1]])
+      }
+      expect_length(ids, nrow(fill))
+      ids <- gsub("\\\\", "", sub("^#", "", ids))
+      document <- xml2::xml_attr(xml2::xml_find_all(svg, "//*[@id]"), "id")
+      expect_identical(order(match(ids, document)), seq_along(ids))
+      for (i in seq_len(nrow(fill))) {
+        cell <- xml2::xml_find_all(svg, sprintf("//*[@id='%s']", ids[[i]]))
+        expect_length(cell, 1L)
+        expected <- if (is.na(fill[i, j])) {
+          "none"
+        } else {
+          rgb <- grDevices::col2rgb(fill[i, j])
+          sprintf("rgb(%d,%d,%d)", rgb[1], rgb[2], rgb[3])
+        }
+        expect_identical(xml2::xml_attr(cell, "fill"), expected)
+      }
+    }
+  }
+})
+
+test_that("rects not placed in drawn order are not selected", {
+  a <- ph_annotations()
+  p <- ph_draw(a$m, annotation_col = a$col)
+  grob <- pheatmap_grob(p$gtable, "col_annotation")
+  expect_true(pheatmap_track_cells_placed(grob, 5L, 2L, "col"))
+  grob$x <- rev(grob$x)
+  expect_false(pheatmap_track_cells_placed(grob, 5L, 2L, "col"))
+  expect_false(pheatmap_track_cells_placed(grob, 4L, 2L, "col"))
+})
+
+test_that("drawn by pheatmap itself, a categorical track is read from its legend", {
+  a <- ph_annotations()
+  p <- ph_draw_direct(a$m, annotation_col = a$col, annotation_row = a$row)
+  expect_null(attr(p, "maidr_annotations"))
+  messages <- list()
+  layers <- withCallingHandlers(
+    suppressMessages(ph_layers(p), classes = "maidr_pheatmap_values"),
+    maidr_pheatmap_annotations = function(m) {
+      messages[[length(messages) + 1L]] <<- conditionMessage(m)
+      invokeRestart("muffleMessage")
+    }
+  )
+  # The numeric track's legend shows only a ramp and its range: left out.
+  expect_length(messages, 1L)
+  expect_match(messages[[1]], "column annotation 'Dose' cannot", fixed = TRUE)
+  expect_identical(ph_track_names(layers), c("Group", "Pathway"))
+
+  named <- function(name) layers[vapply(layers, function(l) identical(l$name, name), logical(1))][[1]]
+  cols <- colnames(a$m)[p$tree_col$order]
+  expect_identical(ph_steps(named("Group"))$label, as.character(a$col[cols, "Group"]))
+  rows <- rownames(a$m)[p$tree_row$order]
+  expect_identical(ph_steps(named("Pathway"))$label, a$row[rows, "Pathway"])
+
+  # With no legend nothing says what a colour stands for.
+  p <- ph_draw_direct(a$m, annotation_row = a$row, annotation_legend = FALSE)
+  expect_message(
+    suppressMessages(ph_layers(p), classes = "maidr_pheatmap_values"),
+    "row annotation 'Pathway'", class = "maidr_pheatmap_annotations"
+  )
+})
+
+test_that("kept annotations that do not match the colours are not trusted", {
+  a <- ph_annotations()
+  p <- ph_draw(a$m, annotation_col = a$col)
+  kept <- attr(p, "maidr_annotations")
+  kept$col$Dose <- rev(kept$col$Dose)
+  kept$col$Group <- rev(kept$col$Group)
+  attr(p, "maidr_annotations") <- kept
+  expect_message(layers <- ph_layers(p), "'Dose'", class = "maidr_pheatmap_annotations")
+  expect_identical(ph_track_names(layers), "Group")
+  # The categorical track is still read exactly, from its legend.
+  cols <- colnames(a$m)[p$tree_col$order]
+  group <- layers[vapply(layers, function(l) identical(l$name, "Group"), logical(1))][[1]]
+  expect_identical(ph_steps(group)$label, as.character(a$col[cols, "Group"]))
+})
+
+test_that("with kmeans_k a row track is read for the cluster centres", {
+  a <- ph_annotations()
+  set.seed(1)
+  m <- matrix(rnorm(40), 8, 5, dimnames = list(paste0("gene", 1:8), colnames(a$m)))
+  # pheatmap matches annotation_row to the centres' row names, the cluster
+  # numbers; a data frame of the input's rows matches none, and pheatmap
+  # stops.
+  row <- data.frame(Size = c(10, 20, 30), row.names = c("1", "2", "3"))
+  set.seed(2)
+  p <- ph_draw(m, kmeans_k = 3, annotation_row = row, annotation_col = a$col)
+  expect_no_message(layers <- ph_layers(p), class = "maidr_pheatmap_annotations")
+  size <- ph_track(p, "Size")
+  expect_identical(size$data$x, ph_layer(p)$data$y)
+  expect_identical(as.vector(ph_points(size)), row[as.character(p$tree_row$order), "Size"])
+  cols <- colnames(m)[p$tree_col$order]
+  expect_identical(as.vector(ph_points(ph_track(p, "Dose"))), a$col[cols, "Dose"])
+})
+
+test_that("the older annotation argument is read as annotation_col", {
+  a <- ph_annotations()
+  p <- ph_draw(a$m, annotation = a$col, cluster_cols = FALSE)
+  expect_identical(as.vector(ph_points(ph_track(p, "Dose"))), a$col$Dose)
+})
+
+test_that("save_html() writes the annotation tracks", {
+  a <- ph_annotations()
+  file <- withr::local_tempfile(fileext = ".html")
+  save_html(ph_draw(a$m, annotation_col = a$col, annotation_row = a$row), file = file)
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  expect_match(html, "&quot;name&quot;:&quot;Pathway&quot;", fixed = TRUE)
+  expect_match(html, "&quot;type&quot;:&quot;step&quot;", fixed = TRUE)
+  expect_match(html, "id=\"maidr-pheatmap-col-annotation.1.10\"", fixed = TRUE)
+  expect_match(html, "id=\"maidr-pheatmap-row-annotation.1.4\"", fixed = TRUE)
 })

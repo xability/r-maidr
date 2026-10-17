@@ -51,8 +51,9 @@ PheatmapAdapter <- R6::R6Class(
 #' pheatmap Processor Factory
 #'
 #' @description
-#' A pheatmap draws one matrix, read as one `heat` layer, and a dendrogram
-#' on each clustered side, each read as a `tree` layer.
+#' A pheatmap draws one matrix, read as one `heat` layer, a dendrogram on
+#' each clustered side, each read as a `tree` layer, and its annotation
+#' tracks, each read as a `heat` or `step` layer beside the matrix's.
 #'
 #' @format An R6 class inheriting from ProcessorFactory
 #' @keywords internal
@@ -61,13 +62,17 @@ PheatmapProcessorFactory <- R6::R6Class(
   inherit = ProcessorFactory,
   public = list(
     #' @description Create the processor for a layer type
-    #' @param plot_type The layer type, `"heat"` or `"tree"`
+    #' @param plot_type The layer type, `"heat"` or `"tree"`, or
+    #'   `"annotation"` for an annotation track, read as a `heat` or `step`
+    #'   layer
     #' @param plot_object The layer information; a tree's names its `side`
-    #' @return A PheatmapHeatmapLayerProcessor or PheatmapTreeLayerProcessor
+    #' @return A PheatmapHeatmapLayerProcessor, PheatmapTreeLayerProcessor or
+    #'   PheatmapAnnotationLayerProcessor
     create_processor = function(plot_type, plot_object) {
       switch(plot_type,
         heat = PheatmapHeatmapLayerProcessor$new(plot_object),
         tree = PheatmapTreeLayerProcessor$new(plot_object),
+        annotation = PheatmapAnnotationLayerProcessor$new(plot_object),
         stop("pheatmap charts are read as heat and tree layers, not '", plot_type, "'")
       )
     },
