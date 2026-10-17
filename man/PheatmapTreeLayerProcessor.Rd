@@ -17,9 +17,12 @@ the drawing; the tree is unchanged.
 Each leaf is named as the heat layer names its row or column
 (\code{\link[=pheatmap_axis_labels]{pheatmap_axis_labels()}}), in the same order.
 
-\strong{Selectors.} None. pheatmap draws a dendrogram as one polyline per merge
--- \code{n - 1} marks for \verb{2n - 1} nodes, nothing at a leaf -- and the trace
-needs one element per node, in node order; a highlight that cannot be
+\strong{Selectors.} One per node, in node order: the unseen mark
+\code{\link[=pheatmap_mark_tree]{pheatmap_mark_tree()}} drew at it, which the orchestrator adds before the
+layer is read. pheatmap draws a dendrogram as one polyline per merge --
+\code{n - 1} marks for \verb{2n - 1} nodes, nothing at a leaf -- so the marks are
+what the highlight lands on. When they could not be placed on the drawn
+links there are none, and no selectors: a highlight that cannot be
 aligned is left out rather than placed on the wrong link.
 }
 \keyword{internal}
@@ -141,7 +144,8 @@ aligned is left out rather than placed on the wrong link.
 \if{html}{\out{<a id="method-PheatmapTreeLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-PheatmapTreeLayerProcessor-generate_selectors}{}}}
 \subsection{\code{PheatmapTreeLayerProcessor$generate_selectors()}}{
-  No selectors; see the class description
+  One selector per node, for the marks
+\code{\link[=pheatmap_mark_tree]{pheatmap_mark_tree()}} drew; see the class description
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{PheatmapTreeLayerProcessor$generate_selectors(
@@ -155,15 +159,16 @@ aligned is left out rather than placed on the wrong link.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{Unused}
-      \item{\code{gt}}{Unused}
+      \item{\code{plot}}{The pheatmap object}
+      \item{\code{gt}}{The gtable}
       \item{\code{grob_id}}{Unused}
       \item{\code{panel_ctx}}{Unused}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    NULL
+    A list of selectors in node order, or NULL when the tree's
+cell holds no mark for every node
   }
 }
 

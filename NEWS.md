@@ -261,9 +261,14 @@
   cluster is announced by the first and last of them it spans and the
   height it merged at, "d to e (height 2.99)". With `kmeans_k` the row tree
   is the one drawn over the cluster centres; a side not clustered, or drawn
-  with `treeheight_row = 0` or `treeheight_col = 0`, has none. pheatmap
-  draws one link per merge and nothing at a leaf, so a tree's nodes are
-  announced but not highlighted.
+  with `treeheight_row = 0` or `treeheight_col = 0`, has none.
+* Each node of a pheatmap dendrogram is highlighted as it is reached, a
+  dot on the apex of a cluster's link or the tip of a leaf (#389).
+  pheatmap draws one link per merge and nothing at a leaf, so maidr draws
+  an unseen mark at each node, which changes nothing in the picture, and
+  checks each against the links pheatmap drew, cut by `cutree_rows` or
+  `cutree_cols` or not; a tree whose links are not where it expects them
+  is announced without a highlight rather than highlighted beside them.
 * Annotation tracks are not read.
 
 ### ComplexHeatmap
