@@ -28,8 +28,11 @@ drawn (complexheatmap_subplot_grid()). In a list each heat map's own
 drawn settings say which it draws: a horizontal list's shared rows have
 one row tree, the main heat map's, beside the heat map that draws it,
 and each heat map its own column tree; a vertical list the reverse.
-The matrices and dendrograms are read; annotations, between heat maps or
-around them, and legends are not. A heat map whose matrix is not
+Annotations. Each heat map's simple annotation tracks, and those of
+the annotations a list holds that it owns, are layers of its subplot
+after its heat layer (read_annotations()).
+The matrices, dendrograms and simple annotation tracks are read; other
+annotations and legends are not. A heat map whose matrix is not
 numeric (a discrete heat map of categories) is left out of a list that
 holds a numeric one, its dendrograms with it, with a message (class
 maidr_complexheatmap_skipped) naming it; a chart with no numeric heat
@@ -62,8 +65,11 @@ drawn (complexheatmap_subplot_grid()). In a list each heat map's own
 drawn settings say which it draws: a horizontal list's shared rows have
 one row tree, the main heat map's, beside the heat map that draws it,
 and each heat map its own column tree; a vertical list the reverse.
-The matrices and dendrograms are read; annotations, between heat maps or
-around them, and legends are not. A heat map whose matrix is not
+Annotations. Each heat map's simple annotation tracks, and those of
+the annotations a list holds that it owns, are layers of its subplot
+after its heat layer (read_annotations()).
+The matrices, dendrograms and simple annotation tracks are read; other
+annotations and legends are not. A heat map whose matrix is not
 numeric (a discrete heat map of categories) is left out of a list that
 holds a numeric one, its dendrograms with it, with a message (class
 maidr_complexheatmap_skipped) naming it; a chart with no numeric heat
@@ -121,8 +127,11 @@ drawn (complexheatmap_subplot_grid()). In a list each heat map&#x27;s own
 drawn settings say which it draws: a horizontal list&#x27;s shared rows have
 one row tree, the main heat map&#x27;s, beside the heat map that draws it,
 and each heat map its own column tree; a vertical list the reverse.
-The matrices and dendrograms are read; annotations, between heat maps or
-around them, and legends are not. A heat map whose matrix is not
+Annotations. Each heat map&#x27;s simple annotation tracks, and those of
+the annotations a list holds that it owns, are layers of its subplot
+after its heat layer (read_annotations()).
+The matrices, dendrograms and simple annotation tracks are read; other
+annotations and legends are not. A heat map whose matrix is not
 numeric (a discrete heat map of categories) is left out of a list that
 holds a numeric one, its dendrograms with it, with a message (class
 maidr_complexheatmap_skipped) naming it; a chart with no numeric heat
@@ -215,8 +224,11 @@ drawn (<code><a href="complexheatmap_subplot_grid.html">complexheatmap_subplot_g
 drawn settings say which it draws: a horizontal list's shared rows have
 one row tree, the main heat map's, beside the heat map that draws it,
 and each heat map its own column tree; a vertical list the reverse.</p>
-<p>The matrices and dendrograms are read; annotations, between heat maps or
-around them, and legends are not. A heat map whose matrix is not
+<p><strong>Annotations.</strong> Each heat map's simple annotation tracks, and those of
+the annotations a list holds that it owns, are layers of its subplot
+after its <code>heat</code> layer (<code>read_annotations()</code>).</p>
+<p>The matrices, dendrograms and simple annotation tracks are read; other
+annotations and legends are not. A heat map whose matrix is not
 numeric (a discrete heat map of categories) is left out of a list that
 holds a numeric one, its dendrograms with it, with a message (class
 <code>maidr_complexheatmap_skipped</code>) naming it; a chart with no numeric heat
@@ -235,6 +247,7 @@ map falls back to an image.</p>
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-ComplexHeatmapPlotOrchestrator-initialize"><code>ComplexHeatmapPlotOrchestrator$new()</code></a></p></li>
 <li><p><a href="#method-ComplexHeatmapPlotOrchestrator-read_trees"><code>ComplexHeatmapPlotOrchestrator$read_trees()</code></a></p></li>
+<li><p><a href="#method-ComplexHeatmapPlotOrchestrator-read_annotations"><code>ComplexHeatmapPlotOrchestrator$read_annotations()</code></a></p></li>
 <li><p><a href="#method-ComplexHeatmapPlotOrchestrator-extract_layout"><code>ComplexHeatmapPlotOrchestrator$extract_layout()</code></a></p></li>
 <li><p><a href="#method-ComplexHeatmapPlotOrchestrator-heatmap_layout"><code>ComplexHeatmapPlotOrchestrator$heatmap_layout()</code></a></p></li>
 <li><p><a href="#method-ComplexHeatmapPlotOrchestrator-generate_maidr_data"><code>ComplexHeatmapPlotOrchestrator$generate_maidr_data()</code></a></p></li>
@@ -304,6 +317,36 @@ are drawn</p>
 
 </div>
 
+<p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-read_annotations"></a><div class="section">
+<h3 id="complexheatmapplotorchestrator-read-annotations-"><code>ComplexHeatmapPlotOrchestrator$read_annotations()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-read-annotations-"></a></h3>
+<p>Read each heat map's simple annotation tracks</p>
+<p>Each heat map's tracks (<code><a href="complexheatmap_read_annotations.html">complexheatmap_read_annotations()</a></code>), its
+own and those of the list's annotations it owns
+(<code><a href="complexheatmap_member_annotations.html">complexheatmap_member_annotations()</a></code>), are layers of its subplot
+after its <code>heat</code> layer, numbered after every heat and tree layer.
+The annotations drawn and not read are named in one message.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">read_annotations</span><span class="op">(</span><span class="va">plot</span>, <span class="va">read</span>, <span class="va">subplots</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The <code>Heatmap</code> or <code>HeatmapList</code> passed in</p></dd>
+
+      <dt><code>read</code></dt>
+<dd><p>The places among the drawing's heat maps of those read</p></dd>
+
+      <dt><code>subplots</code></dt>
+<dd><p>Their subplots, in that order</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>The subplots, each with its tracks' layers added</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-extract_layout"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-extract-layout-"><code>ComplexHeatmapPlotOrchestrator$extract_layout()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-extract-layout-"></a></h3>
 <p>Read the chart's title and its rows' title</p>
@@ -311,10 +354,10 @@ are drawn</p>
 else, for a single heat map, its own column title when it is one
 string; the rows' title likewise from the row titles. A title per
 slice of a split names no axis and is not read.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">extract_layout</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>List with <code>title</code> and <code>row_title</code></p>
 </div>
 
@@ -326,17 +369,17 @@ slice of a split names no axis and is not read.</p><div class="section">
 <p>Its own column title, and the rows' title <code>draw()</code> was given, else its
 own row title, else, in a horizontal list, whose rows are shared, the
 main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">heatmap_layout</span><span class="op">(</span><span class="va">k</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>k</code></dt>
 <dd><p>The heat map's place among the list's heat maps</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>List with <code>title</code> and <code>row_title</code></p>
 </div>
 
@@ -345,10 +388,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-generate_maidr_data"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-generate-maidr-data-"><code>ComplexHeatmapPlotOrchestrator$generate_maidr_data()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-generate-maidr-data-"></a></h3>
 <p>Assemble the MAIDR data object for the figure</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">generate_maidr_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>List with an id, the subplot and the title</p>
 </div>
 
@@ -357,10 +400,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-get_gtable"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-get-gtable-"><code>ComplexHeatmapPlotOrchestrator$get_gtable()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-get-gtable-"></a></h3>
 <p>The grid tree drawn for the SVG, its cells renamed</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">get_gtable</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>A gTree, or NULL when the chart could not be drawn</p>
 </div>
 
@@ -369,10 +412,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-canvas_size"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-canvas-size-"><code>ComplexHeatmapPlotOrchestrator$canvas_size()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-canvas-size-"></a></h3>
 <p>The size the chart is drawn at</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">canvas_size</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>A named numeric vector, <code>width</code> and <code>height</code>, in inches</p>
 </div>
 
@@ -381,10 +424,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-get_layout"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-get-layout-"><code>ComplexHeatmapPlotOrchestrator$get_layout()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-get-layout-"></a></h3>
 <p>The figure-level layout</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">get_layout</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>List</p>
 </div>
 
@@ -393,10 +436,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-get_combined_data"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-get-combined-data-"><code>ComplexHeatmapPlotOrchestrator$get_combined_data()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-get-combined-data-"></a></h3>
 <p>The subplot grid</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">get_combined_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>List of rows of subplots</p>
 </div>
 
@@ -405,10 +448,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-get_layer_processors"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-get-layer-processors-"><code>ComplexHeatmapPlotOrchestrator$get_layer_processors()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-get-layer-processors-"></a></h3>
 <p>The processors created for the layers</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">get_layer_processors</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>List</p>
 </div>
 
@@ -417,10 +460,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-get_layers"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-get-layers-"><code>ComplexHeatmapPlotOrchestrator$get_layers()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-get-layers-"></a></h3>
 <p>The layers read</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">get_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>List of layer descriptions</p>
 </div>
 
@@ -429,10 +472,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-unsupported_reasons"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-unsupported-reasons-"><code>ComplexHeatmapPlotOrchestrator$unsupported_reasons()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-unsupported-reasons-"></a></h3>
 <p>Why the chart cannot be read, if it cannot</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">unsupported_reasons</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>Character vector, empty when it can be read</p>
 </div>
 
@@ -441,10 +484,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-has_unsupported_layers"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-has-unsupported-layers-"><code>ComplexHeatmapPlotOrchestrator$has_unsupported_layers()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-has-unsupported-layers-"></a></h3>
 <p>Check if the chart holds anything that cannot be read</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">has_unsupported_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>Logical</p>
 </div>
 
@@ -453,10 +496,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-should_fallback"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-should-fallback-"><code>ComplexHeatmapPlotOrchestrator$should_fallback()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-should-fallback-"></a></h3>
 <p>Determine if the chart should fall back to an image</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">should_fallback</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>Logical</p>
 </div>
 
@@ -465,10 +508,10 @@ main heat map's: the one row title 'ComplexHeatmap' draws for them.</p><div clas
 <p></p><hr><a id="method-ComplexHeatmapPlotOrchestrator-clone"></a><div class="section">
 <h3 id="complexheatmapplotorchestrator-clone-"><code>ComplexHeatmapPlotOrchestrator$clone()</code><a class="anchor" aria-label="anchor" href="#complexheatmapplotorchestrator-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ComplexHeatmapPlotOrchestrator</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

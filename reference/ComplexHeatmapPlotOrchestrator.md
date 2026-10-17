@@ -39,8 +39,12 @@ horizontal list's shared rows have one row tree, the main heat map's,
 beside the heat map that draws it, and each heat map its own column
 tree; a vertical list the reverse.
 
-The matrices and dendrograms are read; annotations, between heat maps or
-around them, and legends are not. A heat map whose matrix is not numeric
+**Annotations.** Each heat map's simple annotation tracks, and those of
+the annotations a list holds that it owns, are layers of its subplot
+after its `heat` layer (`read_annotations()`).
+
+The matrices, dendrograms and simple annotation tracks are read; other
+annotations and legends are not. A heat map whose matrix is not numeric
 (a discrete heat map of categories) is left out of a list that holds a
 numeric one, its dendrograms with it, with a message (class
 `maidr_complexheatmap_skipped`) naming it; a chart with no numeric heat
@@ -57,6 +61,8 @@ An R6 class
 - [`ComplexHeatmapPlotOrchestrator$new()`](#method-ComplexHeatmapPlotOrchestrator-initialize)
 
 - [`ComplexHeatmapPlotOrchestrator$read_trees()`](#method-ComplexHeatmapPlotOrchestrator-read_trees)
+
+- [`ComplexHeatmapPlotOrchestrator$read_annotations()`](#method-ComplexHeatmapPlotOrchestrator-read_annotations)
 
 - [`ComplexHeatmapPlotOrchestrator$extract_layout()`](#method-ComplexHeatmapPlotOrchestrator-extract_layout)
 
@@ -144,6 +150,42 @@ list only that one has a column tree.
 
 A list: `row` and `column`, the tree layers of each side, possibly none,
 and `row_side` and `column_side`, where each side's are drawn
+
+------------------------------------------------------------------------
+
+### `ComplexHeatmapPlotOrchestrator$read_annotations()`
+
+Read each heat map's simple annotation tracks
+
+Each heat map's tracks
+([`complexheatmap_read_annotations()`](https://r.maidr.ai/reference/complexheatmap_read_annotations.md)),
+its own and those of the list's annotations it owns
+([`complexheatmap_member_annotations()`](https://r.maidr.ai/reference/complexheatmap_member_annotations.md)),
+are layers of its subplot after its `heat` layer, numbered after every
+heat and tree layer. The annotations drawn and not read are named in one
+message.
+
+#### Usage
+
+    ComplexHeatmapPlotOrchestrator$read_annotations(plot, read, subplots)
+
+#### Arguments
+
+- `plot`:
+
+  The `Heatmap` or `HeatmapList` passed in
+
+- `read`:
+
+  The places among the drawing's heat maps of those read
+
+- `subplots`:
+
+  Their subplots, in that order
+
+#### Returns
+
+The subplots, each with its tracks' layers added
 
 ------------------------------------------------------------------------
 

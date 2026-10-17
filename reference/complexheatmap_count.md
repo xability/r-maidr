@@ -1,7 +1,8 @@
 # The number of heat maps a ComplexHeatmap object holds
 
 Annotations added to a list with `+` are not heat maps and are not
-counted; they are drawn, and not read.
+counted; their simple tracks are read with a heat map
+([`complexheatmap_member_annotations()`](https://r.maidr.ai/reference/complexheatmap_member_annotations.md)).
 
 ## Usage
 

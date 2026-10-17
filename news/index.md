@@ -399,8 +399,8 @@
   ([\#391](https://github.com/xability/r-maidr/issues/391)).
 - A heat map of categories (a character matrix) in a list with a numeric
   one is left out, with a message naming it; alone, or in a list with no
-  numeric heat map, it falls back to an image. Annotations, between heat
-  maps or around them, and legends are drawn and not read.
+  numeric heat map, it falls back to an image. Legends, and annotations
+  other than simple tracks (below), are drawn and not read.
 - Each dendrogram a ComplexHeatmap draws is read as a `tree` layer,
   experimentally
   ([\#390](https://github.com/xability/r-maidr/issues/390)), from the
@@ -423,6 +423,27 @@
   column tree above or below it; a vertical list the reverse. The
   dendrograms of a heat map of categories left out of a list are not
   read.
+- Simple annotation tracks are read, each as a layer of its heat map’s
+  subplot after its `heat` layer, named by the annotation
+  ([\#392](https://github.com/xability/r-maidr/issues/392)): those
+  `HeatmapAnnotation(df = ...)`, `rowAnnotation(df = ...)`, a bare
+  vector or `anno_simple()` makes, given as `top_annotation`,
+  `bottom_annotation`, `left_annotation` or `right_annotation`, or added
+  to a list with `+` or `%v%`, where an annotation is read with the heat
+  map before it, or the first after it when none is. Each is one row of
+  cells, a column track’s in the heat layer’s column order and labelled
+  as its columns, so Page Up and Page Down between the heat layer and a
+  column track keep the column; a row track’s top row first. A track
+  with a continuous colour scale is a one-row `heat` layer of its
+  values, exactly; a track of discrete colours is a `step` layer whose
+  points announce the level (`label`), with `y` the level’s place among
+  the colour mapping’s levels. A missing value is a hole. Each cell is
+  highlighted, unless the track draws one rect for a run of cells (a
+  discrete `anno_simple()` given a `gp` without `col`) or shares its
+  name with another track of the same heat map. Other annotations
+  (`anno_barplot()`, `anno_points()`, `anno_text()`, `anno_simple()` of
+  a matrix, …) are drawn and not read, and a message (class
+  `maidr_complexheatmap_annotation`) names them.
 
 #### webR
 
