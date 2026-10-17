@@ -15,10 +15,14 @@ Each leaf is named as the heat layer names its row or column
 ([`pheatmap_axis_labels()`](https://r.maidr.ai/reference/pheatmap_axis_labels.md)),
 in the same order.
 
-**Selectors.** None. pheatmap draws a dendrogram as one polyline per
-merge – `n - 1` marks for `2n - 1` nodes, nothing at a leaf – and the
-trace needs one element per node, in node order; a highlight that cannot
-be aligned is left out rather than placed on the wrong link.
+**Selectors.** One per node, in node order: the unseen mark
+[`pheatmap_mark_tree()`](https://r.maidr.ai/reference/pheatmap_mark_tree.md)
+drew at it, which the orchestrator adds before the layer is read.
+pheatmap draws a dendrogram as one polyline per merge – `n - 1` marks
+for `2n - 1` nodes, nothing at a leaf – so the marks are what the
+highlight lands on. When they could not be placed on the drawn links
+there are none, and no selectors: a highlight that cannot be aligned is
+left out rather than placed on the wrong link.
 
 ## Super class
 
@@ -162,7 +166,9 @@ A list of nodes, empty when the side has no drawn tree
 
 ### `PheatmapTreeLayerProcessor$generate_selectors()`
 
-No selectors; see the class description
+One selector per node, for the marks
+[`pheatmap_mark_tree()`](https://r.maidr.ai/reference/pheatmap_mark_tree.md)
+drew; see the class description
 
 #### Usage
 
@@ -177,11 +183,11 @@ No selectors; see the class description
 
 - `plot`:
 
-  Unused
+  The pheatmap object
 
 - `gt`:
 
-  Unused
+  The gtable
 
 - `grob_id`:
 
@@ -193,7 +199,8 @@ No selectors; see the class description
 
 #### Returns
 
-NULL
+A list of selectors in node order, or NULL when the tree's cell holds no
+mark for every node
 
 ------------------------------------------------------------------------
 

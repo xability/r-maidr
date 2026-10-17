@@ -9,9 +9,12 @@ one pheatmap draws, over the cluster centres. cutree_rows only spaces
 the drawing; the tree is unchanged.
 Each leaf is named as the heat layer names its row or column
 (pheatmap_axis_labels()), in the same order.
-Selectors. None. pheatmap draws a dendrogram as one polyline per merge
-– n - 1 marks for 2n - 1 nodes, nothing at a leaf – and the trace
-needs one element per node, in node order; a highlight that cannot be
+Selectors. One per node, in node order: the unseen mark
+pheatmap_mark_tree() drew at it, which the orchestrator adds before the
+layer is read. pheatmap draws a dendrogram as one polyline per merge –
+n - 1 marks for 2n - 1 nodes, nothing at a leaf – so the marks are
+what the highlight lands on. When they could not be placed on the drawn
+links there are none, and no selectors: a highlight that cannot be
 aligned is left out rather than placed on the wrong link."><meta property="og:description" content="Reads one of a pheatmap's dendrograms as a tree layer, from the
 hclust it was drawn from (tree_row or tree_col); see
 pheatmap_tree_nodes() for the nodes. Experimental.
@@ -22,9 +25,12 @@ one pheatmap draws, over the cluster centres. cutree_rows only spaces
 the drawing; the tree is unchanged.
 Each leaf is named as the heat layer names its row or column
 (pheatmap_axis_labels()), in the same order.
-Selectors. None. pheatmap draws a dendrogram as one polyline per merge
-– n - 1 marks for 2n - 1 nodes, nothing at a leaf – and the trace
-needs one element per node, in node order; a highlight that cannot be
+Selectors. One per node, in node order: the unseen mark
+pheatmap_mark_tree() drew at it, which the orchestrator adds before the
+layer is read. pheatmap draws a dendrogram as one polyline per merge –
+n - 1 marks for 2n - 1 nodes, nothing at a leaf – so the marks are
+what the highlight lands on. When they could not be placed on the drawn
+links there are none, and no selectors: a highlight that cannot be
 aligned is left out rather than placed on the wrong link."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
@@ -60,9 +66,12 @@ one pheatmap draws, over the cluster centres. cutree_rows only spaces
 the drawing; the tree is unchanged.
 Each leaf is named as the heat layer names its row or column
 (pheatmap_axis_labels()), in the same order.
-Selectors. None. pheatmap draws a dendrogram as one polyline per merge
-– n - 1 marks for 2n - 1 nodes, nothing at a leaf – and the trace
-needs one element per node, in node order; a highlight that cannot be
+Selectors. One per node, in node order: the unseen mark
+pheatmap_mark_tree() drew at it, which the orchestrator adds before the
+layer is read. pheatmap draws a dendrogram as one polyline per merge –
+n - 1 marks for 2n - 1 nodes, nothing at a leaf – so the marks are
+what the highlight lands on. When they could not be placed on the drawn
+links there are none, and no selectors: a highlight that cannot be
 aligned is left out rather than placed on the wrong link.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/PheatmapTreeLayerProcessor.html">
 <meta name="DC.type" content="Text">
@@ -133,9 +142,12 @@ one pheatmap draws, over the cluster centres. <code>cutree_rows</code> only spac
 the drawing; the tree is unchanged.</p>
 <p>Each leaf is named as the heat layer names its row or column
 (<code><a href="pheatmap_axis_labels.html">pheatmap_axis_labels()</a></code>), in the same order.</p>
-<p><strong>Selectors.</strong> None. pheatmap draws a dendrogram as one polyline per merge
-– <code>n - 1</code> marks for <code>2n - 1</code> nodes, nothing at a leaf – and the trace
-needs one element per node, in node order; a highlight that cannot be
+<p><strong>Selectors.</strong> One per node, in node order: the unseen mark
+<code><a href="pheatmap_mark_tree.html">pheatmap_mark_tree()</a></code> drew at it, which the orchestrator adds before the
+layer is read. pheatmap draws a dendrogram as one polyline per merge –
+<code>n - 1</code> marks for <code>2n - 1</code> nodes, nothing at a leaf – so the marks are
+what the highlight lands on. When they could not be placed on the drawn
+links there are none, and no selectors: a highlight that cannot be
 aligned is left out rather than placed on the wrong link.</p>
     </div>
 
@@ -260,7 +272,8 @@ aligned is left out rather than placed on the wrong link.</p>
 
 <p></p><hr><a id="method-PheatmapTreeLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="pheatmaptreelayerprocessor-generate-selectors-"><code>PheatmapTreeLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#pheatmaptreelayerprocessor-generate-selectors-"></a></h3>
-<p>No selectors; see the class description</p><div class="section">
+<p>One selector per node, for the marks
+<code><a href="pheatmap_mark_tree.html">pheatmap_mark_tree()</a></code> drew; see the class description</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PheatmapTreeLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -271,10 +284,10 @@ aligned is left out rather than placed on the wrong link.</p>
 </div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>Unused</p></dd>
+<dd><p>The pheatmap object</p></dd>
 
       <dt><code>gt</code></dt>
-<dd><p>Unused</p></dd>
+<dd><p>The gtable</p></dd>
 
       <dt><code>grob_id</code></dt>
 <dd><p>Unused</p></dd>
@@ -286,7 +299,8 @@ aligned is left out rather than placed on the wrong link.</p>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
-<p>NULL</p>
+<p>A list of selectors in node order, or NULL when the tree's
+cell holds no mark for every node</p>
 </div>
 
 </div>
