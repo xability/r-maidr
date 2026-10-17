@@ -222,6 +222,25 @@ test_that("a native build leaves xml2 to load when it is needed", {
   expect_null(loaded)
 })
 
+# Loaded after systemfonts, xml2 parses with systemfonts' libxml2 and the wasm
+# aborts, so show() and save_html() finish the SVG without it there.
+test_that("under webR, a chart's SVG is finished without xml2 (#388)", {
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    finish_svg_xml2 = function(...) stop("xml2 path used"),
+    add_maidr_data_to_svg = function(...) stop("xml2 path used"),
+    .package = "maidr"
+  )
+  withr::local_options(maidr.fallback_enabled = FALSE)
+  file <- withr::local_tempfile(fileext = ".html")
+  rows <- data.frame(x = c("a", "b"), y = c(1, 2))
+
+  maidr::save_html(ggplot2::ggplot(rows, ggplot2::aes(x, y)) + ggplot2::geom_col(), file)
+
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  expect_match(html, "<svg[^>]* maidr-data=\"\\{")
+})
+
 test_that("in webR, maidr has xml2 loaded and reads a chart's SVG once svglite has drawn", {
   skip_if_not(identical(R.version$os, "emscripten"), "needs webR (emscripten)")
   expect_true(isNamespaceLoaded("xml2"))
@@ -233,6 +252,30 @@ test_that("in webR, maidr has xml2 loaded and reads a chart's SVG once svglite h
   grDevices::dev.off()
   doc <- xml2::read_xml(paste(svg(), collapse = "\n"))
   expect_equal(xml2::xml_name(doc), "svg")
+})
+
+test_that("in webR, a chart's SVG is finished to the bytes webR's xml2 writes", {
+  skip_if_not(identical(R.version$os, "emscripten"), "needs webR (emscripten)")
+  # Only safe with xml2's own libxml2: see the test above.
+  skip_if_not(isNamespaceLoaded("xml2"))
+  got <- NULL
+  finish <- maidr:::finish_svg
+  testthat::local_mocked_bindings(
+    finish_svg = function(svg_content, maidr_data, candlestick = FALSE) {
+      got <<- list(svg_content, maidr_data, candlestick)
+      finish(svg_content, maidr_data, candlestick = candlestick)
+    },
+    .package = "maidr"
+  )
+  rows <- data.frame(x = c("a", "b & <c>", "\u00e9"), y = c(3, 5, 2))
+  file <- withr::local_tempfile(fileext = ".html")
+
+  maidr::save_html(ggplot2::ggplot(rows, ggplot2::aes(x, y)) + ggplot2::geom_col(), file)
+
+  expect_identical(
+    maidr:::finish_svg_markup(got[[1]], got[[2]], got[[3]]),
+    maidr:::finish_svg_xml2(got[[1]], got[[2]], got[[3]])
+  )
 })
 
 test_that("the page script hands the document to maidrWebRShow or embeds it", {

@@ -82,10 +82,49 @@ for (const line of unexpected) {
   console.error(`unexpected skip: ${line.slice('SKIPPED '.length)}`);
 }
 const passed = Number(/passed (\d+)/.exec(summary)[1]);
+await webR.close();
+
+// A session that loaded systemfonts before maidr (#388). systemfonts' libxml2
+// then answers for xml2's too, and parsing a chart's SVG with xml2 aborts the
+// wasm: R's worker dies and the call never returns. show() and save_html()
+// must not need xml2 there. A fresh webR, since load order is per session.
+const loadOrder = await (async () => {
+  const fresh = new WebR();
+  await fresh.init();
+  await fresh.installPackages(['maidr'], { repos: [repo, 'https://repo.r-wasm.org/'], quiet: true });
+  const run = (async () => {
+    const shelter = await new fresh.Shelter();
+    const out = await shelter.captureR(`
+      loadNamespace("systemfonts")
+      xml2_first <- isNamespaceLoaded("xml2")
+      suppressWarnings(suppressPackageStartupMessages({ library(maidr); library(ggplot2) }))
+      shown <- NULL
+      options(maidr.webr_display = function(html) shown <<- html)
+      show(ggplot(data.frame(x = c("a", "b"), y = c(1, 2)), aes(x, y)) + geom_col())
+      file <- tempfile(fileext = ".html")
+      save_html(ggplot(data.frame(x = "a", y = 1), aes(x, y)) + geom_col(), file)
+      cat(
+        "systemfonts first:", !xml2_first,
+        "| shown:", grepl("maidr-data=", shown, fixed = TRUE),
+        "| saved:", any(grepl("maidr-data=", readLines(file), fixed = TRUE)), "\\n"
+      )
+    `);
+    return out.output.map(line => (typeof line.data === 'string' ? line.data : '')).join('');
+  })();
+  let timer;
+  const expired = new Promise(resolve => {
+    timer = setTimeout(() => resolve('no answer from webR within 300s'), 300000);
+  });
+  const said = await Promise.race([run.catch(error => `webR failed: ${error}`), expired]);
+  clearTimeout(timer);
+  fresh.close();
+  return said;
+})();
+const loadOrderOk = /systemfonts first: TRUE \| shown: TRUE \| saved: TRUE/.test(loadOrder);
+console.log(`${loadOrderOk ? 'ok  ' : 'FAIL'} show() and save_html() with systemfonts loaded first: ${loadOrder.trim()}`);
 
 server.close();
-await webR.close();
-if (bad.length > 0 || unexpected.length > 0 || passed === 0) {
+if (bad.length > 0 || unexpected.length > 0 || passed === 0 || !loadOrderOk) {
   process.exit(1);
 }
 process.exit(0);
