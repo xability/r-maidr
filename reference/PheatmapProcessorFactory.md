@@ -1,7 +1,8 @@
 # pheatmap Processor Factory
 
-A pheatmap draws one matrix, read as one `heat` layer, and a dendrogram
-on each clustered side, each read as a `tree` layer.
+A pheatmap draws one matrix, read as one `heat` layer, a dendrogram on
+each clustered side, each read as a `tree` layer, and its annotation
+tracks, each read as a `heat` or `step` layer beside the matrix's.
 
 ## Format
 
@@ -42,7 +43,8 @@ Create the processor for a layer type
 
 - `plot_type`:
 
-  The layer type, `"heat"` or `"tree"`
+  The layer type, `"heat"` or `"tree"`, or `"annotation"` for an
+  annotation track, read as a `heat` or `step` layer
 
 - `plot_object`:
 
@@ -50,7 +52,8 @@ Create the processor for a layer type
 
 #### Returns
 
-A PheatmapHeatmapLayerProcessor or PheatmapTreeLayerProcessor
+A PheatmapHeatmapLayerProcessor, PheatmapTreeLayerProcessor or
+PheatmapAnnotationLayerProcessor
 
 ------------------------------------------------------------------------
 

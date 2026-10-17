@@ -3,11 +3,13 @@
 search path. It calls the original with every argument unchanged, draws
 exactly what it draws and returns what it returns, with one addition: the
 matrix the chart was drawn from, kept with the result so that show()
-and save_html() announce each cell's exact value."><meta property="og:description" content="A wrapper of pheatmap::pheatmap() that library(maidr) puts on the
+and save_html() announce each cell's exact value, and its annotation
+data frames, so that every annotation track is read exactly too."><meta property="og:description" content="A wrapper of pheatmap::pheatmap() that library(maidr) puts on the
 search path. It calls the original with every argument unchanged, draws
 exactly what it draws and returns what it returns, with one addition: the
 matrix the chart was drawn from, kept with the result so that show()
-and save_html() announce each cell's exact value."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+and save_html() announce each cell's exact value, and its annotation
+data frames, so that every annotation track is read exactly too."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -35,7 +37,8 @@ and save_html() announce each cell's exact value."><meta property="og:image" con
 search path. It calls the original with every argument unchanged, draws
 exactly what it draws and returns what it returns, with one addition: the
 matrix the chart was drawn from, kept with the result so that show()
-and save_html() announce each cell&#x27;s exact value.">
+and save_html() announce each cell&#x27;s exact value, and its annotation
+data frames, so that every annotation track is read exactly too.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/pheatmap.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
@@ -99,7 +102,8 @@ and save_html() announce each cell&#x27;s exact value.">
 search path. It calls the original with every argument unchanged, draws
 exactly what it draws and returns what it returns, with one addition: the
 matrix the chart was drawn from, kept with the result so that <code><a href="show.html">show()</a></code>
-and <code><a href="save_html.html">save_html()</a></code> announce each cell's exact value.</p>
+and <code><a href="save_html.html">save_html()</a></code> announce each cell's exact value, and its annotation
+data frames, so that every annotation track is read exactly too.</p>
     </div>
 
     <div class="section level2">
@@ -123,7 +127,8 @@ unchanged</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>What <code><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap::pheatmap()</a></code> returns, invisibly, with the drawn
-matrix as its <code>"maidr_matrix"</code> attribute</p>
+matrix as its <code>"maidr_matrix"</code> attribute and, when it has annotations,
+them as its <code>"maidr_annotations"</code> attribute</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -135,7 +140,10 @@ can only read each cell back from its colour, to within one band of the
 legend, and says so.</p>
 <p>The matrix kept is the one drawn: the input after <code>scale = "row"</code> or
 <code>"column"</code>, computed as pheatmap computes it; the k-means centres with
-<code>kmeans_k</code>; in the order of the row and column trees.</p>
+<code>kmeans_k</code>; in the order of the row and column trees. The annotations
+kept are <code>annotation_row</code>, <code>annotation_col</code> (or the older <code>annotation</code>)
+and <code>annotation_colors</code> as passed; they are matched to the drawn rows and
+columns when read, as pheatmap matches them.</p>
     </div>
     <div class="section level2">
     <h2 id="attach-order">Attach order<a class="anchor" aria-label="anchor" href="#attach-order"></a></h2>

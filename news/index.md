@@ -362,7 +362,29 @@
   checks each against the links pheatmap drew, cut by `cutree_rows` or
   `cutree_cols` or not; a tree whose links are not where it expects them
   is announced without a highlight rather than highlighted beside them.
-- Annotation tracks are not read.
+- Each variable of a pheatmap’s `annotation_col` and `annotation_row` is
+  read as a layer of its own in the heat map’s subplot, after the heat
+  layer, experimentally
+  ([\#393](https://github.com/xability/r-maidr/issues/393)): the column
+  tracks, then the row tracks, each in its data frame’s column order,
+  named by its column name. Every track is one row of cells, one per
+  column or row of the heat layer in the trees’ order, named as the heat
+  layer names them, so Page Up and Page Down move from a cell to its
+  column’s annotation and back. A numeric track is a `heat` row of its
+  values; a categorical one a `step` series announcing each cell’s
+  level, numbered in the order of `annotation_colors` or else of the
+  factor’s levels. A value with no drawn colour is a hole. Each cell is
+  highlighted as it is reached.
+  [`maidr::pheatmap()`](https://r.maidr.ai/reference/pheatmap.md) keeps
+  the annotation data frames and `annotation_colors`, and each track is
+  read from them exactly, matched to the rows and columns as pheatmap
+  matches them – with `kmeans_k`, the centres by cluster number – once
+  its drawn colours are checked against them. Drawn by
+  [`pheatmap::pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html)
+  itself, a categorical track is read from the levels and colours of the
+  annotation legend, which is exact; a numeric one, whose legend shows a
+  ramp and its range, and any track with no legend, is left out, and a
+  message names it.
 
 #### ComplexHeatmap
 

@@ -20,4 +20,5 @@ pheatmap_layer_object(result, index)
 
 ## Value
 
-The layer; with no `selectors` when it has none
+The layer; with no `selectors` when it has none, and a `name` when it
+has one

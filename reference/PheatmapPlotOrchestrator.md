@@ -6,8 +6,13 @@ returns as a `heat` layer
 ([PheatmapHeatmapLayerProcessor](https://r.maidr.ai/reference/PheatmapHeatmapLayerProcessor.md))
 and, for each side with a drawn dendrogram, a `tree` layer
 ([PheatmapTreeLayerProcessor](https://r.maidr.ai/reference/PheatmapTreeLayerProcessor.md)),
-and draws its `gtable` for the SVG. Experimental. Annotation tracks are
-not read.
+and draws its `gtable` for the SVG. Each variable of `annotation_col`
+and `annotation_row` it can read exactly is a further layer of the heat
+layer's subplot, after it – the column tracks, then the row tracks, each
+in its data frame's column order
+([PheatmapAnnotationLayerProcessor](https://r.maidr.ai/reference/PheatmapAnnotationLayerProcessor.md),
+[`pheatmap_annotation_tracks()`](https://r.maidr.ai/reference/pheatmap_annotation_tracks.md)).
+Experimental.
 
 **Grid.** Each layer is a subplot placed where pheatmap draws it: the
 row tree left of the matrix, the column tree above it, and nothing in

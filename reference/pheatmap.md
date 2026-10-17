@@ -8,7 +8,8 @@ exactly what it draws and returns what it returns, with one addition:
 the matrix the chart was drawn from, kept with the result so that
 [`show()`](https://r.maidr.ai/reference/show.md) and
 [`save_html()`](https://r.maidr.ai/reference/save_html.md) announce each
-cell's exact value.
+cell's exact value, and its annotation data frames, so that every
+annotation track is read exactly too.
 
 ## Usage
 
@@ -35,7 +36,8 @@ pheatmap(mat, ...)
 What
 [`pheatmap::pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html)
 returns, invisibly, with the drawn matrix as its `"maidr_matrix"`
-attribute
+attribute and, when it has annotations, them as its
+`"maidr_annotations"` attribute
 
 ## Details
 
@@ -49,7 +51,10 @@ back from its colour, to within one band of the legend, and says so.
 
 The matrix kept is the one drawn: the input after `scale = "row"` or
 `"column"`, computed as pheatmap computes it; the k-means centres with
-`kmeans_k`; in the order of the row and column trees.
+`kmeans_k`; in the order of the row and column trees. The annotations
+kept are `annotation_row`, `annotation_col` (or the older `annotation`)
+and `annotation_colors` as passed; they are matched to the drawn rows
+and columns when read, as pheatmap matches them.
 
 ## Attach order
 
