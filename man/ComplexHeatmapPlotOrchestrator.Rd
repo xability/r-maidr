@@ -9,7 +9,8 @@ An R6 class
 \description{
 Reads a 'ComplexHeatmap' heat map -- a \code{Heatmap}, or a \code{HeatmapList}
 holding one or more -- as one subplot per heat map, each holding one
-\code{heat} layer (\link{ComplexHeatmapLayerProcessor}). Experimental.
+\code{heat} layer (\link{ComplexHeatmapLayerProcessor}), and a subplot for the
+\code{tree} layers of each side's dendrograms. Experimental.
 
 The object is drawn once, with \code{ComplexHeatmap::draw()}, and the drawing
 is grabbed as a grid tree (\code{\link[=complexheatmap_capture]{complexheatmap_capture()}}). The SVG is that
@@ -23,19 +24,26 @@ to read the very chart that was shown.
 read heat map by heat map, each from its own matrix, labels and drawn
 order -- which the drawing shares across the list, the rows of a
 horizontal list and the columns of a vertical one -- into a subplot of
-its own. A horizontal list is one row of subplots, left to right; a
-vertical list one column of them, its rows written \strong{bottom first}, as
+its own. A horizontal list's heat maps are one row of subplots, left to
+right; a vertical list's one column of them, its rows written \strong{bottom
+first}, as
 pheatmap's grid is (\link{PheatmapPlotOrchestrator}): a heat layer's
 selectors are a grid, which maidr.js does not measure a subplot by, so
 it orders the subplots as written, where Up moves to the next row. Each
 heat map's title is its own column title, and the chart's the one
 \code{draw()} was given for the whole list.
 
-Only the matrices are read. The dendrograms set the order the cells are
-read in but are not read themselves, and neither are annotations, between
-heat maps or around them, or legends. A heat map whose matrix is not
+\strong{Trees.} Each dendrogram drawn is read as a \code{tree} layer
+(\link{ComplexHeatmapTreeLayerProcessor}) in a subplot placed where it is
+drawn (\code{\link[=complexheatmap_subplot_grid]{complexheatmap_subplot_grid()}}). In a list each heat map's own
+drawn settings say which it draws: a horizontal list's shared rows have
+one row tree, the main heat map's, beside the heat map that draws it,
+and each heat map its own column tree; a vertical list the reverse.
+
+The matrices and dendrograms are read; annotations, between heat maps or
+around them, and legends are not. A heat map whose matrix is not
 numeric (a discrete heat map of categories) is left out of a list that
-holds a numeric one, with a message (class
+holds a numeric one, its dendrograms with it, with a message (class
 \code{maidr_complexheatmap_skipped}) naming it; a chart with no numeric heat
 map falls back to an image.
 }
@@ -44,6 +52,7 @@ map falls back to an image.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-ComplexHeatmapPlotOrchestrator-initialize}{\code{ComplexHeatmapPlotOrchestrator$new()}}
+    \item \href{#method-ComplexHeatmapPlotOrchestrator-read_trees}{\code{ComplexHeatmapPlotOrchestrator$read_trees()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-extract_layout}{\code{ComplexHeatmapPlotOrchestrator$extract_layout()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-heatmap_layout}{\code{ComplexHeatmapPlotOrchestrator$heatmap_layout()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-generate_maidr_data}{\code{ComplexHeatmapPlotOrchestrator$generate_maidr_data()}}
@@ -84,6 +93,37 @@ for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
 side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ComplexHeatmapPlotOrchestrator-read_trees"></a>}}
+\if{latex}{\out{\hypertarget{method-ComplexHeatmapPlotOrchestrator-read_trees}{}}}
+\subsection{\code{ComplexHeatmapPlotOrchestrator$read_trees()}}{
+  Read the dendrograms one heat map of the drawing draws
+
+Each side's dendrograms are read by a
+\link{ComplexHeatmapTreeLayerProcessor}, as the layers after every heat
+layer. Each heat map's own drawn settings say what it draws: in a
+horizontal list only the heat map that draws the shared row
+dendrogram -- the main one -- has a row tree, and in a vertical list
+only that one has a column tree.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ComplexHeatmapPlotOrchestrator$read_trees(k)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{k}}{The heat map's place among the drawing's heat maps}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list: \code{row} and \code{column}, the tree layers of each side,
+possibly none, and \code{row_side} and \code{column_side}, where each side's
+are drawn
   }
 }
 

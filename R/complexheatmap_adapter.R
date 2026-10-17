@@ -68,7 +68,7 @@ ComplexHeatmapAdapter <- R6::R6Class(
 #'
 #' @description
 #' Each heat map of a ComplexHeatmap chart draws one matrix, read as one
-#' `heat` layer.
+#' `heat` layer, and its dendrograms, read as `tree` layers.
 #'
 #' @format An R6 class inheriting from ProcessorFactory
 #' @keywords internal
@@ -77,20 +77,21 @@ ComplexHeatmapProcessorFactory <- R6::R6Class(
   inherit = ProcessorFactory,
   public = list(
     #' @description Create the processor for a layer type
-    #' @param plot_type The layer type; only `"heat"` is read
-    #' @param plot_object The layer information
-    #' @return A ComplexHeatmapLayerProcessor
+    #' @param plot_type The layer type, `"heat"` or `"tree"`
+    #' @param plot_object The layer information; a tree's names its `side`
+    #' @return A ComplexHeatmapLayerProcessor or ComplexHeatmapTreeLayerProcessor
     create_processor = function(plot_type, plot_object) {
-      if (!identical(plot_type, "heat")) {
-        stop("ComplexHeatmap charts are read as one heat layer, not '", plot_type, "'")
-      }
-      ComplexHeatmapLayerProcessor$new(plot_object)
+      switch(plot_type,
+        heat = ComplexHeatmapLayerProcessor$new(plot_object),
+        tree = ComplexHeatmapTreeLayerProcessor$new(plot_object),
+        stop("ComplexHeatmap charts are read as heat and tree layers, not '", plot_type, "'")
+      )
     },
 
     #' @description The layer types this factory creates processors for
     #' @return Character vector
     get_supported_types = function() {
-      "heat"
+      c("heat", "tree")
     },
 
     #' @description Get the system name

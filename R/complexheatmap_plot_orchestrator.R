@@ -3,7 +3,8 @@
 #' @description
 #' Reads a 'ComplexHeatmap' heat map -- a `Heatmap`, or a `HeatmapList`
 #' holding one or more -- as one subplot per heat map, each holding one
-#' `heat` layer ([ComplexHeatmapLayerProcessor]). Experimental.
+#' `heat` layer ([ComplexHeatmapLayerProcessor]), and a subplot for the
+#' `tree` layers of each side's dendrograms. Experimental.
 #'
 #' The object is drawn once, with `ComplexHeatmap::draw()`, and the drawing
 #' is grabbed as a grid tree ([complexheatmap_capture()]). The SVG is that
@@ -17,19 +18,26 @@
 #' read heat map by heat map, each from its own matrix, labels and drawn
 #' order -- which the drawing shares across the list, the rows of a
 #' horizontal list and the columns of a vertical one -- into a subplot of
-#' its own. A horizontal list is one row of subplots, left to right; a
-#' vertical list one column of them, its rows written **bottom first**, as
+#' its own. A horizontal list's heat maps are one row of subplots, left to
+#' right; a vertical list's one column of them, its rows written **bottom
+#' first**, as
 #' pheatmap's grid is ([PheatmapPlotOrchestrator]): a heat layer's
 #' selectors are a grid, which maidr.js does not measure a subplot by, so
 #' it orders the subplots as written, where Up moves to the next row. Each
 #' heat map's title is its own column title, and the chart's the one
 #' `draw()` was given for the whole list.
 #'
-#' Only the matrices are read. The dendrograms set the order the cells are
-#' read in but are not read themselves, and neither are annotations, between
-#' heat maps or around them, or legends. A heat map whose matrix is not
+#' **Trees.** Each dendrogram drawn is read as a `tree` layer
+#' ([ComplexHeatmapTreeLayerProcessor]) in a subplot placed where it is
+#' drawn ([complexheatmap_subplot_grid()]). In a list each heat map's own
+#' drawn settings say which it draws: a horizontal list's shared rows have
+#' one row tree, the main heat map's, beside the heat map that draws it,
+#' and each heat map its own column tree; a vertical list the reverse.
+#'
+#' The matrices and dendrograms are read; annotations, between heat maps or
+#' around them, and legends are not. A heat map whose matrix is not
 #' numeric (a discrete heat map of categories) is left out of a list that
-#' holds a numeric one, with a message (class
+#' holds a numeric one, its dendrograms with it, with a message (class
 #' `maidr_complexheatmap_skipped`) naming it; a chart with no numeric heat
 #' map falls back to an image.
 #'
@@ -116,10 +124,49 @@ ComplexHeatmapPlotOrchestrator <- R6::R6Class(
       for (k in which(numeric)) {
         subplots[[length(subplots) + 1L]] <- private$read_heatmap(plot, k, length(subplots) + 1L)
       }
+      trees <- lapply(which(numeric), self$read_trees)
       private$.combined_data <- complexheatmap_subplot_grid(
-        subplots, capture$drawn@direction
+        subplots, capture$drawn@direction, trees
       )
       invisible(self)
+    },
+
+    #' @description Read the dendrograms one heat map of the drawing draws
+    #'
+    #' Each side's dendrograms are read by a
+    #' [ComplexHeatmapTreeLayerProcessor], as the layers after every heat
+    #' layer. Each heat map's own drawn settings say what it draws: in a
+    #' horizontal list only the heat map that draws the shared row
+    #' dendrogram -- the main one -- has a row tree, and in a vertical list
+    #' only that one has a column tree.
+    #' @param k The heat map's place among the drawing's heat maps
+    #' @return A list: `row` and `column`, the tree layers of each side,
+    #'   possibly none, and `row_side` and `column_side`, where each side's
+    #'   are drawn
+    read_trees = function(k) {
+      factory <- get_global_registry()$get_processor_factory("complexheatmap")
+      view <- private$.capture
+      view$heatmap <- view$heatmaps[[k]]$heatmap
+      view$cells <- view$heatmaps[[k]]$cells
+      out <- list(row = list(), column = list(), row_side = "left", column_side = "top")
+      for (side in c("row", "column")) {
+        info <- list(index = length(private$.layers) + 1L, type = "tree", side = side)
+        processor <- factory$create_processor("tree", info)
+        layers <- processor$process(private$.plot, private$.layout, gt = view)
+        processor$set_last_result(layers)
+        if (!length(layers)) {
+          next
+        }
+        out[[paste0(side, "_side")]] <- processor$drawn_side(view)
+        private$.layer_processors <- c(private$.layer_processors, list(processor))
+        for (layer in layers) {
+          validate_axes(layer$axes, context = "ComplexHeatmap orchestrator")
+          info <- list(index = length(private$.layers) + 1L, type = "tree", side = side)
+          private$.layers <- c(private$.layers, list(info))
+          out[[side]] <- c(out[[side]], list(pheatmap_layer_object(layer, info$index)))
+        }
+      }
+      out
     },
 
     #' @description Read the chart's title and its rows' title
@@ -272,28 +319,76 @@ complexheatmap_title <- function(...) {
   ""
 }
 
-#' The subplot grid of a ComplexHeatmap chart, one subplot per heat map read
+#' The subplot grid of a ComplexHeatmap chart: its heat maps and their trees
 #'
-#' A horizontal list is one row, left to right; a vertical list is one
-#' column, its rows written bottom first. See
-#' [ComplexHeatmapPlotOrchestrator] for why.
+#' One subplot per heat map read, in drawn order -- a horizontal list left
+#' to right, a vertical list top to bottom -- and one for each side's
+#' trees, where they are drawn: a row tree beside its heat map, left or
+#' right, a column tree above or below it, a side's trees (one per slice
+#' when the slices are not clustered) as layers of one subplot. Every
+#' other place on the grid is an empty subplot, and a row or column of the
+#' grid with nothing in it is left out. The rows are written bottom first;
+#' see [ComplexHeatmapPlotOrchestrator] for why.
 #'
-#' @param subplots The subplots, in drawn order: left to right, or top to
-#'   bottom
+#' A single heat map with both trees is
+#' `[[row tree, heat], [empty, column tree]]`, as a pheatmap's grid is.
+#'
+#' @param subplots The heat maps' subplots, in drawn order
 #' @param direction The drawn list's `direction`, `"horizontal"` or
 #'   `"vertical"`
+#' @param trees For each heat map, what [ComplexHeatmapPlotOrchestrator]'s
+#'   `read_trees()` gives, or NULL for none
 #' @return A list of rows of subplots, each given its id
 #' @keywords internal
-complexheatmap_subplot_grid <- function(subplots, direction) {
-  place <- function(subplot, row, col) {
-    c(list(id = paste0("maidr-subplot-", row, "-", col)), subplot)
+complexheatmap_subplot_grid <- function(subplots, direction, trees = NULL) {
+  vertical <- identical(direction, "vertical")
+  # Each subplot at a place on the grid as drawn, top first: along the list
+  # a heat map, its trees across the list before or after it on their own
+  # line, `1` before the heat maps' line `2` and `3` after it.
+  cells <- list()
+  at <- 0L
+  put <- function(along, across, subplot) {
+    cells[[length(cells) + 1L]] <<- if (vertical) {
+      list(row = along, col = across, subplot = subplot)
+    } else {
+      list(row = across, col = along, subplot = subplot)
+    }
   }
-  if (identical(direction, "vertical")) {
-    return(lapply(seq_along(subplots), function(row) {
-      list(place(subplots[[length(subplots) - row + 1L]], row, 1L))
-    }))
+  for (k in seq_along(subplots)) {
+    tree <- trees[[k]] %||% list()
+    # Along the list, a heat map's own trees take a place of their own:
+    # a horizontal list's row trees, a vertical one's column trees.
+    beside <- if (vertical) "column" else "row"
+    across <- if (vertical) "row" else "column"
+    first <- if (vertical) "top" else "left"
+    before <- length(tree[[beside]]) && identical(tree[[paste0(beside, "_side")]], first)
+    if (before) {
+      at <- at + 1L
+      put(at, 2L, list(layers = tree[[beside]]))
+    }
+    at <- at + 1L
+    put(at, 2L, subplots[[k]])
+    if (length(tree[[across]])) {
+      side <- tree[[paste0(across, "_side")]]
+      put(at, if (side %in% c("top", "left")) 1L else 3L, list(layers = tree[[across]]))
+    }
+    if (length(tree[[beside]]) && !before) {
+      at <- at + 1L
+      put(at, 2L, list(layers = tree[[beside]]))
+    }
   }
-  list(lapply(seq_along(subplots), function(col) place(subplots[[col]], 1L, col)))
+  rows <- sort(unique(vapply(cells, `[[`, 0L, "row")))
+  cols <- sort(unique(vapply(cells, `[[`, 0L, "col")))
+  grid <- lapply(rows, function(r) lapply(cols, function(c) list(layers = list())))
+  for (cell in cells) {
+    grid[[match(cell$row, rows)]][[match(cell$col, cols)]] <- cell$subplot
+  }
+  grid <- rev(grid)
+  lapply(seq_along(grid), function(r) {
+    lapply(seq_along(grid[[r]]), function(c) {
+      c(list(id = paste0("maidr-subplot-", r, "-", c)), grid[[r]][[c]])
+    })
+  })
 }
 
 #' Whether a ComplexHeatmap heat map is read: a non-empty numeric matrix
