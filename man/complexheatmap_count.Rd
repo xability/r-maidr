@@ -14,6 +14,7 @@ An integer
 }
 \description{
 Annotations added to a list with \code{+} are not heat maps and are not
-counted; they are drawn, and not read.
+counted; their simple tracks are read with a heat map
+(\code{\link[=complexheatmap_member_annotations]{complexheatmap_member_annotations()}}).
 }
 \keyword{internal}

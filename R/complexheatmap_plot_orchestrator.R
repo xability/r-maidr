@@ -34,8 +34,12 @@
 #' one row tree, the main heat map's, beside the heat map that draws it,
 #' and each heat map its own column tree; a vertical list the reverse.
 #'
-#' The matrices and dendrograms are read; annotations, between heat maps or
-#' around them, and legends are not. A heat map whose matrix is not
+#' **Annotations.** Each heat map's simple annotation tracks, and those of
+#' the annotations a list holds that it owns, are layers of its subplot
+#' after its `heat` layer (`read_annotations()`).
+#'
+#' The matrices, dendrograms and simple annotation tracks are read; other
+#' annotations and legends are not. A heat map whose matrix is not
 #' numeric (a discrete heat map of categories) is left out of a list that
 #' holds a numeric one, its dendrograms with it, with a message (class
 #' `maidr_complexheatmap_skipped`) naming it; a chart with no numeric heat
@@ -125,6 +129,7 @@ ComplexHeatmapPlotOrchestrator <- R6::R6Class(
         subplots[[length(subplots) + 1L]] <- private$read_heatmap(plot, k, length(subplots) + 1L)
       }
       trees <- lapply(which(numeric), self$read_trees)
+      subplots <- self$read_annotations(plot, which(numeric), subplots)
       private$.combined_data <- complexheatmap_subplot_grid(
         subplots, capture$drawn@direction, trees
       )
@@ -167,6 +172,46 @@ ComplexHeatmapPlotOrchestrator <- R6::R6Class(
         }
       }
       out
+    },
+
+    #' @description Read each heat map's simple annotation tracks
+    #'
+    #' Each heat map's tracks ([complexheatmap_read_annotations()]), its
+    #' own and those of the list's annotations it owns
+    #' ([complexheatmap_member_annotations()]), are layers of its subplot
+    #' after its `heat` layer, numbered after every heat and tree layer.
+    #' The annotations drawn and not read are named in one message.
+    #' @param plot The `Heatmap` or `HeatmapList` passed in
+    #' @param read The places among the drawing's heat maps of those read
+    #' @param subplots Their subplots, in that order
+    #' @return The subplots, each with its tracks' layers added
+    read_annotations = function(plot, read, subplots) {
+      drawn <- private$.capture$drawn
+      is_heatmap <- vapply(drawn@ht_list, function(h) inherits(h, "Heatmap"), logical(1))
+      owned <- complexheatmap_member_annotations(drawn, which(is_heatmap)[read])
+      unread <- character(0)
+      for (i in seq_along(read)) {
+        k <- read[i]
+        view <- private$.capture
+        view$heatmap <- view$heatmaps[[k]]$heatmap
+        view$cells <- view$heatmaps[[k]]$cells
+        layout <- if (length(view$heatmaps) == 1L) private$.layout else self$heatmap_layout(k)
+        found <- complexheatmap_read_annotations(
+          plot, view, layout,
+          first = length(private$.layers) + 1L, members = owned[[i]], h = i
+        )
+        private$.capture$grob <- found$grob
+        unread <- c(unread, found$unread)
+        for (processor in found$processors) {
+          private$.layers <- c(private$.layers, list(list(
+            index = processor$layer_info$index, type = processor$get_last_result()$type
+          )))
+        }
+        private$.layer_processors <- c(private$.layer_processors, found$processors)
+        subplots[[i]]$layers <- c(subplots[[i]]$layers, found$layers)
+      }
+      complexheatmap_inform_unread(unread)
+      subplots
     },
 
     #' @description Read the chart's title and its rows' title
@@ -293,7 +338,8 @@ ComplexHeatmapPlotOrchestrator <- R6::R6Class(
 #' The number of heat maps a ComplexHeatmap object holds
 #'
 #' Annotations added to a list with `+` are not heat maps and are not
-#' counted; they are drawn, and not read.
+#' counted; their simple tracks are read with a heat map
+#' ([complexheatmap_member_annotations()]).
 #'
 #' @param plot A `Heatmap` or `HeatmapList`
 #' @return An integer

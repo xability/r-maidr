@@ -40,8 +40,12 @@ drawn settings say which it draws: a horizontal list's shared rows have
 one row tree, the main heat map's, beside the heat map that draws it,
 and each heat map its own column tree; a vertical list the reverse.
 
-The matrices and dendrograms are read; annotations, between heat maps or
-around them, and legends are not. A heat map whose matrix is not
+\strong{Annotations.} Each heat map's simple annotation tracks, and those of
+the annotations a list holds that it owns, are layers of its subplot
+after its \code{heat} layer (\code{read_annotations()}).
+
+The matrices, dendrograms and simple annotation tracks are read; other
+annotations and legends are not. A heat map whose matrix is not
 numeric (a discrete heat map of categories) is left out of a list that
 holds a numeric one, its dendrograms with it, with a message (class
 \code{maidr_complexheatmap_skipped}) naming it; a chart with no numeric heat
@@ -53,6 +57,7 @@ map falls back to an image.
   \itemize{
     \item \href{#method-ComplexHeatmapPlotOrchestrator-initialize}{\code{ComplexHeatmapPlotOrchestrator$new()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-read_trees}{\code{ComplexHeatmapPlotOrchestrator$read_trees()}}
+    \item \href{#method-ComplexHeatmapPlotOrchestrator-read_annotations}{\code{ComplexHeatmapPlotOrchestrator$read_annotations()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-extract_layout}{\code{ComplexHeatmapPlotOrchestrator$extract_layout()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-heatmap_layout}{\code{ComplexHeatmapPlotOrchestrator$heatmap_layout()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-generate_maidr_data}{\code{ComplexHeatmapPlotOrchestrator$generate_maidr_data()}}
@@ -124,6 +129,36 @@ only that one has a column tree.
     A list: \code{row} and \code{column}, the tree layers of each side,
 possibly none, and \code{row_side} and \code{column_side}, where each side's
 are drawn
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ComplexHeatmapPlotOrchestrator-read_annotations"></a>}}
+\if{latex}{\out{\hypertarget{method-ComplexHeatmapPlotOrchestrator-read_annotations}{}}}
+\subsection{\code{ComplexHeatmapPlotOrchestrator$read_annotations()}}{
+  Read each heat map's simple annotation tracks
+
+Each heat map's tracks (\code{\link[=complexheatmap_read_annotations]{complexheatmap_read_annotations()}}), its
+own and those of the list's annotations it owns
+(\code{\link[=complexheatmap_member_annotations]{complexheatmap_member_annotations()}}), are layers of its subplot
+after its \code{heat} layer, numbered after every heat and tree layer.
+The annotations drawn and not read are named in one message.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ComplexHeatmapPlotOrchestrator$read_annotations(plot, read, subplots)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The \code{Heatmap} or \code{HeatmapList} passed in}
+      \item{\code{read}}{The places among the drawing's heat maps of those read}
+      \item{\code{subplots}}{Their subplots, in that order}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The subplots, each with its tracks' layers added
   }
 }
 
