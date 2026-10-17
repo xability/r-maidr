@@ -20,13 +20,14 @@ is_webr <- function() {
 #' The webR builds of both xml2 and systemfonts (which svglite loads) carry a
 #' libxml2 of their own, and since xml2 was rebuilt on 2026-10-12 the two no
 #' longer agree. Loaded after systemfonts, xml2 runs against
-#' systemfonts' copy, and parsing the chart's SVG reads out of bounds: the
-#' wasm aborts, R's worker dies, and `show()` never returns (#380). Loaded
-#' first, xml2 keeps its own, and systemfonts works with it.
+#' systemfonts' copy, and parsing an SVG reads out of bounds: the wasm
+#' aborts and R's worker dies (#380). Loaded first, xml2 keeps its own, and
+#' systemfonts works with it.
 #'
-#' maidr loads svglite and xml2 only when it draws, svglite first, so it
-#' loads xml2 itself as it loads. When systemfonts is already loaded there is
-#' nothing to do but say so.
+#' `show()` and `save_html()` no longer parse with xml2 under webR at all
+#' ([finish_svg_markup()], #388), so they work whichever loaded first. What
+#' still reads SVG with xml2 there is the knitr path, so maidr loads xml2
+#' itself as it loads, and when systemfonts is already loaded it says so.
 #'
 #' @param loaded The namespaces already loaded
 #' @param load The function that loads a namespace
@@ -38,9 +39,10 @@ maidr_webr_load_xml2_first <- function(loaded = loadedNamespaces(), load = loadN
   }
   if ("systemfonts" %in% loaded) {
     warning(
-      "Running under webR: systemfonts was loaded before xml2, and maidr may ",
-      "stop R when it draws a chart. Load maidr, or xml2, before svglite, ",
-      "systemfonts or textshaping in a new session.",
+      "Running under webR: systemfonts was loaded before xml2. show() and ",
+      "save_html() work, but knitting a document with maidr charts may stop ",
+      "R. Load maidr, or xml2, before svglite, systemfonts or textshaping in ",
+      "a new session to knit.",
       call. = FALSE
     )
     return(invisible(FALSE))

@@ -87,11 +87,38 @@ create_enhanced_svg <- function(gt, maidr_data, width = NULL, height = NULL) {
 
   svg_content <- export_svg_scene(svg_string, dev_width, dev_height)
 
+  finish_svg(svg_content, maidr_data, candlestick = has_candlestick)
+}
+
+#' Post-process the exported SVG and add the maidr-data attribute
+#'
+#' Under webR, libxml2 may be systemfonts' copy, which aborts the wasm when
+#' xml2 parses with it (#388), so the SVG is finished there without it, to
+#' the same bytes: see [finish_svg_markup()]. Everywhere else xml2 does it,
+#' in [finish_svg_xml2()].
+#'
+#' @param svg_content Character vector of SVG lines, as exported
+#' @param maidr_data The maidr-data structure
+#' @param candlestick Whether the chart has a candlestick layer
+#' @return Character vector of SVG lines
+#' @keywords internal
+finish_svg <- function(svg_content, maidr_data, candlestick = FALSE) {
+  if (is_webr()) {
+    return(finish_svg_markup(svg_content, maidr_data, candlestick = candlestick))
+  }
+  finish_svg_xml2(svg_content, maidr_data, candlestick = candlestick)
+}
+
+#' [finish_svg()] with xml2
+#' @inheritParams finish_svg
+#' @return Character vector of SVG lines
+#' @keywords internal
+finish_svg_xml2 <- function(svg_content, maidr_data, candlestick = FALSE) {
   # Candlestick post-processing + maidr-data injection. Parse the SVG
   # ONCE and apply all transformations to the same xml2 document (which
   # xml2 mutates in place); re-parsing between each step is O(document)
   # per step and dominated rendering time for large charts.
-  if (has_candlestick && requireNamespace("xml2", quietly = TRUE)) {
+  if (candlestick && requireNamespace("xml2", quietly = TRUE)) {
     svg_doc <- tryCatch(
       xml2::read_xml(paste(svg_content, collapse = "\n")),
       error = function(e) NULL
@@ -118,9 +145,7 @@ create_enhanced_svg <- function(gt, maidr_data, width = NULL, height = NULL) {
     }
   }
 
-  svg_content <- add_maidr_data_to_svg(svg_content, maidr_data)
-
-  svg_content
+  add_maidr_data_to_svg(svg_content, maidr_data)
 }
 
 #' Repair NA text-grob justification so gridSVG can export the tree
@@ -899,6 +924,15 @@ inject_candlestick_open_close_doc <- function(svg_doc, maidr_data) {
     n_use <- min(n, n_candles)
     if (n_use == 0) next
 
+    marks <- candlestick_open_close_marks(
+      x = xml2::xml_attr(rects[seq_len(n_use)], "x"),
+      y = xml2::xml_attr(rects[seq_len(n_use)], "y"),
+      width = xml2::xml_attr(rects[seq_len(n_use)], "width"),
+      height = xml2::xml_attr(rects[seq_len(n_use)], "height"),
+      layer = layer,
+      rect_index = rect_index
+    )
+
     opens_node <- xml2::xml_add_sibling(
       body_g, "g",
       id = sprintf("maidr-cs-opens-%s", rect_index),
@@ -909,58 +943,69 @@ inject_candlestick_open_close_doc <- function(svg_doc, maidr_data) {
       id = sprintf("maidr-cs-closes-%s", rect_index),
       .where = "after"
     )
-
-    fmt <- function(v) format(v, trim = TRUE, scientific = FALSE)
-
-    for (i in seq_len(n_use)) {
-      rect <- rects[[i]]
-      x  <- suppressWarnings(as.numeric(xml2::xml_attr(rect, "x")))
-      y  <- suppressWarnings(as.numeric(xml2::xml_attr(rect, "y")))
-      w  <- suppressWarnings(as.numeric(xml2::xml_attr(rect, "width")))
-      h  <- suppressWarnings(as.numeric(xml2::xml_attr(rect, "height")))
-      if (any(is.na(c(x, y, w, h)))) next
-
-      trend <- layer$data[[i]]$trend
-      # In gridSVG's flipped local space, smaller raw y = lower data value.
-      # Bull (close > open): open is the lower edge -> y; close -> y + h.
-      # Bear (close < open): open is the higher edge -> y + h; close -> y.
-      if (identical(trend, "Bull")) {
-        open_y  <- y
-        close_y <- y + h
-      } else if (identical(trend, "Bear")) {
-        open_y  <- y + h
-        close_y <- y
-      } else {
-        # Neutral: open == close; place both at the rect's y edge.
-        open_y  <- y
-        close_y <- y
-      }
-
-      xml2::xml_add_child(
-        opens_node, "line",
-        id = sprintf("maidr-cs-open-%s-%d", rect_index, i),
-        x1 = fmt(x),
-        y1 = fmt(open_y),
-        x2 = fmt(x + w),
-        y2 = fmt(open_y),
-        stroke = "none",
-        fill = "none"
-      )
-      xml2::xml_add_child(
-        closes_node, "line",
-        id = sprintf("maidr-cs-close-%s-%d", rect_index, i),
-        x1 = fmt(x),
-        y1 = fmt(close_y),
-        x2 = fmt(x + w),
-        y2 = fmt(close_y),
-        stroke = "none",
-        fill = "none"
-      )
+    for (attrs in marks$opens) {
+      do.call(xml2::xml_add_child, c(list(opens_node, "line"), as.list(attrs)))
+    }
+    for (attrs in marks$closes) {
+      do.call(xml2::xml_add_child, c(list(closes_node, "line"), as.list(attrs)))
     }
     modified <- TRUE
   }
 
   modified
+}
+
+#' The invisible open and close lines of a candlestick layer
+#'
+#' One pair per candle rect, at the rect's open and close edges: in the
+#' flipped local space the export draws in, a smaller raw y is a lower data
+#' value. A Bull candle (close > open) opens at its lower edge `y` and closes
+#' at `y + h`, a Bear one the other way round, and a neutral one (open ==
+#' close) has both at `y`. A rect whose geometry does not read as numbers
+#' gets none.
+#'
+#' Shared by the xml2 path and the one under webR ([finish_svg_markup()]),
+#' so the two write the same lines.
+#'
+#' @param x,y,width,height The rects' attributes, as strings.
+#' @param layer The candlestick layer, whose `data[[i]]$trend` is read.
+#' @param rect_index The index naming the layer's groups and lines.
+#' @return A list of `opens` and `closes`, each a list of the lines'
+#'   attributes as named character vectors.
+#' @keywords internal
+candlestick_open_close_marks <- function(x, y, width, height, layer, rect_index) {
+  fmt <- function(v) format(v, trim = TRUE, scientific = FALSE)
+  opens <- list()
+  closes <- list()
+  for (i in seq_along(x)) {
+    xi <- suppressWarnings(as.numeric(x[[i]]))
+    yi <- suppressWarnings(as.numeric(y[[i]]))
+    w <- suppressWarnings(as.numeric(width[[i]]))
+    h <- suppressWarnings(as.numeric(height[[i]]))
+    if (any(is.na(c(xi, yi, w, h)))) next
+
+    trend <- layer$data[[i]]$trend
+    if (identical(trend, "Bull")) {
+      open_y <- yi
+      close_y <- yi + h
+    } else if (identical(trend, "Bear")) {
+      open_y <- yi + h
+      close_y <- yi
+    } else {
+      open_y <- yi
+      close_y <- yi
+    }
+
+    line <- function(id, at) {
+      c(
+        id = id, x1 = fmt(xi), y1 = fmt(at), x2 = fmt(xi + w), y2 = fmt(at),
+        stroke = "none", fill = "none"
+      )
+    }
+    opens[[length(opens) + 1L]] <- line(sprintf("maidr-cs-open-%s-%d", rect_index, i), open_y)
+    closes[[length(closes) + 1L]] <- line(sprintf("maidr-cs-close-%s-%d", rect_index, i), close_y)
+  }
+  list(opens = opens, closes = closes)
 }
 
 #' Collect all candlestick layers in a maidr_data structure
@@ -1072,33 +1117,18 @@ adjust_chartseries_bracket <- function(svg_content, maidr_data) {
 #' @keywords internal
 adjust_chartseries_bracket_doc <- function(svg_doc) {
   svg_root <- xml2::xml_root(svg_doc)
-  viewbox <- xml2::xml_attr(svg_root, "viewBox")
-  if (is.na(viewbox)) {
+  safe_x <- chartseries_bracket_x(xml2::xml_attr(svg_root, "viewBox"))
+  if (is.null(safe_x)) {
     return(FALSE)
   }
-  vb_parts <- suppressWarnings(
-    as.numeric(strsplit(viewbox, "\\s+")[[1]])
-  )
-  if (length(vb_parts) < 4L || any(is.na(vb_parts)) || vb_parts[3] <= 0) {
-    return(FALSE)
-  }
-  vb_width <- vb_parts[3]
-  safe_x <- vb_width * 0.95  # 5% right padding
 
   ns <- c(svg = "http://www.w3.org/2000/svg")
   text_nodes <- xml2::xml_find_all(svg_doc, ".//svg:text", ns)
 
-  # Pattern: [YYYY-MM-DD/YYYY-MM-DD] (allow leading/trailing whitespace).
-  bracket_re <- paste0(
-    "^\\s*\\[\\s*\\d{4}-\\d{2}-\\d{2}",
-    "\\s*/\\s*",
-    "\\d{4}-\\d{2}-\\d{2}\\s*\\]\\s*$"
-  )
-
   modified <- FALSE
   for (node in text_nodes) {
     content <- xml2::xml_text(node)
-    if (grepl(bracket_re, content)) {
+    if (grepl(chartseries_bracket_re, content)) {
       # The text is written inside groups that translate it (the export
       # places each label with `translate(x, y)` and draws it at its
       # origin), so its own `x` is relative to them: subtract theirs.
@@ -1115,6 +1145,33 @@ adjust_chartseries_bracket_doc <- function(svg_doc) {
   }
 
   modified
+}
+
+# chartSeries' date-range header: [YYYY-MM-DD/YYYY-MM-DD], allowing
+# whitespace around it.
+chartseries_bracket_re <- paste0(
+  "^\\s*\\[\\s*\\d{4}-\\d{2}-\\d{2}",
+  "\\s*/\\s*",
+  "\\d{4}-\\d{2}-\\d{2}\\s*\\]\\s*$"
+)
+
+#' Where chartSeries' date-range header is moved to
+#'
+#' @param viewbox The SVG's `viewBox`, or `NA`.
+#' @return 95% of the viewBox's width (5% right padding), or `NULL` when it
+#'   cannot be read.
+#' @keywords internal
+chartseries_bracket_x <- function(viewbox) {
+  if (length(viewbox) != 1L || is.na(viewbox)) {
+    return(NULL)
+  }
+  vb_parts <- suppressWarnings(
+    as.numeric(strsplit(unname(viewbox), "\\s+")[[1]])
+  )
+  if (length(vb_parts) < 4L || any(is.na(vb_parts)) || vb_parts[3] <= 0) {
+    return(NULL)
+  }
+  vb_parts[3] * 0.95
 }
 
 #' The x offset of an SVG `translate()` transform
@@ -1198,10 +1255,7 @@ strip_chartseries_date_axis_doc <- function(svg_doc) {
   modified <- FALSE
 
   # Strip only the axis line and tick marks; keep the date labels.
-  for (id_substr in c(
-    "bottom-axis-line-",
-    "bottom-axis-ticks-"
-  )) {
+  for (id_substr in chartseries_date_axis_ids) {
     xpath <- sprintf("//svg:g[contains(@id, '%s')]", id_substr)
     nodes <- xml2::xml_find_all(svg_doc, xpath, ns)
     if (length(nodes) > 0L) {
@@ -1212,6 +1266,10 @@ strip_chartseries_date_axis_doc <- function(svg_doc) {
 
   modified
 }
+
+# The id parts of the chartSeries groups stripped from the SVG.
+chartseries_date_axis_ids <- c("bottom-axis-line-", "bottom-axis-ticks-")
+chartseries_right_axis_ids <- c("right-axis-line-", "right-axis-ticks-")
 
 #' Strip the right y-axis line and ticks from chartSeries candlestick SVG
 #'
@@ -1276,9 +1334,9 @@ strip_chartseries_right_axis_doc <- function(svg_doc) {
 
   # Strip the misplaced right-axis line and ticks; keep the numeric price
   # labels so the y-scale remains visible to sighted users.
-  xpath <- paste0(
-    "//svg:g[contains(@id, 'right-axis-line-') or ",
-    "contains(@id, 'right-axis-ticks-')]"
+  xpath <- sprintf(
+    "//svg:g[%s]",
+    paste(sprintf("contains(@id, '%s')", chartseries_right_axis_ids), collapse = " or ")
   )
   nodes <- xml2::xml_find_all(svg_doc, xpath, ns)
   if (length(nodes) > 0L) {
@@ -1565,6 +1623,20 @@ is_flat_record <- function(record, fields, types) {
 #' @return NULL (invisible)
 #' @keywords internal
 set_maidr_data_attr <- function(svg_doc, maidr_data) {
+  xml2::xml_attr(svg_doc, "maidr-data") <- maidr_data_json(maidr_data)
+
+  invisible(NULL)
+}
+
+#' The `maidr-data` attribute's JSON
+#'
+#' Selectors that resolved nothing are dropped and single ones flattened
+#' first; see [set_maidr_data_attr()].
+#'
+#' @param maidr_data The maidr-data structure
+#' @return The JSON, a `json` string
+#' @keywords internal
+maidr_data_json <- function(maidr_data) {
   # Both passes visit every node of the payload, every data point
   # included, so they run in C++; a classed list is handed back to the R
   # versions, whose `$<-` and `[<-` could dispatch on it.
@@ -1580,16 +1652,12 @@ set_maidr_data_attr <- function(svg_doc, maidr_data) {
   # `digits = NA` keeps full numeric precision: jsonlite's default of 4
   # decimal digits silently rounds data values (0.123456 -> 0.1235) in
   # the announced output.
-  maidr_json <- jsonlite::toJSON(
+  jsonlite::toJSON(
     records_as_frames(maidr_data),
     auto_unbox = TRUE,
     na = "null",
     digits = NA
   )
-
-  xml2::xml_attr(svg_doc, "maidr-data") <- maidr_json
-
-  invisible(NULL)
 }
 
 #' Create HTML document with dependencies
