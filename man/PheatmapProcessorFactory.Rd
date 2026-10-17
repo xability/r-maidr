@@ -7,8 +7,9 @@
 An R6 class inheriting from ProcessorFactory
 }
 \description{
-A pheatmap draws one matrix, read as one \code{heat} layer, and a dendrogram
-on each clustered side, each read as a \code{tree} layer.
+A pheatmap draws one matrix, read as one \code{heat} layer, a dendrogram on
+each clustered side, each read as a \code{tree} layer, and its annotation
+tracks, each read as a \code{heat} or \code{step} layer beside the matrix's.
 }
 \keyword{internal}
 \section{Super class}{
@@ -41,13 +42,16 @@ on each clustered side, each read as a \code{tree} layer.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot_type}}{The layer type, \code{"heat"} or \code{"tree"}}
+      \item{\code{plot_type}}{The layer type, \code{"heat"} or \code{"tree"}, or
+\code{"annotation"} for an annotation track, read as a \code{heat} or \code{step}
+layer}
       \item{\code{plot_object}}{The layer information; a tree's names its \code{side}}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A PheatmapHeatmapLayerProcessor or PheatmapTreeLayerProcessor
+    A PheatmapHeatmapLayerProcessor, PheatmapTreeLayerProcessor or
+PheatmapAnnotationLayerProcessor
   }
 }
 

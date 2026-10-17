@@ -4,7 +4,8 @@
 #' search path. It calls the original with every argument unchanged, draws
 #' exactly what it draws and returns what it returns, with one addition: the
 #' matrix the chart was drawn from, kept with the result so that [show()]
-#' and [save_html()] announce each cell's exact value.
+#' and [save_html()] announce each cell's exact value, and its annotation
+#' data frames, so that every annotation track is read exactly too.
 #'
 #' `pheatmap::pheatmap()` returns its trees and its drawing but not its
 #' matrix. Without this wrapper -- a chart drawn by a call to
@@ -15,7 +16,10 @@
 #'
 #' The matrix kept is the one drawn: the input after `scale = "row"` or
 #' `"column"`, computed as pheatmap computes it; the k-means centres with
-#' `kmeans_k`; in the order of the row and column trees.
+#' `kmeans_k`; in the order of the row and column trees. The annotations
+#' kept are `annotation_row`, `annotation_col` (or the older `annotation`)
+#' and `annotation_colors` as passed; they are matched to the drawn rows and
+#' columns when read, as pheatmap matches them.
 #'
 #' @section Attach order:
 #' Attach 'pheatmap' *before* maidr, or call `maidr::pheatmap()`:
@@ -29,7 +33,8 @@
 #' @param ... Every other argument of `pheatmap::pheatmap()`, passed on
 #'   unchanged
 #' @return What `pheatmap::pheatmap()` returns, invisibly, with the drawn
-#'   matrix as its `"maidr_matrix"` attribute
+#'   matrix as its `"maidr_matrix"` attribute and, when it has annotations,
+#'   them as its `"maidr_annotations"` attribute
 #' @seealso [show()] and [save_html()], which read the result.
 #' @examples
 #' if (requireNamespace("pheatmap", quietly = TRUE)) {
@@ -49,17 +54,39 @@ pheatmap <- function(mat, ...) {
   original <- getExportedValue("pheatmap", "pheatmap")
   result <- original(mat, ...)
 
+  matched <- tryCatch(
+    as.list(match.call(original, as.call(c(list(quote(f)), list(mat), list(...))))),
+    error = function(e) NULL
+  )
   drawn <- tryCatch(
-    {
-      matched <- as.list(match.call(original, as.call(c(list(quote(f)), list(mat), list(...)))))
-      pheatmap_drawn_matrix(mat, matched$scale %||% "none", result)
-    },
+    pheatmap_drawn_matrix(mat, matched$scale %||% "none", result),
     error = function(e) NULL
   )
   if (!is.null(drawn)) {
     attr(result, "maidr_matrix") <- drawn
   }
+  annotations <- tryCatch(pheatmap_kept_annotations(matched), error = function(e) NULL)
+  if (!is.null(annotations)) {
+    attr(result, "maidr_annotations") <- annotations
+  }
   invisible(result)
+}
+
+#' The annotation arguments of a pheatmap() call, as passed
+#'
+#' @param matched The call's arguments, matched to `pheatmap::pheatmap()`'s
+#' @return `list(row, col, colors)`, each NULL when not given as pheatmap
+#'   takes it, or NULL when there are no annotation data frames
+#' @keywords internal
+pheatmap_kept_annotations <- function(matched) {
+  frame <- function(x) if (is.data.frame(x) && ncol(x) > 0L) x
+  col <- frame(matched[["annotation_col"]]) %||% frame(matched[["annotation", exact = TRUE]])
+  row <- frame(matched[["annotation_row"]])
+  if (is.null(row) && is.null(col)) {
+    return(NULL)
+  }
+  colors <- matched[["annotation_colors"]]
+  list(row = row, col = col, colors = if (is.list(colors)) colors)
 }
 
 #' pheatmap's row scaling, exactly as `pheatmap:::scale_rows()` computes it

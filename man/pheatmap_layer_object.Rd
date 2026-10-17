@@ -12,7 +12,8 @@ pheatmap_layer_object(result, index)
 \item{index}{The layer's number}
 }
 \value{
-The layer; with no \code{selectors} when it has none
+The layer; with no \code{selectors} when it has none, and a \code{name}
+when it has one
 }
 \description{
 One layer of a pheatmap as the payload carries it

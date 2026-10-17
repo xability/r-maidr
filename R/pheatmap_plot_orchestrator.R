@@ -4,7 +4,11 @@
 #' Reads the object `pheatmap::pheatmap()` returns as a `heat` layer
 #' ([PheatmapHeatmapLayerProcessor]) and, for each side with a drawn
 #' dendrogram, a `tree` layer ([PheatmapTreeLayerProcessor]), and draws its
-#' `gtable` for the SVG. Experimental. Annotation tracks are not read.
+#' `gtable` for the SVG. Each variable of `annotation_col` and
+#' `annotation_row` it can read exactly is a further layer of the heat
+#' layer's subplot, after it -- the column tracks, then the row tracks, each
+#' in its data frame's column order ([PheatmapAnnotationLayerProcessor],
+#' [pheatmap_annotation_tracks()]). Experimental.
 #'
 #' **Grid.** Each layer is a subplot placed where pheatmap draws it: the row
 #' tree left of the matrix, the column tree above it, and nothing in the
@@ -53,6 +57,7 @@ PheatmapPlotOrchestrator <- R6::R6Class(
         private$.unsupported <- "it draws no matrix of cells"
         return(invisible(self))
       }
+      private$.gtable <- pheatmap_name_annotations(private$.gtable)
       private$.layout <- self$extract_layout()
 
       factory <- get_global_registry()$get_processor_factory("pheatmap")
@@ -89,7 +94,30 @@ PheatmapPlotOrchestrator <- R6::R6Class(
         trees[[side]] <- pheatmap_layer_object(tree, info$index)
       }
 
-      private$.combined_data <- pheatmap_subplot_grid(heat, trees$row, trees$col)
+      tracks <- list()
+      for (side in c("col", "row")) {
+        labels <- if (side == "row") result$data$y else result$data$x
+        for (track in pheatmap_annotation_tracks(plot, private$.gtable, side)) {
+          info <- list(
+            index = length(private$.layers) + 1L, type = "annotation",
+            track = track, labels = labels
+          )
+          track_processor <- factory$create_processor("annotation", info)
+          layer <- track_processor$process(plot, private$.layout)
+          track_processor$set_last_result(layer)
+          validate_axes(layer$axes, context = "pheatmap orchestrator")
+          private$.layers <- c(private$.layers, list(info))
+          private$.layer_processors <- c(private$.layer_processors, list(track_processor))
+          tracks <- c(tracks, list(pheatmap_layer_object(layer, info$index)))
+        }
+      }
+
+      grid <- pheatmap_subplot_grid(heat, trees$row, trees$col)
+      # The heat layer is the last subplot of the bottom row; its tracks
+      # follow it there.
+      last <- length(grid[[1L]])
+      grid[[1L]][[last]]$layers <- c(grid[[1L]][[last]]$layers, tracks)
+      private$.combined_data <- grid
       invisible(self)
     },
 
@@ -183,14 +211,15 @@ PheatmapPlotOrchestrator <- R6::R6Class(
 #' One layer of a pheatmap as the payload carries it
 #' @param result A processor's result
 #' @param index The layer's number
-#' @return The layer; with no `selectors` when it has none
+#' @return The layer; with no `selectors` when it has none, and a `name`
+#'   when it has one
 #' @keywords internal
 pheatmap_layer_object <- function(result, index) {
   layer <- list(id = paste0("maidr-layer-", index))
   if (!is.null(result$selectors)) {
     layer$selectors <- result$selectors
   }
-  c(layer, result[c("type", "data", "title", "axes")])
+  c(layer, result[intersect(c("type", "name", "data", "title", "axes"), names(result))])
 }
 
 #' A pheatmap's subplot grid: each layer where it is drawn, rows bottom first
