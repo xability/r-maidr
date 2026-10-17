@@ -4,16 +4,16 @@ the first library to define a symbol is the one every later library uses.
 The webR builds of both xml2 and systemfonts (which svglite loads) carry a
 libxml2 of their own, and since xml2 was rebuilt on 2026-10-12 the two no
 longer agree. Loaded after systemfonts, xml2 runs against
-systemfonts' copy, and parsing the chart's SVG reads out of bounds: the
-wasm aborts, R's worker dies, and show() never returns (#380). Loaded
-first, xml2 keeps its own, and systemfonts works with it."><meta property="og:description" content="webR links the packages' compiled code into one namespace of symbols, and
+systemfonts' copy, and parsing an SVG reads out of bounds: the wasm
+aborts and R's worker dies (#380). Loaded first, xml2 keeps its own, and
+systemfonts works with it."><meta property="og:description" content="webR links the packages' compiled code into one namespace of symbols, and
 the first library to define a symbol is the one every later library uses.
 The webR builds of both xml2 and systemfonts (which svglite loads) carry a
 libxml2 of their own, and since xml2 was rebuilt on 2026-10-12 the two no
 longer agree. Loaded after systemfonts, xml2 runs against
-systemfonts' copy, and parsing the chart's SVG reads out of bounds: the
-wasm aborts, R's worker dies, and show() never returns (#380). Loaded
-first, xml2 keeps its own, and systemfonts works with it."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+systemfonts' copy, and parsing an SVG reads out of bounds: the wasm
+aborts and R's worker dies (#380). Loaded first, xml2 keeps its own, and
+systemfonts works with it."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -43,9 +43,9 @@ the first library to define a symbol is the one every later library uses.
 The webR builds of both xml2 and systemfonts (which svglite loads) carry a
 libxml2 of their own, and since xml2 was rebuilt on 2026-10-12 the two no
 longer agree. Loaded after systemfonts, xml2 runs against
-systemfonts&#x27; copy, and parsing the chart&#x27;s SVG reads out of bounds: the
-wasm aborts, R&#x27;s worker dies, and show() never returns (#380). Loaded
-first, xml2 keeps its own, and systemfonts works with it.">
+systemfonts&#x27; copy, and parsing an SVG reads out of bounds: the wasm
+aborts and R&#x27;s worker dies (#380). Loaded first, xml2 keeps its own, and
+systemfonts works with it.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/maidr_webr_load_xml2_first.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
@@ -110,9 +110,9 @@ the first library to define a symbol is the one every later library uses.
 The webR builds of both xml2 and systemfonts (which svglite loads) carry a
 libxml2 of their own, and since xml2 was rebuilt on 2026-10-12 the two no
 longer agree. Loaded after systemfonts, xml2 runs against
-systemfonts' copy, and parsing the chart's SVG reads out of bounds: the
-wasm aborts, R's worker dies, and <code><a href="show.html">show()</a></code> never returns (#380). Loaded
-first, xml2 keeps its own, and systemfonts works with it.</p>
+systemfonts' copy, and parsing an SVG reads out of bounds: the wasm
+aborts and R's worker dies (#380). Loaded first, xml2 keeps its own, and
+systemfonts works with it.</p>
     </div>
 
     <div class="section level2">
@@ -138,9 +138,10 @@ first, xml2 keeps its own, and systemfonts works with it.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>maidr loads svglite and xml2 only when it draws, svglite first, so it
-loads xml2 itself as it loads. When systemfonts is already loaded there is
-nothing to do but say so.</p>
+    <p><code><a href="show.html">show()</a></code> and <code><a href="save_html.html">save_html()</a></code> no longer parse with xml2 under webR at all
+(<code><a href="finish_svg_markup.html">finish_svg_markup()</a></code>, #388), so they work whichever loaded first. What
+still reads SVG with xml2 there is the knitr path, so maidr loads xml2
+itself as it loads, and when systemfonts is already loaded it says so.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
