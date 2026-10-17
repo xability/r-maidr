@@ -292,8 +292,7 @@ test_that("each tree is the hclust pheatmap drew, its leaves the heat layer's", 
     tree <- p[[paste0("tree_", side)]]
     expect_identical(layer$type, "tree")
     expect_identical(layer$axes, list(x = list(label = title)))
-    expect_null(layer$selectors)
-    expect_false("selectors" %in% names(layer))
+    expect_length(layer$selectors, 2L * length(tree$order) - 1L)
     expect_identical(layer$data, dendrogram_expected(stats::as.dendrogram(tree)))
     expect_length(layer$data, 2L * length(tree$order) - 1L)
 
@@ -378,4 +377,151 @@ test_that("save_html() writes the trees beside the heat layer", {
   expect_match(html, "&quot;type&quot;:&quot;tree&quot;", fixed = TRUE)
   expect_match(html, "Row dendrogram", fixed = TRUE)
   expect_match(html, "Column dendrogram", fixed = TRUE)
+})
+
+# Highlighting the dendrogram nodes (#389). pheatmap draws one link per
+# merge and nothing at a leaf; maidr draws an unseen mark at each node, and
+# these check every mark against the links pheatmap drew, read back from the
+# exported SVG: a leaf's mark at the foot of the leg rising from it, a
+# merge's on its link's crossbar, where its parent's leg rises from it.
+
+# The tree's links and marks, as exported, in SVG coordinates
+ph_tree_svg <- function(p, side) {
+  orchestrator <- get_global_registry()$get_adapter_for_plot(p)$create_orchestrator(p)
+  svg <- xml2::read_xml(paste(build_interactive_svg(orchestrator), collapse = "\n"))
+  title <- if (side == "row") "Row dendrogram" else "Column dendrogram"
+  layers <- unlist(lapply(
+    unlist(orchestrator$generate_maidr_data()$subplots, recursive = FALSE), `[[`, "layers"
+  ), recursive = FALSE)
+  layer <- layers[vapply(layers, function(l) identical(l$title, title), logical(1))][[1]]
+  cell <- xml2::xml_find_first(svg, sprintf("//*[@id='maidr-pheatmap-%s-tree.1']", side))
+  links <- lapply(
+    xml2::xml_attr(xml2::xml_find_all(cell, ".//*[local-name()='polyline']"), "points"),
+    function(points) {
+      xy <- as.numeric(unlist(strsplit(strsplit(points, " ")[[1]], ",")))
+      matrix(xy, ncol = 2L, byrow = TRUE)
+    }
+  )
+  marks <- lapply(layer$selectors, function(selector) {
+    id <- gsub("\\\\", "", sub("^#", "", selector))
+    xml2::xml_find_all(svg, sprintf("//*[@id='%s']", id))
+  })
+  list(layer = layer, links = links, marks = marks)
+}
+
+# Equal to the SVG's two decimals
+expect_near <- function(actual, expected) {
+  expect_lt(max(abs(actual - expected)), 0.02)
+}
+
+# Check every mark against the drawn links; `along` is the SVG coordinate
+# along the tree (x for the column tree, y for the row tree).
+expect_marks_on_links <- function(p, side, gaps = FALSE) {
+  drawn <- ph_tree_svg(p, side)
+  tree <- p[[paste0("tree_", side)]]
+  merge <- tree$merge
+  along <- if (side == "col") 1L else 2L
+  up <- 3L - along
+  ids <- pheatmap_tree_walk(tree, seq_along(tree$order))$ids
+
+  expect_length(drawn$links, nrow(merge))
+  expect_length(drawn$marks, length(ids))
+  for (k in seq_along(ids)) {
+    mark <- drawn$marks[[k]]
+    expect_length(mark, 1L)
+    expect_identical(xml2::xml_name(mark), "circle")
+    centre <- as.numeric(c(xml2::xml_attr(mark, "cx"), xml2::xml_attr(mark, "cy")))
+    node <- ids[k]
+    # The link a node is a half of, and which half
+    parent <- which(merge == node, arr.ind = TRUE)
+    if (nrow(parent)) {
+      link <- drawn$links[[parent[1, "row"]]]
+      leg <- if (parent[1, "col"] == 1L) link[1:2, ] else link[4:3, ]
+      expect_near(leg[2, up], link[2, up])
+      # The foot of the leg its parent's link rises from it by: a leaf's
+      # tip, a merge's apex
+      expect_near(centre, leg[1, ])
+    }
+    if (node > 0) {
+      # On its own link's crossbar
+      bar <- drawn$links[[node]][2:3, ]
+      expect_near(centre[up], bar[1, up])
+      expect_gte(centre[along], min(bar[, along]) - 0.02)
+      expect_lte(centre[along], max(bar[, along]) + 0.02)
+      # With no gaps the root sits midway along its crossbar. A gap
+      # between its halves shifts it, as it shifts every merge in pheatmap's
+      # drawing: a merge is drawn where its parent's leg meets it.
+      if (node == nrow(merge) && !gaps) {
+        expect_near(centre[along], mean(bar[, along]))
+      }
+    }
+  }
+  invisible(drawn)
+}
+
+test_that("each dendrogram node is highlighted by a mark at it, in node order", {
+  p <- ph_draw(ph_matrix())
+  for (side in c("row", "col")) {
+    drawn <- expect_marks_on_links(p, side)
+    count <- 2L * length(p[[paste0("tree_", side)]]$order) - 1L
+    expect_identical(
+      unlist(drawn$layer$selectors),
+      sprintf("#maidr-pheatmap-%s-node-%d\\.1\\.1", side, seq_len(count))
+    )
+  }
+})
+
+test_that("the marks follow the tree pheatmap draws, cut, tall or on its side", {
+  set.seed(389)
+  m <- matrix(rnorm(70), 10, 7, dimnames = list(paste0("r", 1:10), paste0("c", 1:7)))
+  for (side in c("row", "col")) {
+    expect_marks_on_links(ph_draw(m, cutree_rows = 3, cutree_cols = 2), side, gaps = TRUE)
+    expect_marks_on_links(ph_draw(m, treeheight_row = 120, treeheight_col = 10), side)
+    # Read from the colours, as said once per reading
+    suppressMessages(
+      expect_marks_on_links(ph_draw_direct(m, cutree_rows = 4), side, gaps = side == "row"),
+      classes = "maidr_pheatmap_values"
+    )
+  }
+})
+
+test_that("the marks cannot be seen and change nothing drawn", {
+  p <- ph_draw(ph_matrix(), cutree_rows = 2)
+  orchestrator <- get_global_registry()$get_adapter_for_plot(p)$create_orchestrator(p)
+  marked <- orchestrator$get_gtable()
+  plain <- pheatmap_name_cells(p$gtable)
+  expect_false(identical(marked, plain))
+
+  svg <- xml2::read_xml(paste(build_interactive_svg(orchestrator), collapse = "\n"))
+  marks <- xml2::xml_find_all(svg, paste0(
+    "//*[local-name()='circle']",
+    "[starts-with(@id, 'maidr-pheatmap-') and contains(@id, '-node-')]"
+  ))
+  expect_length(marks, 2L * (4L + 5L) - 2L)
+  expect_true(all(xml2::xml_attr(marks, "fill") == "none"))
+  expect_true(all(xml2::xml_attr(marks, "stroke") == "none"))
+  # A box for the highlight to fill
+  expect_true(all(as.numeric(xml2::xml_attr(marks, "r")) > 0))
+
+  draw <- function(gt) {
+    file <- withr::local_tempfile(fileext = ".png", .local_envir = parent.frame())
+    grDevices::png(file, width = 700, height = 500)
+    grid::grid.draw(gt)
+    grDevices::dev.off()
+    readBin(file, "raw", file.size(file))
+  }
+  expect_identical(draw(marked), draw(plain))
+})
+
+test_that("a tree whose links are not where they should be gets no marks", {
+  p <- ph_draw(ph_matrix())
+  at <- match("row_tree", p$gtable$layout$name)
+  moved <- p$gtable$grobs[[at]]
+  moved$x[2] <- grid::unit(0.5, "npc")
+  p$gtable$grobs[[at]] <- moved
+
+  expect_identical(pheatmap_mark_tree(p, p$gtable, "row"), p$gtable)
+  expect_null(ph_tree(p, "Row dendrogram")$selectors)
+  expect_false("selectors" %in% names(ph_tree(p, "Row dendrogram")))
+  expect_length(ph_tree(p, "Column dendrogram")$selectors, 9L)
 })

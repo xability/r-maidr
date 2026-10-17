@@ -15,12 +15,13 @@ dendrogram, a \code{tree} layer (\link{PheatmapTreeLayerProcessor}), and draws i
 \strong{Grid.} Each layer is a subplot placed where pheatmap draws it: the row
 tree left of the matrix, the column tree above it, and nothing in the
 corner above the row tree -- \verb{[[row tree, heat], [empty, column tree]]},
-as far as each side is drawn. The grid's rows run \strong{bottom first}. No
-subplot of it can be measured in the SVG (the trees carry no selectors
-and the corner none at all), so maidr.js orders it as written, where the
-up arrow moves to the next row; written bottom first, up moves from the
-matrix to the column tree above it, and the reader starts in the bottom
-left subplot, the row tree.
+as far as each side is drawn. The grid's rows run \strong{bottom first}.
+maidr.js does not measure this grid in the SVG -- it places a subplot
+by its layer's first selector, which neither the heat layer's grid of
+selectors nor the empty corner gives it -- so it orders it as written,
+where the up arrow moves to the next row; written bottom first, up moves
+from the matrix to the column tree above it, and the reader starts in
+the bottom left subplot, the row tree.
 
 When the cells' values cannot be read -- not drawn with \code{\link[=pheatmap]{pheatmap()}},
 which keeps them, and with no legend (\code{legend = FALSE}) or one labelled
