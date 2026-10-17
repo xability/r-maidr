@@ -1,7 +1,7 @@
 # ComplexHeatmap Processor Factory
 
 Each heat map of a ComplexHeatmap chart draws one matrix, read as one
-`heat` layer.
+`heat` layer, and its dendrograms, read as `tree` layers.
 
 ## Format
 
@@ -42,15 +42,15 @@ Create the processor for a layer type
 
 - `plot_type`:
 
-  The layer type; only `"heat"` is read
+  The layer type, `"heat"` or `"tree"`
 
 - `plot_object`:
 
-  The layer information
+  The layer information; a tree's names its `side`
 
 #### Returns
 
-A ComplexHeatmapLayerProcessor
+A ComplexHeatmapLayerProcessor or ComplexHeatmapTreeLayerProcessor
 
 ------------------------------------------------------------------------
 

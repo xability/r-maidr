@@ -3,7 +3,8 @@
 Reads a 'ComplexHeatmap' heat map – a `Heatmap`, or a `HeatmapList`
 holding one or more – as one subplot per heat map, each holding one
 `heat` layer
-([ComplexHeatmapLayerProcessor](https://r.maidr.ai/reference/ComplexHeatmapLayerProcessor.md)).
+([ComplexHeatmapLayerProcessor](https://r.maidr.ai/reference/ComplexHeatmapLayerProcessor.md)),
+and a subplot for the `tree` layers of each side's dendrograms.
 Experimental.
 
 The object is drawn once, with
@@ -20,20 +21,28 @@ say, which an undrawn `Heatmap` runs again on every draw. Pass what
 read heat map by heat map, each from its own matrix, labels and drawn
 order – which the drawing shares across the list, the rows of a
 horizontal list and the columns of a vertical one – into a subplot of
-its own. A horizontal list is one row of subplots, left to right; a
-vertical list one column of them, its rows written **bottom first**, as
-pheatmap's grid is
+its own. A horizontal list's heat maps are one row of subplots, left to
+right; a vertical list's one column of them, its rows written **bottom
+first**, as pheatmap's grid is
 ([PheatmapPlotOrchestrator](https://r.maidr.ai/reference/PheatmapPlotOrchestrator.md)):
 a heat layer's selectors are a grid, which maidr.js does not measure a
 subplot by, so it orders the subplots as written, where Up moves to the
 next row. Each heat map's title is its own column title, and the chart's
 the one `draw()` was given for the whole list.
 
-Only the matrices are read. The dendrograms set the order the cells are
-read in but are not read themselves, and neither are annotations,
-between heat maps or around them, or legends. A heat map whose matrix is
-not numeric (a discrete heat map of categories) is left out of a list
-that holds a numeric one, with a message (class
+**Trees.** Each dendrogram drawn is read as a `tree` layer
+([ComplexHeatmapTreeLayerProcessor](https://r.maidr.ai/reference/ComplexHeatmapTreeLayerProcessor.md))
+in a subplot placed where it is drawn
+([`complexheatmap_subplot_grid()`](https://r.maidr.ai/reference/complexheatmap_subplot_grid.md)).
+In a list each heat map's own drawn settings say which it draws: a
+horizontal list's shared rows have one row tree, the main heat map's,
+beside the heat map that draws it, and each heat map its own column
+tree; a vertical list the reverse.
+
+The matrices and dendrograms are read; annotations, between heat maps or
+around them, and legends are not. A heat map whose matrix is not numeric
+(a discrete heat map of categories) is left out of a list that holds a
+numeric one, its dendrograms with it, with a message (class
 `maidr_complexheatmap_skipped`) naming it; a chart with no numeric heat
 map falls back to an image.
 
@@ -46,6 +55,8 @@ An R6 class
 ### Public methods
 
 - [`ComplexHeatmapPlotOrchestrator$new()`](#method-ComplexHeatmapPlotOrchestrator-initialize)
+
+- [`ComplexHeatmapPlotOrchestrator$read_trees()`](#method-ComplexHeatmapPlotOrchestrator-read_trees)
 
 - [`ComplexHeatmapPlotOrchestrator$extract_layout()`](#method-ComplexHeatmapPlotOrchestrator-extract_layout)
 
@@ -105,6 +116,34 @@ Read a ComplexHeatmap object
   Whether that size was asked for, by default when either side is given;
   see
   [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+------------------------------------------------------------------------
+
+### `ComplexHeatmapPlotOrchestrator$read_trees()`
+
+Read the dendrograms one heat map of the drawing draws
+
+Each side's dendrograms are read by a
+[ComplexHeatmapTreeLayerProcessor](https://r.maidr.ai/reference/ComplexHeatmapTreeLayerProcessor.md),
+as the layers after every heat layer. Each heat map's own drawn settings
+say what it draws: in a horizontal list only the heat map that draws the
+shared row dendrogram – the main one – has a row tree, and in a vertical
+list only that one has a column tree.
+
+#### Usage
+
+    ComplexHeatmapPlotOrchestrator$read_trees(k)
+
+#### Arguments
+
+- `k`:
+
+  The heat map's place among the drawing's heat maps
+
+#### Returns
+
+A list: `row` and `column`, the tree layers of each side, possibly none,
+and `row_side` and `column_side`, where each side's are drawn
 
 ------------------------------------------------------------------------
 
