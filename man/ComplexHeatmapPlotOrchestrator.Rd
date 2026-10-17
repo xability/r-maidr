@@ -8,8 +8,8 @@ An R6 class
 }
 \description{
 Reads a 'ComplexHeatmap' heat map -- a \code{Heatmap}, or a \code{HeatmapList}
-holding exactly one -- as one subplot holding one \code{heat} layer
-(\link{ComplexHeatmapLayerProcessor}). Experimental.
+holding one or more -- as one subplot per heat map, each holding one
+\code{heat} layer (\link{ComplexHeatmapLayerProcessor}). Experimental.
 
 The object is drawn once, with \code{ComplexHeatmap::draw()}, and the drawing
 is grabbed as a grid tree (\code{\link[=complexheatmap_capture]{complexheatmap_capture()}}). The SVG is that
@@ -19,10 +19,25 @@ even where drawing decides it afresh -- \code{row_km}'s k-means, say, which an
 undrawn \code{Heatmap} runs again on every draw. Pass what \code{draw()} returned
 to read the very chart that was shown.
 
-Only the matrix is read. The dendrograms set the order the cells are read
-in but are not read themselves, and neither are annotations or legends.
-A list of more than one heat map, or a matrix that is not numeric (a
-discrete heat map of categories), falls back to an image.
+\strong{Lists.} A list of several heat maps (\code{ht1 + ht2}, \code{ht1 \%v\% ht2}) is
+read heat map by heat map, each from its own matrix, labels and drawn
+order -- which the drawing shares across the list, the rows of a
+horizontal list and the columns of a vertical one -- into a subplot of
+its own. A horizontal list is one row of subplots, left to right; a
+vertical list one column of them, its rows written \strong{bottom first}, as
+pheatmap's grid is (\link{PheatmapPlotOrchestrator}): a heat layer's
+selectors are a grid, which maidr.js does not measure a subplot by, so
+it orders the subplots as written, where Up moves to the next row. Each
+heat map's title is its own column title, and the chart's the one
+\code{draw()} was given for the whole list.
+
+Only the matrices are read. The dendrograms set the order the cells are
+read in but are not read themselves, and neither are annotations, between
+heat maps or around them, or legends. A heat map whose matrix is not
+numeric (a discrete heat map of categories) is left out of a list that
+holds a numeric one, with a message (class
+\code{maidr_complexheatmap_skipped}) naming it; a chart with no numeric heat
+map falls back to an image.
 }
 \keyword{internal}
 \section{Methods}{
@@ -30,6 +45,7 @@ discrete heat map of categories), falls back to an image.
   \itemize{
     \item \href{#method-ComplexHeatmapPlotOrchestrator-initialize}{\code{ComplexHeatmapPlotOrchestrator$new()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-extract_layout}{\code{ComplexHeatmapPlotOrchestrator$extract_layout()}}
+    \item \href{#method-ComplexHeatmapPlotOrchestrator-heatmap_layout}{\code{ComplexHeatmapPlotOrchestrator$heatmap_layout()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-generate_maidr_data}{\code{ComplexHeatmapPlotOrchestrator$generate_maidr_data()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-get_gtable}{\code{ComplexHeatmapPlotOrchestrator$get_gtable()}}
     \item \href{#method-ComplexHeatmapPlotOrchestrator-canvas_size}{\code{ComplexHeatmapPlotOrchestrator$canvas_size()}}
@@ -78,12 +94,38 @@ side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
   Read the chart's title and its rows' title
 
 The title is the column title \code{draw()} was given for the whole list,
-else the heat map's own column title when it is one string; the rows'
-title likewise from the row titles. A title per slice of a split names
-no axis and is not read.
+else, for a single heat map, its own column title when it is one
+string; the rows' title likewise from the row titles. A title per
+slice of a split names no axis and is not read.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{ComplexHeatmapPlotOrchestrator$extract_layout()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with \code{title} and \code{row_title}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ComplexHeatmapPlotOrchestrator-heatmap_layout"></a>}}
+\if{latex}{\out{\hypertarget{method-ComplexHeatmapPlotOrchestrator-heatmap_layout}{}}}
+\subsection{\code{ComplexHeatmapPlotOrchestrator$heatmap_layout()}}{
+  The title and rows' title of one heat map of a list
+
+Its own column title, and the rows' title \code{draw()} was given, else its
+own row title, else, in a horizontal list, whose rows are shared, the
+main heat map's: the one row title 'ComplexHeatmap' draws for them.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ComplexHeatmapPlotOrchestrator$heatmap_layout(k)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{k}}{The heat map's place among the list's heat maps}
+    }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{

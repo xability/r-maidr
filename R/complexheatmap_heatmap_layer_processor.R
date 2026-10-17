@@ -4,8 +4,10 @@
 #' combination of row and column slice, `row_split`/`row_km` by
 #' `column_split`/`column_km`, a single one without splits -- as one rect
 #' grob with a generated name (`GRID.rect.<n>`). Each is renamed to this
-#' prefix followed by `-<kr>-<kc>`, its row and column slice in drawn order,
-#' so each cell is the SVG element `#maidr-complexheatmap-cells-<kr>-<kc>.1.<k>`.
+#' prefix followed by `-<h>-<kr>-<kc>`: the heat map's place among the heat
+#' maps of the list, and its row and column slice in drawn order, so each
+#' cell is the SVG element `#maidr-complexheatmap-cells-<h>-<kr>-<kc>.1.<k>`.
+#' The heat map's place, not its `name`, which may hold any character.
 #'
 #' @keywords internal
 COMPLEXHEATMAP_CELLS_GROB <- "maidr-complexheatmap-cells"
@@ -24,10 +26,11 @@ COMPLEXHEATMAP_CELLS_GROB <- "maidr-complexheatmap-cells"
 #'
 #' @param grob The gTree the drawing was grabbed as
 #' @param heatmap The `Heatmap` drawn, its row and column order set
+#' @param h The heat map's place among the heat maps of the list
 #' @return A list: `grob`, with the cells renamed; `cells`, a list of the
 #'   names given, `[[kr]][[kc]]`, or NULL when the cells cannot be selected
 #' @keywords internal
-complexheatmap_name_cells <- function(grob, heatmap) {
+complexheatmap_name_cells <- function(grob, heatmap, h = 1L) {
   rows <- heatmap@row_order_list
   cols <- heatmap@column_order_list
   kids <- grob$children[grob$childrenOrder]
@@ -38,7 +41,7 @@ complexheatmap_name_cells <- function(grob, heatmap) {
     if (is.null(slice) || !is.null(cells[[slice[1]]][[slice[2]]])) {
       next
     }
-    name <- paste(COMPLEXHEATMAP_CELLS_GROB, slice[1], slice[2], sep = "-")
+    name <- paste(COMPLEXHEATMAP_CELLS_GROB, h, slice[1], slice[2], sep = "-")
     kids[[at]]$name <- name
     cells[[slice[1]]][[slice[2]]] <- name
   }
@@ -103,13 +106,16 @@ complexheatmap_rect_is_cells <- function(rect, nr, nc) {
 #' ComplexHeatmap Heatmap Layer Processor
 #'
 #' @description
-#' Reads the one `heat` layer of a ComplexHeatmap heat map from the
-#' `HeatmapList` its drawing returned ([complexheatmap_capture()]).
+#' Reads the `heat` layer of one ComplexHeatmap heat map from the
+#' `HeatmapList` its drawing returned ([complexheatmap_capture()]): the one
+#' heat map of a chart, or one of a list's.
 #'
-#' **Order.** The rows and columns are read in the order drawn,
-#' `row_order()` and `column_order()` of the drawn list: by the dendrograms
-#' when clustered, by `row_order`/`column_order` when given. Rows are top
-#' first, as maidr.js reads `data.points`.
+#' **Order.** The rows and columns are read in the order drawn, the heat
+#' map's own row and column order in the drawn list: by the dendrograms
+#' when clustered, by `row_order`/`column_order` when given, and in a list
+#' by the order the list shares -- the main heat map's rows in a horizontal
+#' list, its columns in a vertical one. Rows are top first, as maidr.js
+#' reads `data.points`.
 #'
 #' **Splits.** A heat map split into slices (`row_split`, `row_km`,
 #' `column_split`, `column_km`) is read as one grid, its slices put side by
@@ -140,9 +146,10 @@ ComplexHeatmapLayerProcessor <- R6::R6Class(
   public = list(
     #' @description Read the layer
     #' @param plot The `Heatmap` or `HeatmapList` passed in
-    #' @param layout The figure's layout: its title and its rows' title
+    #' @param layout The layer's title and its rows' title
     #' @param built Unused
-    #' @param gt The capture, from [complexheatmap_capture()]
+    #' @param gt The capture, from [complexheatmap_capture()], its `heatmap`
+    #'   and `cells` those of the heat map read
     #' @param grob_id Unused
     #' @param panel_id Unused
     #' @param panel_ctx Unused

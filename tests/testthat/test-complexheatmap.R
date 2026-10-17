@@ -1,4 +1,4 @@
-# Reading ComplexHeatmap heat maps (#381)
+# Reading ComplexHeatmap heat maps (#381, #391)
 #
 # A `Heatmap`, or a `HeatmapList` holding one, is drawn once with
 # ComplexHeatmap::draw(); the cells are read from the heat map's own matrix
@@ -53,13 +53,12 @@ ch_order <- function(drawn) {
   )
 }
 
-# Every selector names one SVG element, filled with the colour the heat
-# map's colour mapping gives the value read for that cell.
-expect_selectors_paint_values <- function(x) {
-  orchestrator <- ch_orchestrator(x)
-  svg <- xml2::read_xml(paste(build_interactive_svg(orchestrator), collapse = "\n"))
-  layer <- orchestrator$generate_maidr_data()$subplots[[1]][[1]]$layers[[1]]
-  mapping <- ch_drawn(x)@ht_list[[1]]@matrix_color_mapping
+# Every selector of a layer names one SVG element, inside the body of the
+# heat map read, filled with the colour that heat map's colour mapping
+# gives the value read for that cell.
+expect_layer_paints_values <- function(svg, layer, heatmap) {
+  mapping <- heatmap@matrix_color_mapping
+  body <- paste0("::", heatmap@name, "_heatmap_body_")
   values <- ch_points(layer)
   n <- nrow(values)
   expect_length(layer$selectors, n)
@@ -70,6 +69,8 @@ expect_selectors_paint_values <- function(x) {
       id <- gsub("\\\\", "", sub("^#", "", layer$selectors[[r]][[c]]))
       cell <- xml2::xml_find_all(svg, sprintf("//*[@id='%s']", id))
       expect_length(cell, 1L)
+      ancestors <- xml2::xml_attr(xml2::xml_find_all(cell, "ancestor::*"), "id")
+      expect_true(any(grepl(body, ancestors, fixed = TRUE)))
       colour <- ComplexHeatmap::map_to_colors(mapping, values[top_row, c])
       rgb <- grDevices::col2rgb(colour)
       expect_identical(
@@ -78,6 +79,16 @@ expect_selectors_paint_values <- function(x) {
       )
     }
   }
+}
+
+ch_svg <- function(orchestrator) {
+  xml2::read_xml(paste(build_interactive_svg(orchestrator), collapse = "\n"))
+}
+
+expect_selectors_paint_values <- function(x) {
+  orchestrator <- ch_orchestrator(x)
+  layer <- orchestrator$generate_maidr_data()$subplots[[1]][[1]]$layers[[1]]
+  expect_layer_paints_values(ch_svg(orchestrator), layer, ch_drawn(x)@ht_list[[1]])
 }
 
 test_that("a Heatmap and a HeatmapList are claimed by the ComplexHeatmap system", {
@@ -204,15 +215,170 @@ test_that("a raster body is read without highlighting, and says so", {
   expect_identical(ch_points(layer), unname(m))
 })
 
-test_that("more than one heat map, or a discrete one, falls back", {
-  m <- ch_matrix()
-  orchestrator <- ch_orchestrator(ch_heatmap(m) + ch_heatmap(m))
-  expect_match(orchestrator$unsupported_reasons(), "2 heat maps")
-  expect_true(orchestrator$has_unsupported_layers())
+# Lists of several heat maps (#391): each heat map is read from its own
+# matrix into a subplot of its own, in the order the list shares.
+
+ch_list_matrices <- function() {
+  set.seed(391)
+  list(
+    a = ch_matrix(),
+    # The rows of `a`, other columns, other values: its own colours.
+    b = matrix(
+      rnorm(20, mean = 50, sd = 10), 5, 4,
+      dimnames = list(paste0("gene", 1:5), paste0("drug", 1:4))
+    ),
+    # The columns of `a`, other rows.
+    c = matrix(
+      rnorm(18, mean = -20, sd = 5), 3, 6,
+      dimnames = list(paste0("protein", 1:3), paste0("sample", 1:6))
+    )
+  )
+}
+
+ch_grid <- function(x) {
+  orchestrator <- ch_orchestrator(x)
+  expect_identical(orchestrator$unsupported_reasons(), character(0))
+  orchestrator$generate_maidr_data()$subplots
+}
+
+ch_subplot_ids <- function(subplots) {
+  lapply(subplots, function(row) vapply(row, function(s) s$id, character(1)))
+}
+
+test_that("a horizontal list is one row of heat maps, each read exactly", {
+  m <- ch_list_matrices()
+  x <- ComplexHeatmap::Heatmap(m$a, name = "a", column_title = "A", row_title = "Genes") +
+    ComplexHeatmap::Heatmap(m$b, name = "b", column_title = "B")
+  subplots <- ch_grid(x)
+  drawn <- ch_drawn(x)
+  rows <- ComplexHeatmap::row_order(drawn)
+  cols <- lapply(ComplexHeatmap::column_order(drawn), unlist, use.names = FALSE)
+
+  expect_identical(ch_subplot_ids(subplots), list(c("maidr-subplot-1-1", "maidr-subplot-1-2")))
+  a <- subplots[[1]][[1]]$layers[[1]]
+  b <- subplots[[1]][[2]]$layers[[1]]
+  expect_identical(c(a$id, b$id), c("maidr-layer-1", "maidr-layer-2"))
+  expect_identical(c(a$title, b$title), c("A", "B"))
+  expect_identical(c(a$axes$z$label, b$axes$z$label), c("a", "b"))
+  # The rows are shared, and so is the row title drawn for them.
+  expect_identical(c(a$axes$y$label, b$axes$y$label), c("Genes", "Genes"))
+  expect_identical(ch_points(a), unname(m$a[rows, cols$a]))
+  expect_identical(ch_points(b), unname(m$b[rows, cols$b]))
+  expect_identical(unlist(b$data$y), rownames(m$b)[rows])
+  expect_identical(unlist(b$data$x), colnames(m$b)[cols$b])
+})
+
+test_that("a vertical list is one column of heat maps, bottom first", {
+  m <- ch_list_matrices()
+  x <- ComplexHeatmap::`%v%`(
+    ComplexHeatmap::Heatmap(m$a, name = "a"),
+    ComplexHeatmap::Heatmap(m$c, name = "c", row_title = "Proteins")
+  )
+  subplots <- ch_grid(x)
+  drawn <- ch_drawn(x)
+  rows <- ComplexHeatmap::row_order(drawn)
+  cols <- unlist(ComplexHeatmap::column_order(drawn), use.names = FALSE)
+
+  # `c` is drawn below `a`; the grid's rows run bottom first.
+  expect_identical(ch_subplot_ids(subplots), list("maidr-subplot-1-1", "maidr-subplot-2-1"))
+  c <- subplots[[1]][[1]]$layers[[1]]
+  a <- subplots[[2]][[1]]$layers[[1]]
+  expect_identical(c(a$axes$z$label, c$axes$z$label), c("a", "c"))
+  expect_identical(c(a$axes$y$label, c$axes$y$label), c("Rows", "Proteins"))
+  # The columns are shared.
+  expect_identical(ch_points(a), unname(m$a[unlist(rows$a), cols]))
+  expect_identical(ch_points(c), unname(m$c[unlist(rows$c), cols]))
+  expect_identical(unlist(c$data$y), rownames(m$c)[unlist(rows$c)])
+  expect_identical(unlist(c$data$x), colnames(m$a)[cols])
+})
+
+test_that("a list of split heat maps reads each one's slices in drawn order", {
+  m <- ch_list_matrices()
+  x <- ComplexHeatmap::Heatmap(
+    m$a,
+    name = "a",
+    row_split = c("p", "p", "q", "q", "q"),
+    column_split = rep(c("x", "y"), each = 3)
+  ) + ComplexHeatmap::Heatmap(m$b, name = "b", column_split = c(1, 2, 1, 2))
+  subplots <- ch_grid(x)
+  drawn <- ch_drawn(x)
+  rows <- unlist(ComplexHeatmap::row_order(drawn), use.names = FALSE)
+  cols <- lapply(ComplexHeatmap::column_order(drawn), unlist, use.names = FALSE)
+
+  expect_length(subplots[[1]], 2L)
+  expect_identical(ch_points(subplots[[1]][[1]]$layers[[1]]), unname(m$a[rows, cols$a]))
+  expect_identical(ch_points(subplots[[1]][[2]]$layers[[1]]), unname(m$b[rows, cols$b]))
+})
+
+test_that("each heat map's selectors name its own cells", {
+  skip_if_not_installed("xml2")
+  m <- ch_list_matrices()
+  m$b[2, 3] <- NA
+  lists <- list(
+    ComplexHeatmap::Heatmap(m$a, name = "a") + ComplexHeatmap::Heatmap(m$b, name = "b"),
+    ComplexHeatmap::`%v%`(
+      ComplexHeatmap::Heatmap(m$a, name = "a"),
+      ComplexHeatmap::Heatmap(m$c, name = "c")
+    ),
+    ComplexHeatmap::Heatmap(
+      m$a,
+      name = "a",
+      row_split = c("p", "p", "q", "q", "q"),
+      column_split = rep(c("x", "y"), each = 3)
+    ) + ComplexHeatmap::Heatmap(m$b, name = "b", column_split = c(1, 2, 1, 2))
+  )
+  for (x in lists) {
+    orchestrator <- ch_orchestrator(x)
+    svg <- ch_svg(orchestrator)
+    subplots <- orchestrator$generate_maidr_data()$subplots
+    heatmaps <- ch_drawn(x)@ht_list
+    # In drawn order: the one row left to right, or the column's rows,
+    # written bottom first, top to bottom.
+    drawn_order <- if (length(subplots) == 1L) subplots[[1]] else rev(lapply(subplots, `[[`, 1L))
+    layers <- lapply(drawn_order, function(s) s$layers[[1]])
+    expect_length(layers, 2L)
+    for (k in 1:2) {
+      expect_layer_paints_values(svg, layers[[k]], heatmaps[[k]])
+    }
+  }
+})
+
+test_that("a list with annotations between heat maps reads the heat maps", {
+  m <- ch_list_matrices()
+  x <- ComplexHeatmap::Heatmap(m$a, name = "a") +
+    ComplexHeatmap::rowAnnotation(n = 1:5) +
+    ComplexHeatmap::Heatmap(m$b, name = "b")
+  subplots <- ch_grid(x)
+  rows <- ComplexHeatmap::row_order(ch_drawn(x))
+  expect_length(subplots[[1]], 2L)
+  b <- subplots[[1]][[2]]$layers[[1]]
+  expect_identical(b$axes$z$label, "b")
+  expect_identical(unlist(b$data$y), rownames(m$b)[rows])
+})
+
+test_that("a discrete heat map in a list is skipped, and alone falls back", {
+  m <- ch_list_matrices()
+  discrete <- matrix(sample(c("lo", "hi"), 5, replace = TRUE), 5, 1)
+  x <- ComplexHeatmap::Heatmap(m$a, name = "a") +
+    ComplexHeatmap::Heatmap(discrete, name = "kind")
+  expect_message(
+    orchestrator <- ch_orchestrator(x),
+    "'kind' is a heat map of categories",
+    class = "maidr_complexheatmap_skipped"
+  )
+  subplots <- orchestrator$generate_maidr_data()$subplots
+  expect_identical(ch_subplot_ids(subplots), list("maidr-subplot-1-1"))
+  expect_identical(subplots[[1]][[1]]$layers[[1]]$axes$z$label, "a")
 
   discrete <- matrix(sample(c("lo", "hi"), 30, replace = TRUE), 5, 6)
   orchestrator <- ch_orchestrator(ch_heatmap(discrete))
   expect_match(orchestrator$unsupported_reasons(), "not a non-empty numeric matrix")
+  expect_true(orchestrator$has_unsupported_layers())
+
+  orchestrator <- suppressMessages(ch_orchestrator(
+    ch_heatmap(discrete, name = "x") + ch_heatmap(discrete, name = "y")
+  ))
+  expect_match(orchestrator$unsupported_reasons(), "none of its 2 heat maps")
 })
 
 test_that("save_html() and the widget write a heat layer for a Heatmap", {
@@ -220,7 +386,7 @@ test_that("save_html() and the widget write a heat layer for a Heatmap", {
   save_html(ch_heatmap(ch_matrix()), file = file)
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
   expect_match(html, "&quot;type&quot;:&quot;heat&quot;", fixed = TRUE)
-  expect_match(html, "id=\"maidr-complexheatmap-cells-1-1.1.30\"", fixed = TRUE)
+  expect_match(html, "id=\"maidr-complexheatmap-cells-1-1-1.1.30\"", fixed = TRUE)
 
   widget <- maidr_widget(ch_heatmap(ch_matrix()))
   expect_s3_class(widget, "htmlwidget")

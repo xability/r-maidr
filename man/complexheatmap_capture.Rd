@@ -7,21 +7,22 @@
 complexheatmap_capture(plot, canvas)
 }
 \arguments{
-\item{plot}{A \code{Heatmap}, or a \code{HeatmapList} holding one}
+\item{plot}{A \code{Heatmap} or \code{HeatmapList}}
 
 \item{canvas}{The canvas size, from \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
 }
 \value{
 A list: \code{grob}, the gTree; \code{drawn}, the \code{HeatmapList} the draw
-returned; \code{heatmap}, the one \code{Heatmap} in it, with its row and column
-order as drawn; \code{cells}, the names given to the body's cells, by slice,
-or NULL when they cannot be selected
+returned; \code{heatmaps}, one entry per \code{Heatmap} in it, in drawn order,
+each a list of \code{heatmap}, with its row and column order as drawn, and
+\code{cells}, the names given to its body's cells, by slice, or NULL when
+they cannot be selected; and \code{heatmap} and \code{cells}, those of the first
 }
 \description{
 \code{ComplexHeatmap::draw()} draws on an off-screen device the size of the
 canvas, and the drawing is grabbed with \code{grid::grid.grabExpr()}: a gTree
 that redraws it, its viewports included, which \code{\link[=create_enhanced_svg]{create_enhanced_svg()}}
-draws again for the SVG. The cells of the heat map body are then given
-names the selectors can rely on (\code{\link[=complexheatmap_name_cells]{complexheatmap_name_cells()}}).
+draws again for the SVG. The cells of each heat map's body are then
+given names the selectors can rely on (\code{\link[=complexheatmap_name_cells]{complexheatmap_name_cells()}}).
 }
 \keyword{internal}

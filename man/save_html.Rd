@@ -17,7 +17,7 @@ save_html(
 \arguments{
 \item{plot}{A ggplot2 object, a lattice (trellis) object, the object
 \code{pheatmap::pheatmap()} returns (experimental), a 'ComplexHeatmap'
-\code{Heatmap} or a \code{HeatmapList} holding one (experimental), or NULL for
+\code{Heatmap} or \code{HeatmapList} (experimental), or NULL for
 Base R auto-detection}
 
 \item{file}{File path where to save the HTML file (e.g., "plot.html")}
