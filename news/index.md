@@ -914,17 +914,20 @@
   the room left on the slide, as Quarto stretches a lone figure, less
   the room maidr’s instructions, or a line of its text and its braille
   field, take below it, so that they stay on the slide; it stayed at its
-  own size. A slide marked `.nostretch`, a deck whose front matter turns
-  `auto-stretch` off (a project’s `_quarto.yml` is not read), a chart
-  given an `out-height`, one in columns, a panel or a fragment, and
-  reveal.js’s scroll view on a phone leave a chart at its size, as they
-  leave an image; a div marked `.r-stretch` around the chunk stretches
-  it. A chart is kept within 95% of its box, as reveal.js keeps an
-  image, and the text maidr shows below it no longer takes a slide
-  paragraph’s margins. An ioslides chart, which the larger size above
-  made as large as its slide, is made smaller where it would leave
-  maidr’s instructions and braille field below the slide, which ioslides
-  cuts off.
+  own size. The instructions are measured from the chart’s description,
+  which holds them from maidr.js 4.15.0 on: measured from its name,
+  which from then on holds the chart’s title and type alone, they ran
+  past the slide’s foot. A slide marked `.nostretch`, a deck whose front
+  matter turns `auto-stretch` off (a project’s `_quarto.yml` is not
+  read), a chart given an `out-height`, one in columns, a panel or a
+  fragment, and reveal.js’s scroll view on a phone leave a chart at its
+  size, as they leave an image; a div marked `.r-stretch` around the
+  chunk stretches it. A chart is kept within 95% of its box, as
+  reveal.js keeps an image, and the text maidr shows below it no longer
+  takes a slide paragraph’s margins. An ioslides chart, which the larger
+  size above made as large as its slide, is made smaller where it would
+  leave maidr’s instructions and braille field below the slide, which
+  ioslides cuts off.
 - In a Quarto dashboard, such a chart fills its card, centred, as Quarto
   fills a card with an image, less a line kept below it for maidr’s
   text: in a fill or flow card, a scrolling dashboard, a sidebar, on a

@@ -415,12 +415,30 @@
     }
   }
 
+  // The instructions maidr describes the chart by until the reader moves in
+  // it. From maidr.js 4.15.0 on they are its description, under maidr's own
+  // id in aria-describedby (describe(), above), and the chart's name is its
+  // title and type alone: sized to the name, the room was a line, and the
+  // instructions ran past a slide's foot. Before 4.15.0 they are its name.
+  // The description's last sentence, the key that opens maidr's help, is not
+  // shown below the chart, and is left out: kept, it took two lines more
+  // room than the text, and the chart was drawn that much smaller.
+  function instructionsOf(plot) {
+    var ids = (plot.getAttribute('aria-describedby') || '').split(/\s+/);
+    for (var i = ids.length - 1; i >= 0; i--) {
+      if (ids[i].indexOf(MAIDR_INSTRUCTION) !== 0) continue;
+      var described = document.getElementById(ids[i]);
+      var text = described && described.textContent.trim();
+      if (text) return text.replace(/^([\s\S]*[.!?\u3002\u0964])\s+\S[\s\S]*$/, '$1');
+    }
+    return plot.getAttribute('aria-label');
+  }
+
   function textRoom(wrapper) {
-    // maidr names the chart by its instructions until the reader moves in
-    // it, and they are as long as the instructions it shows; three lines
+    // The instructions are as long as the ones maidr shows; three lines
     // where they are not known.
     var plot = wrapper.querySelector('figure[id^="maidr-figure"] > [tabindex]');
-    var label = plot && plot.getAttribute('aria-label');
+    var label = plot && instructionsOf(plot);
     if (label && wrapper.__maidrKnitrInstructions === undefined) {
       wrapper.__maidrKnitrInstructions = label;
     }
