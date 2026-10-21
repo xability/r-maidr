@@ -717,7 +717,10 @@
 * In a Quarto reveal.js deck, a chart alone on a slide is stretched to the
   room left on the slide, as Quarto stretches a lone figure, less the room
   maidr's instructions, or a line of its text and its braille field, take
-  below it, so that they stay on the slide; it stayed at its own size. A
+  below it, so that they stay on the slide; it stayed at its own size. The
+  instructions are measured from the chart's description, which holds them
+  from maidr.js 4.15.0 on: measured from its name, which from then on holds
+  the chart's title and type alone, they ran past the slide's foot. A
   slide marked `.nostretch`, a deck whose front matter turns `auto-stretch`
   off (a project's `_quarto.yml` is not read), a chart given an
   `out-height`, one in columns, a panel or a fragment, and reveal.js's
