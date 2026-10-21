@@ -746,7 +746,7 @@
   the chart by both; and a slide sized the instructions by the chart's
   name, which from maidr.js 4.15.0 is its title and type, so they ran past
   the slide's foot. With the maidr.js bundled here, which keeps no room, a
-  chart is fitted as before.
+  chart is fitted as before (#400).
 * A captioned chart given an `out.width` and aligned right or centre is
   placed as knitr places its image under Bootstrap 4 and 5 too, which make
   a figure an inline block; it stood at the left of the column.
