@@ -737,6 +737,16 @@
   so the chart keeps its size and place while a reader uses it, and a
   pointer finds the point under it. A 'flexdashboard' still shrinks a
   chart to its box when it is taller.
+* A chart in a Quarto dashboard's card, in a 'flexdashboard' box or alone
+  on a slide is fitted with the room maidr.js keeps below it for its text,
+  once maidr.js keeps one whether or not the reader is in the chart
+  (xability/maidr#1438), measured from maidr.js itself. A card kept a line
+  for the text, which that room would have pushed past, scrolling the
+  card; a 'flexdashboard' box kept its line on top of the room, shrinking
+  the chart by both; and a slide sized the instructions by the chart's
+  name, which from maidr.js 4.15.0 is its title and type, so they ran past
+  the slide's foot. With the maidr.js bundled here, which keeps no room, a
+  chart is fitted as before.
 * A captioned chart given an `out.width` and aligned right or centre is
   placed as knitr places its image under Bootstrap 4 and 5 too, which make
   a figure an inline block; it stood at the left of the column.

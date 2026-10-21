@@ -243,7 +243,9 @@
     svg.style.width = heightWidth(svg);
     var over = box.scrollHeight - box.clientHeight;
     if (over <= 1) return;
-    var line = 2.5 * parseFloat(getComputedStyle(wrapper).fontSize);
+    // The line for maidr's text, less the room maidr.js keeps for it, which
+    // the overflow counts already.
+    var line = Math.max(0, 2.5 * parseFloat(getComputedStyle(wrapper).fontSize) - heldRoom(wrapper));
     var height = svg.getBoundingClientRect().height - over - line;
     svg.style.width = 'auto';
     svg.style.maxHeight = Math.max(height, 96) + 'px';
@@ -256,14 +258,25 @@
     return line > 0 ? line : 1.5 * parseFloat(style.fontSize);
   }
 
+  // The room maidr.js keeps below a chart for its text: as tall as the
+  // instructions it shows as the reader comes in, whether they are in the
+  // chart or not, held open by an unseen copy of them in the chart's figure
+  // (xability/maidr#1438). An older maidr.js keeps none, and its text grows
+  // the figure as the reader comes in: 0.
+  function heldRoom(wrapper) {
+    var held = wrapper.querySelector('[id^="maidr-text-container-room-"]');
+    return held ? held.offsetHeight : 0;
+  }
+
   // A Quarto dashboard shows an image in a card as large as the card's body
   // holds it, keeping its shape, centred in it (.quarto-dashboard-img-contain:
   // width and height 100%, object-fit: contain); and as wide as the card
   // where the card takes its height from what it holds: a flow or scrolling
-  // layout, a phone's. A chart is given the same size and place, less a line
-  // kept below it for the text maidr shows there, but is not made shorter
-  // than an inch for that line unless the card is. A chart given an
-  // out.height keeps the size r-maidr gave it.
+  // layout, a phone's. A chart is given the same size and place, less the
+  // room kept below it for the text maidr shows there -- what maidr.js keeps
+  // for it, or a line -- but is not made shorter than an inch for that room
+  // unless the card is. A chart given an out.height keeps the size r-maidr
+  // gave it.
   //
   // The size is the card's, never what maidr's text, braille and review
   // fields leave of it: a chart that changed size as they came and went
@@ -307,13 +320,13 @@
     // the card.
     var width = wrapper.clientWidth;
     var inner = least - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-    var room = inner - textLine(wrapper);
+    var room = inner - Math.max(textLine(wrapper), heldRoom(wrapper));
     var scale = width / view.width;
     if (sized) scale = Math.min(scale, Math.max(room, Math.min(inner, 96)) / view.height);
     var height = view.height * scale;
     size.width = view.width * scale + 'px';
     size.height = height + 'px';
-    // Centred down the card, with the line for maidr's text below it.
+    // Centred down the card, with the room for maidr's text below it.
     if (room > height) place.paddingTop = (room - height) / 2 + 'px';
     for (var i = 0; i < scrolled.length; i++) scrolled[i][0].scrollTop = scrolled[i][1];
   }
@@ -383,7 +396,9 @@
   // they came and went would jump under the reader's eyes, and maidr.js
   // would hover its marks where they were before, since it measures them
   // once the reader is in the chart and again only when the window scrolls
-  // or resizes.
+  // or resizes. maidr.js keeps the instructions' part of it in the chart's
+  // figure itself (xability/maidr#1438), which the wrapper, measured empty,
+  // leaves out.
   var BRAILLE_ROWS = 5;
 
   // A block laid out as maidr lays out its text below a chart, the page's
@@ -416,16 +431,20 @@
   }
 
   function textRoom(wrapper) {
-    // maidr names the chart by its instructions until the reader moves in
-    // it, and they are as long as the instructions it shows; three lines
-    // where they are not known.
-    var plot = wrapper.querySelector('figure[id^="maidr-figure"] > [tabindex]');
-    var label = plot && plot.getAttribute('aria-label');
-    if (label && wrapper.__maidrKnitrInstructions === undefined) {
-      wrapper.__maidrKnitrInstructions = label;
+    // maidr.js keeps the instructions' room itself, below the chart, and its
+    // copy of them measures it. An older maidr.js named the chart by its
+    // instructions until the reader moved in it, and they are as long as
+    // the instructions it shows; three lines where they are not known.
+    var shown = heldRoom(wrapper);
+    if (!shown) {
+      var plot = wrapper.querySelector('figure[id^="maidr-figure"] > [tabindex]');
+      var label = plot && plot.getAttribute('aria-label');
+      if (label && wrapper.__maidrKnitrInstructions === undefined) {
+        wrapper.__maidrKnitrInstructions = label;
+      }
+      var instructions = wrapper.__maidrKnitrInstructions;
+      shown = instructions ? textProbe(wrapper, instructions, false) : 3 * textLine(wrapper);
     }
-    var instructions = wrapper.__maidrKnitrInstructions;
-    var shown = instructions ? textProbe(wrapper, instructions, false) : 3 * textLine(wrapper);
     return Math.max(shown, textProbe(wrapper, 'M', true));
   }
 
