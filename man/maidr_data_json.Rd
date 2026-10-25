@@ -14,6 +14,7 @@ The JSON, a \code{json} string
 }
 \description{
 Selectors that resolved nothing are dropped and single ones flattened
-first; see \code{\link[=set_maidr_data_attr]{set_maidr_data_attr()}}.
+first, and layer titles are made text; see \code{\link[=set_maidr_data_attr]{set_maidr_data_attr()}} and
+\code{\link[=layer_titles_as_text]{layer_titles_as_text()}}.
 }
 \keyword{internal}

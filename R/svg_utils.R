@@ -1628,10 +1628,87 @@ set_maidr_data_attr <- function(svg_doc, maidr_data) {
   invisible(NULL)
 }
 
+#' A layer `title` as maidr.js reads it: one string, or none
+#'
+#' maidr.js reads a layer's `title` as text. A layer processor that names no
+#' title leaves `NULL` in the slot the orchestrator gives it, and
+#' `jsonlite::toJSON()` writes `NULL` as an empty object, `{}`. maidr.js took
+#' that object for a title and failed on it: `d` opened no description, and
+#' `L` then `T` said nothing and left the reader in label mode, where every
+#' other key was refused. A ggplot2 box plot, heat map, scatter plot,
+#' smooth, violin, volcano and gantt chart all carried one.
+#'
+#' A value that is not a string, a factor level for instance, is written as
+#' the string it prints as, and lines given as several strings are joined
+#' with a space. Anything else is dropped, and a layer without a title is
+#' read under the figure's.
+#'
+#' @param title A layer's `title`, as a processor returned it
+#' @return One string, or `NULL`
+#' @keywords internal
+layer_title_text <- function(title) {
+  if (!is.atomic(title) || length(title) == 0L) {
+    return(NULL)
+  }
+  text <- as.character(title)
+  text <- text[!is.na(text)]
+  if (length(text) == 0L) {
+    return(NULL)
+  }
+  paste(text, collapse = " ")
+}
+
+#' Every layer's `title` one string or absent
+#'
+#' See [layer_title_text()].
+#'
+#' @param maidr_data The maidr-data structure
+#' @return The structure, its layer titles one string each or absent
+#' @keywords internal
+layer_titles_as_text <- function(maidr_data) {
+  if (!is.list(maidr_data) || !is.list(maidr_data$subplots)) {
+    return(maidr_data)
+  }
+  cell_titles <- function(cell) {
+    if (!is.list(cell) || !is.list(cell$layers)) {
+      return(cell)
+    }
+    for (k in seq_along(cell$layers)) {
+      layer <- cell$layers[[k]]
+      if (is.list(layer) && "title" %in% names(layer)) {
+        # Assigning NULL removes the field.
+        layer[["title"]] <- layer_title_text(layer[["title"]])
+        cell$layers[[k]] <- layer
+      }
+    }
+    cell
+  }
+  # `subplots` is a grid, rows of cells; a payload built by hand may give
+  # the cells directly.
+  for (row_index in seq_along(maidr_data$subplots)) {
+    row <- maidr_data$subplots[[row_index]]
+    if (!is.list(row)) {
+      next
+    }
+    if ("layers" %in% names(row)) {
+      maidr_data$subplots[[row_index]] <- cell_titles(row)
+    } else {
+      for (col_index in seq_along(row)) {
+        if (is.list(row[[col_index]])) {
+          row[[col_index]] <- cell_titles(row[[col_index]])
+        }
+      }
+      maidr_data$subplots[[row_index]] <- row
+    }
+  }
+  maidr_data
+}
+
 #' The `maidr-data` attribute's JSON
 #'
 #' Selectors that resolved nothing are dropped and single ones flattened
-#' first; see [set_maidr_data_attr()].
+#' first, and layer titles are made text; see [set_maidr_data_attr()] and
+#' [layer_titles_as_text()].
 #'
 #' @param maidr_data The maidr-data structure
 #' @return The JSON, a `json` string
@@ -1644,6 +1721,7 @@ maidr_data_json <- function(maidr_data) {
   maidr_data <- flatten_single_selectors_cpp(
     maidr_data, SINGLE_SELECTOR_LAYER_TYPES, flatten_single_selectors, join_selector_list
   )
+  maidr_data <- layer_titles_as_text(maidr_data)
 
   # `na = "null"` ensures NA y-values (e.g. the leading rows of an SMA
   # moving-average line) serialize to JSON `null` rather than the string
