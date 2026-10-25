@@ -943,6 +943,15 @@
 
 #### ggplot2
 
+- The `d` key opens the chart description, and `L` then `T` says the
+  title, on a box plot, violin plot, heat map, scatter plot, smooth,
+  volcano plot and gantt chart. Their layers carried an empty object,
+  [`{}`](https://rdrr.io/r/base/Paren.html), where maidr.js reads a
+  title as text, and maidr.js failed on it: `d` opened nothing, and `L`,
+  `T` said nothing and left the reader in label mode, where braille,
+  text and the arrows were refused until they pressed Escape. A layer
+  title is now written as one string or left out, and a layer without
+  one is read under the chart’s title.
 - A layer that maps x or y in its own
   [`aes()`](https://ggplot2.tidyverse.org/reference/aes.html) is read
   under the axis title,
