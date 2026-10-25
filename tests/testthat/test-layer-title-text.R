@@ -42,6 +42,22 @@ test_that("maidr_data_json writes no empty-object layer title", {
   testthat::expect_identical(parsed$title, "Figure")
 })
 
+test_that("layer_titles_as_text reads a flat list of cells too", {
+  maidr_data <- list(
+    id = "flat",
+    subplots = list(
+      list(id = "cell", layers = list(
+        list(id = 1, type = "bar", title = NULL),
+        list(id = 2, type = "bar", title = "Kept")
+      ))
+    )
+  )
+
+  layers <- maidr:::layer_titles_as_text(maidr_data)$subplots[[1]]$layers
+  testthat::expect_false("title" %in% names(layers[[1]]))
+  testthat::expect_identical(layers[[2]]$title, "Kept")
+})
+
 test_that("ggplot2 layers whose processors name no title carry none", {
   skip_if_no_render()
 
