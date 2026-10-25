@@ -1685,20 +1685,20 @@ layer_titles_as_text <- function(maidr_data) {
   }
   # `subplots` is a grid, rows of cells; a payload built by hand may give
   # the cells directly.
-  for (r in seq_along(maidr_data$subplots)) {
-    row <- maidr_data$subplots[[r]]
+  for (row_index in seq_along(maidr_data$subplots)) {
+    row <- maidr_data$subplots[[row_index]]
     if (!is.list(row)) {
       next
     }
     if ("layers" %in% names(row)) {
-      maidr_data$subplots[[r]] <- cell_titles(row)
+      maidr_data$subplots[[row_index]] <- cell_titles(row)
     } else {
-      for (c in seq_along(row)) {
-        if (is.list(row[[c]])) {
-          row[[c]] <- cell_titles(row[[c]])
+      for (col_index in seq_along(row)) {
+        if (is.list(row[[col_index]])) {
+          row[[col_index]] <- cell_titles(row[[col_index]])
         }
       }
-      maidr_data$subplots[[r]] <- row
+      maidr_data$subplots[[row_index]] <- row
     }
   }
   maidr_data
