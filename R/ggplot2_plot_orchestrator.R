@@ -615,19 +615,15 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     #' @description Process a patchwork multipanel plot using utility functions
     #' @return NULL (sets internal state)
     process_patchwork_plot = function() {
-      # Minimal layout information
+      # The composition's own title, subtitle and caption, which
+      # `plot_annotation()` sets (`patchwork_annotation_text()`). Its
+      # `labels` are those of the plot added last, so a grid of titled plots
+      # was named after its last plot.
+      annotation <- patchwork_annotation_text(private$.plot)
       private$.layout <- list(
-        title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
-        subtitle = if (!is.null(private$.plot$labels$subtitle)) {
-          private$.plot$labels$subtitle
-        } else {
-          NULL
-        },
-        caption = if (!is.null(private$.plot$labels$caption)) {
-          private$.plot$labels$caption
-        } else {
-          NULL
-        },
+        title = annotation$title %||% "",
+        subtitle = annotation$subtitle,
+        caption = annotation$caption,
         axes = list()
       )
 

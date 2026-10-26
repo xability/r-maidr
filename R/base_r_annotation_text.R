@@ -539,3 +539,24 @@ base_r_outer_title <- function(call) {
   title <- base_r_annotation_text(text)
   if (!is.null(title)) gsub("\n", " ", title, fixed = TRUE)
 }
+
+#' The subtitle a recorded call drew under the whole page, as one line
+#'
+#' A call given `outer = TRUE` draws its `sub` in the page's outer margin,
+#' under every panel, as it draws its `main` over them
+#' (`base_r_outer_title()`): `title()`, or any plot given a `sub`. `mtext()`
+#' writes no subtitle.
+#'
+#' @param call A recorded call
+#' @return A string, or NULL when the call drew no such subtitle
+#' @keywords internal
+#' @noRd
+base_r_outer_subtitle <- function(call) {
+  args <- call$args
+  if (identical(call$function_name, "mtext") ||
+    !isTRUE(base_r_scalar_arg(args[["outer"]], flag = TRUE, missing = FALSE))) {
+    return(NULL)
+  }
+  subtitle <- base_r_annotation_text(args[["sub"]])
+  if (!is.null(subtitle)) gsub("\n", " ", subtitle, fixed = TRUE)
+}

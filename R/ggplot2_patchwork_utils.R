@@ -592,6 +592,32 @@ reorder_leaf_plot <- function(leaf_plot) {
   leaf_plot
 }
 
+#' The title, subtitle and caption of a patchwork composition
+#'
+#' `plot_annotation()` keeps them on the composition, in
+#' `patches$annotation`, and patchwork draws them over and under all its
+#' plots. Only the outermost composition's are drawn: those of a composition
+#' nested in it are not. A composition's `labels` are those of the plot
+#' added last, whose title is drawn over that plot alone.
+#'
+#' @param plot A patchwork composition
+#' @return A list of `title`, `subtitle` and `caption`, each one non-empty
+#'   string or NULL
+#' @keywords internal
+patchwork_annotation_text <- function(plot) {
+  annotation <- tryCatch(plot$patches$annotation, error = function(e) NULL)
+  one_string <- function(value) {
+    if (is.character(value) && length(value) == 1L && !is.na(value) && nzchar(value)) {
+      value
+    }
+  }
+  list(
+    title = one_string(annotation$title),
+    subtitle = one_string(annotation$subtitle),
+    caption = one_string(annotation$caption)
+  )
+}
+
 #' Extract layout from a single leaf ggplot
 #'
 #' Mirrors the single-plot path in \code{Ggplot2PlotOrchestrator}: labels are

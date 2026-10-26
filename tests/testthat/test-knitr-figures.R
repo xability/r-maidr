@@ -61,7 +61,9 @@ test_that("every chart a chunk draws is shown in place of its figure, in order",
     "lat-1: bar:3", "lat-2: bar:3",
     "base-2: bar:2", "base-3: bar:3", "bar: bar:3", "hist: hist:4",
     # One page of two panels is one chart, and par(op) puts back one panel.
-    "right: bar:3|bar:3", "single: hist:4",
+    # Nothing is drawn over the two panels, so the chart has no title of its
+    # own; each panel keeps its plot's.
+    ": bar:3|bar:3", "single: hist:4",
     "mixed-gg: bar:3", "mixed-bar: bar:4", "mixed-lat: bar:2"
   ))
   # Each chart its own: no id is on the page twice.
@@ -311,7 +313,7 @@ test_that("the charts of one page are one figure, whatever is drawn elsewhere be
 
   testthat::expect_identical(figure_sequence(page), c(
     "elsewhere: hist:4+hist:4",
-    "panel-right: bar:3|bar:3",
+    ": bar:3|bar:3",
     "putback: hist:4", "between: bar:2", "putback: hist:4+hist:4"
   ))
 })
@@ -544,7 +546,7 @@ test_that("a chunk that stops with an error leaves nothing to the next chunk", {
 
   # The page the error left, one panel of two drawn; then the next chunk's
   # chart, on a page of its own.
-  testthat::expect_identical(figure_sequence(page), c("failing: bar:3|", "next: bar:2"))
+  testthat::expect_identical(figure_sequence(page), c(": bar:3|", "next: bar:2"))
 })
 
 test_that("a cached chunk's charts come back from the cache", {
