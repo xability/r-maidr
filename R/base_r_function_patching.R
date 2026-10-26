@@ -1077,6 +1077,7 @@ create_function_wrapper <- function(function_name, original_function) {
       # image" because the device is blank (#216).
       if (identical(args_list[["plot"]], FALSE) ||
           identical(args_list[["plot.it"]], FALSE)) {
+        forget_base_r_call()
         return(as_drawn(result))
       }
 

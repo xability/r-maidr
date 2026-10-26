@@ -612,6 +612,39 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   )
 }
 
+#' Stop following a recorded call that drew nothing
+#'
+#' A call that only computes -- `hist(x, plot = FALSE)`, `boxplot(x, plot =
+#' FALSE)` -- returns without being recorded, and is no longer followed
+#' (`begin_base_r_call()`). It used to be followed on until the next call
+#' started, which is too late when it was made from the arguments of a call
+#' that draws, as `bxp(boxplot(x, plot = FALSE))` and
+#' `barplot(hist(x, plot = FALSE)$counts)` make it: the plot that call
+#' started was taken for the computing call's, so the call that drew it was
+#' recorded as having started no plot, and read as drawn on a plot after the
+#' last, which no element of the chart belonged to. Its selectors named
+#' `graphics-plot-2-...` on a page whose only plot is `graphics-plot-1`.
+#'
+#' Called by the recording wrapper the call was made through, as it returns.
+#'
+#' @param device_id The device the call was made on
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+forget_base_r_call <- function(device_id = grDevices::dev.cur()) {
+  # The wrapper's frame, as `ensure_maidr_device()` gave it to
+  # `begin_base_r_call()`.
+  depth <- sys.parent()
+  key <- as.character(device_id)
+  drawing <- .maidr_base_r_pages$calls[[key]]
+  depths <- vapply(drawing, function(call) call$depth, integer(1))
+  this <- match(depth, depths)
+  if (!is.na(this)) {
+    .maidr_base_r_pages$calls[[key]] <- drawing[seq_len(this - 1L)]
+  }
+  invisible(NULL)
+}
+
 #' The coordinates the plot R is drawing on has
 #'
 #' A low-level call drawn on a plot no recorded call started -- a panel
