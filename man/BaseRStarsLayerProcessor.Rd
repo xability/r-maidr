@@ -22,24 +22,24 @@ would tell a reader that observation 1 scores 0 on a variable it merely
 has the smallest value of. The recorded matrix carries what the caller
 measured, and that is what a reader is told.
 
-\strong{It is read without an outline, deliberately.} The marks are there and
-the pairing is known -- measured by giving each observation its own
-\code{col.stars} and reading every polygon's fill, observation \code{k} owns
-polygons \verb{2k - 1} and \verb{2k}, both filled its colour, plus a \code{segments-k}
-carrying one segment per variable:
+\strong{Each star is outlined through the polygon it is drawn as.} Measured by
+giving each observation its own \code{col.stars} and reading every polygon's
+fill, observation \code{k} owns polygons \verb{2k - 1} and \verb{2k}, both filled its
+colour, plus a \code{segments-k} carrying one segment per variable:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{polygon-1  #111199   polygon-2  #111199   segments-1   observation 1
 polygon-3  #229922   polygon-4  #229922   segments-2   observation 2
 ...
 }\if{html}{\out{</div>}}
 
-What is \emph{not} established is the selector those grobs export to. A
-selector is only worth emitting once it has been resolved against a real
-export, and a real export cannot be had until the chart stops falling back
-to a picture -- which is what this reading is for. So the outline is left
-for a follow-up that can measure it, rather than guessed from the grob
-names. Reading without one is what \code{gauge} already does upstream when the
-marks and the cursor cannot be paired with confidence.
+\code{stars()} draws each star twice, the second time with its \code{col.lines}
+border, and the export writes each as a \verb{<polygon>} whose vertices are
+the spoke tips in the order of the variables, which is how a radar series
+is paired with its marks; each star's selector names the second. The
+reading had no outline at all until a real export could be measured. A
+call drawn with \code{draw.segments = TRUE} draws sectors instead, and one
+whose polygons are not two per star, and a key's, is not paired: those
+are still read without an outline.
 }
 \keyword{internal}
 \section{Super classes}{
@@ -49,6 +49,7 @@ marks and the cursor cannot be paired with confidence.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-BaseRStarsLayerProcessor-process}{\code{BaseRStarsLayerProcessor$process()}}
+    \item \href{#method-BaseRStarsLayerProcessor-star_selectors}{\code{BaseRStarsLayerProcessor$star_selectors()}}
     \item \href{#method-BaseRStarsLayerProcessor-clone}{\code{BaseRStarsLayerProcessor$clone()}}
   }
 }
@@ -118,7 +119,7 @@ marks and the cursor cannot be paired with confidence.
       \item{\code{plot}}{Unused; present for the processor interface.}
       \item{\code{layout}}{Unused; present for the processor interface.}
       \item{\code{built}}{Unused; present for the processor interface.}
-      \item{\code{gt}}{Unused; this reading emits no selectors.}
+      \item{\code{gt}}{The grob tree, for the selectors.}
       \item{\code{grob_id}}{Unused; present for the processor interface.}
       \item{\code{panel_id}}{Unused; present for the processor interface.}
       \item{\code{panel_ctx}}{Unused; present for the processor interface.}
@@ -128,6 +129,31 @@ marks and the cursor cannot be paired with confidence.
   }
   \subsection{Returns}{
     A radar layer, or NULL when nothing was read
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRStarsLayerProcessor-star_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRStarsLayerProcessor-star_selectors}{}}}
+\subsection{\code{BaseRStarsLayerProcessor$star_selectors()}}{
+  One selector per star: the polygon it is drawn as
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRStarsLayerProcessor$star_selectors(layer_info, gt, count)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call.}
+      \item{\code{gt}}{The grob tree the chart was drawn to.}
+      \item{\code{count}}{How many stars, one per row of the matrix.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of selectors, or NULL when the polygons cannot be
+paired with the stars
   }
 }
 
