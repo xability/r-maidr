@@ -127,6 +127,10 @@ test_that("the values are named by the legend's title", {
     ggplot2::geom_bin_2d(bins = 4) +
     ggplot2::labs(fill = "Observations")
   testthat::expect_equal(tile_axes(binned)$z$label, "Observations")
+
+  # A legend left without a title names nothing: the column does.
+  testthat::expect_equal(tile_axes(tile_plot() + ggplot2::labs(fill = ""))$z$label, "score")
+  testthat::expect_equal(tile_axes(tile_plot() + ggplot2::labs(fill = NULL))$z$label, "score")
 })
 
 test_that("an axis with nothing to go on falls back to its aesthetic name", {
