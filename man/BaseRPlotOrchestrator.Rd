@@ -34,6 +34,7 @@ the results into a comprehensive interactive plot.
     \item \href{#method-BaseRPlotOrchestrator-picture_title}{\code{BaseRPlotOrchestrator$picture_title()}}
     \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
     \item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
+    \item \href{#method-BaseRPlotOrchestrator-fills_read_curve}{\code{BaseRPlotOrchestrator$fills_read_curve()}}
     \item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
     \item \href{#method-BaseRPlotOrchestrator-unsupported_group_indices}{\code{BaseRPlotOrchestrator$unsupported_group_indices()}}
     \item \href{#method-BaseRPlotOrchestrator-resolve_fallback_scope}{\code{BaseRPlotOrchestrator$resolve_fallback_scope()}}
@@ -451,6 +452,38 @@ disappear from the accessible output, so they count as unsupported.
   }
   \subsection{Returns}{
     Logical vector, one entry per detected layer
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-fills_read_curve"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-fills_read_curve}{}}}
+\subsection{\code{BaseRPlotOrchestrator$fills_read_curve()}}{
+  Whether a \code{polygon()} fills a curve its plot already reads
+
+\verb{d <- density(x); plot(d); polygon(d, col = ...)} is how Base R shades
+the area under a density curve: the polygon is drawn through the
+curve's own points, so it says nothing the curve layer does not. It
+counted as an overlay maidr could not read, and the whole chart was
+drawn as a picture. A polygon whose points are those of a curve read
+from the same plot is left out of the reading, as a legend is, and
+drawn as it was. Any other polygon still counts as data maidr cannot
+read.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$fills_read_curve(layer)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{A detected layer entry}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the layer is a \code{polygon()} through the points of a
+line or smooth layer of the same plot
   }
 }
 

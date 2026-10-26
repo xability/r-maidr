@@ -886,6 +886,14 @@
   uses, so nothing appeared, and a later `show()` opened an empty scatter
   plot. The call now passes straight to the package's own `plot()` method
   (#333).
+* A density curve shaded with `polygon()` is read as the curve.
+  `d <- density(x); plot(d); polygon(d, col = ...)`, Base R's usual way to
+  fill the area under a density, was saved as a picture with "This plot
+  contains unsupported elements": the polygon counted as an overlay maidr
+  could not read, though it is drawn through the curve's own points. A
+  polygon through the points of a line or density curve read from the same
+  plot is now left out of the reading, as a legend is, and drawn as it
+  was; any other polygon still makes the chart a picture.
 * `layout(1)`, and `par(op)` with the settings `op <- par(mfrow = ...)`
   saved, are read as the resets they are: a chart drawn after one is read
   as a single panel. maidr kept the grid set before the reset, and described

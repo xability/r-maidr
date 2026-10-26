@@ -1375,8 +1375,55 @@ BaseRPlotOrchestrator <- R6::R6Class(
         if (isTRUE(layer$source == "HIGH")) {
           return(TRUE)
         }
-        !isTRUE(layer$function_name %in% decoration_functions)
+        if (isTRUE(layer$function_name %in% decoration_functions)) {
+          return(FALSE)
+        }
+        !self$fills_read_curve(layer)
       }, logical(1))
+    },
+
+    #' @description Whether a `polygon()` fills a curve its plot already reads
+    #'
+    #' `d <- density(x); plot(d); polygon(d, col = ...)` is how Base R shades
+    #' the area under a density curve: the polygon is drawn through the
+    #' curve's own points, so it says nothing the curve layer does not. It
+    #' counted as an overlay maidr could not read, and the whole chart was
+    #' drawn as a picture. A polygon whose points are those of a curve read
+    #' from the same plot is left out of the reading, as a legend is, and
+    #' drawn as it was. Any other polygon still counts as data maidr cannot
+    #' read.
+    #'
+    #' @param layer A detected layer entry
+    #' @return TRUE when the layer is a `polygon()` through the points of a
+    #'   line or smooth layer of the same plot
+    fills_read_curve = function(layer) {
+      if (!identical(layer$function_name, "polygon")) {
+        return(FALSE)
+      }
+      points_of <- function(args) {
+        xy <- resolve_xy_args(args)
+        if (is.null(xy$x)) {
+          return(NULL)
+        }
+        tryCatch(grDevices::xy.coords(xy$x, xy$y), error = function(e) NULL)
+      }
+      shape <- points_of(layer$args)
+      if (!usable_xy_coords(shape)) {
+        return(FALSE)
+      }
+      for (other in private$.layers) {
+        if (!identical(other$group_index, layer$group_index) ||
+              !isTRUE(other$type %in% c("smooth", "line"))) {
+          next
+        }
+        curve <- points_of(other$args)
+        if (!is.null(curve) && length(curve$x) == length(shape$x) &&
+              isTRUE(all.equal(curve$x, shape$x)) &&
+              isTRUE(all.equal(curve$y, shape$y))) {
+          return(TRUE)
+        }
+      }
+      FALSE
     },
 
     #' @description Check if any HIGH-level layers are unsupported (unknown type)
