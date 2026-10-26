@@ -942,6 +942,12 @@
   a `ccf()` as for an `acf()`, where the reading said "CCF" while the chart
   said "ACF", and "ACF (cov)" for a covariance, where it said
   "Autocovariance". An `xlab` or `ylab` the call gives is read too.
+* The cells of an `image()` heat map are named by the `axis()` labels drawn
+  at their centres. `image(m, axes = FALSE)` with `axis(1, at = seq(0, 1,
+  length.out = 5), labels = c("Mon", ...))` and `axis(2, ...)` was read by
+  index, "Day is 2, Hour is 1" for the cell the chart shows as Tue at 9am,
+  and "Highest cell: 3, 4"; it now reads "Day is Tue, Hour is 9am". An
+  `axis()` that names some cells and not others names none.
 * The data a screen reader reads names a Base R chart's axes, and a
   histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
   as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,
