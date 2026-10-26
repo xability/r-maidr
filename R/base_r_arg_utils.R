@@ -71,8 +71,7 @@ usable_xy_coords <- function(coords) {
 #'
 #' * **Order.** `match.call()` reorders arguments into formal order; the
 #'   recorded list keeps the user's order and only gains names. Replay does
-#'   `do.call()`, which honours names regardless of position, while
-#'   `apply_barplot_sorting()` and friends still find the height in slot 1.
+#'   `do.call()`, which honours names regardless of position.
 #' * **The dispatch argument stays exactly as written.** S3 dispatch happens
 #'   on the first argument of the *generic*, and methods are free to rename
 #'   it: `plot.formula()` calls it `formula`, not `x`. Naming a positional

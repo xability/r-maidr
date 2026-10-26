@@ -77,8 +77,8 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       row_names <- as.character(row_names)
 
       # Walk the matrix in its recorded order: the SVG is replayed from
-      # the recorded (already patch-sorted) args, so re-sorting here would
-      # desynchronize data from the drawn rects. This also avoids
+      # the recorded args, so re-sorting here would desynchronize data
+      # from the drawn rects. This also avoids
       # character-sorting numeric fallback labels ("10" before "2") and
       # mismatches when legend.text order differs from rownames order.
       data_by_fill <- list()

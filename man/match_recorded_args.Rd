@@ -36,8 +36,7 @@ Two properties are preserved deliberately:
 \itemize{
 \item \strong{Order.} \code{match.call()} reorders arguments into formal order; the
 recorded list keeps the user's order and only gains names. Replay does
-\code{do.call()}, which honours names regardless of position, while
-\code{apply_barplot_sorting()} and friends still find the height in slot 1.
+\code{do.call()}, which honours names regardless of position.
 \item \strong{The dispatch argument stays exactly as written.} S3 dispatch happens
 on the first argument of the \emph{generic}, and methods are free to rename
 it: \code{plot.formula()} calls it \code{formula}, not \code{x}. Naming a positional

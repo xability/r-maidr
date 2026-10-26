@@ -940,7 +940,7 @@ find_original_function <- function(function_name) {
 #' @return Wrapped function
 #' @keywords internal
 create_function_wrapper <- function(function_name, original_function) {
-  # Special handling for barplot to include sorting logic
+  # barplot() is drawn from its forced arguments (create_barplot_wrapper())
   if (function_name == "barplot") {
     return(create_barplot_wrapper(original_function))
   }
@@ -1419,10 +1419,17 @@ drawn_values_function <- function(y) {
   function(x) y
 }
 
-#' Create enhanced wrapper for barplot with sorting logic
+#' Create the wrapper that records barplot()
+#'
+#' Draws the bars from the arguments the author wrote, in their order, and
+#' records those same arguments: the chart maidr exports is drawn again from
+#' the record, and the bars are read from it. The wrapper used to sort the
+#' categories and the series alphabetically first, so the chart was drawn
+#' and read in an order the author had not chosen, and `legend.text` and
+#' `col`, which it left as they were, named and coloured another row's bars.
 #'
 #' @param original_function Original barplot function
-#' @return Enhanced wrapped function
+#' @return Wrapped function
 #' @keywords internal
 create_barplot_wrapper <- function(original_function) {
   wrapper <- function(...) {
@@ -1442,9 +1449,9 @@ create_barplot_wrapper <- function(original_function) {
     args <- tryCatch(list(...), error = function(e) NULL)
 
     if (is.null(args)) {
-      # NSE arguments: skip sorting patches, record expressions + a snapshot
-      # of the caller bindings they name so replay evaluates them in the
-      # right context, with the values they had when the call was made.
+      # NSE arguments: record expressions + a snapshot of the caller
+      # bindings they name so replay evaluates them in the right context,
+      # with the values they had when the call was made.
       result <- original_function(...)
       recorded_args <- as.list(this_call)[-1L]
       call_env <- snapshot_call_env(recorded_args, caller_env)
@@ -1458,9 +1465,9 @@ create_barplot_wrapper <- function(original_function) {
     } else {
       args <- match_recorded_args("barplot", original_function, args)
       # As recorded, so a plotmath title survives `do.call()` here too.
-      patched_args <- calls_as_expressions(apply_barplot_patches(args))
+      drawn_args <- calls_as_expressions(args)
 
-      result <- do.call(original_function, patched_args)
+      result <- do.call(original_function, drawn_args)
 
       # Computation-only calls (barplot(x, plot = FALSE) returns the bar
       # midpoints without drawing) must not be recorded, or they inject a
@@ -1470,14 +1477,13 @@ create_barplot_wrapper <- function(original_function) {
         return(invisible(result))
       }
 
-      # Log the PATCHED args: replay (both the exported SVG and the native
-      # fallback) re-draws from the recorded args, so recording the raw
-      # args while drawing the patched ones would desynchronize the SVG
-      # bar order from the extracted data order.
+      # Record the arguments drawn with: replay (both the exported SVG and
+      # the native fallback) draws again from the record, and the bars are
+      # read from it, so both follow the chart on the author's screen.
       log_plot_call_to_device(
         "barplot",
         this_call,
-        patched_args,
+        drawn_args,
         grDevices::dev.cur()
       )
     }
@@ -1574,50 +1580,6 @@ clean_maidr_args <- function(args) {
   maidr_args <- grepl("^\\.maidr_", names(args))
   if (any(maidr_args)) {
     args <- args[!maidr_args]
-  }
-
-  args
-}
-
-#' Apply modular patches to barplot arguments
-#'
-#' @param args List of arguments passed to barplot
-#' @return Modified arguments with applied patches
-#' @keywords internal
-apply_barplot_patches <- function(args) {
-  # Store patch manager in package-private environment (not .GlobalEnv)
-  if (is.null(.maidr_patching_env$patch_manager)) {
-    .maidr_patching_env$patch_manager <- PatchManager$new()
-  }
-
-  patch_manager <- .maidr_patching_env$patch_manager
-  patch_manager$apply_patches("barplot", args)
-}
-
-#' Apply sorting logic to barplot arguments for consistent visual ordering
-#'
-#' @param args List of arguments passed to barplot
-#' @return Modified arguments with sorted matrix data
-#' @keywords internal
-apply_barplot_sorting <- function(args) {
-  height <- args[[1]]
-
-  # Only apply sorting if height is a matrix with row/column names (dodged bars)
-  if (is.matrix(height) && !is.null(rownames(height)) && !is.null(colnames(height))) {
-    # Sort fill values (rows) to A,B,C order for consistent visual ordering
-    sorted_fill_values <- sort(rownames(height))
-
-    sorted_x_values <- sort(colnames(height))
-
-    # Reorder matrix according to sorted values
-    reordered_height <- height[sorted_fill_values, sorted_x_values, drop = FALSE]
-
-    args[[1]] <- reordered_height
-
-    if ("names.arg" %in% names(args)) {
-      original_indices <- match(sorted_x_values, colnames(height))
-      args$names.arg <- args$names.arg[original_indices]
-    }
   }
 
   args

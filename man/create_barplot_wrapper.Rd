@@ -2,7 +2,7 @@
 % Please edit documentation in R/base_r_function_patching.R
 \name{create_barplot_wrapper}
 \alias{create_barplot_wrapper}
-\title{Create enhanced wrapper for barplot with sorting logic}
+\title{Create the wrapper that records barplot()}
 \usage{
 create_barplot_wrapper(original_function)
 }
@@ -10,9 +10,14 @@ create_barplot_wrapper(original_function)
 \item{original_function}{Original barplot function}
 }
 \value{
-Enhanced wrapped function
+Wrapped function
 }
 \description{
-Create enhanced wrapper for barplot with sorting logic
+Draws the bars from the arguments the author wrote, in their order, and
+records those same arguments: the chart maidr exports is drawn again from
+the record, and the bars are read from it. The wrapper used to sort the
+categories and the series alphabetically first, so the chart was drawn
+and read in an order the author had not chosen, and \code{legend.text} and
+\code{col}, which it left as they were, named and coloured another row's bars.
 }
 \keyword{internal}
