@@ -1090,7 +1090,10 @@
   the `legend.text` and `col` that go with them, so each series was drawn
   in another's colour under another's name, and read under that name: in a
   stacked chart of Solar, Wind and Hydro, Hydro's numbers were drawn in
-  Solar's green, named "Solar" in the legend and read as Solar's.
+  Solar's green, named "Solar" in the legend and read as Solar's. This
+  reverses what 0.5.0 said ("A named vector is still sorted alphabetically
+  before drawing"): to draw bars sorted, sort the data before `barplot()`,
+  as without maidr.
 
 ## Documentation
 
