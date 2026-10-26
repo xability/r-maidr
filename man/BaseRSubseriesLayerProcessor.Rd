@@ -148,9 +148,17 @@ values, by which point \code{substitute()} is gone, so the expression comes
 off the recorded call text instead, the way the correlograms recover
 their series names (#276).
 
-There is no default for \code{xlab}: \code{monthplot} blanks it unless the caller
-passes one, because the axis it writes carries the cycle labels and not
-a quantity. An unset label is left unset rather than invented.
+\code{xlab} names the axis \code{monthplot} writes the cycle labels along, J F M
+... D, so it names what the series are: it is the \code{z} label, the word
+each series' name is announced under. It used to be put on \code{x}, which
+holds the cycles, so \code{monthplot(nottem, xlab = "Month")} was read
+"Month is 1921, ..., Group is Jan". There is no default for it:
+\code{monthplot} blanks it unless the caller passes one, and an unset label
+is left unset rather than invented.
+
+The cycles are what the times count, which the chart does not write
+on any axis. A monthly or quarterly \code{ts} counts them in years, the unit
+its \code{time()} is in; anything else in cycles.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSubseriesLayerProcessor$extract_axis_titles(layer_info)}

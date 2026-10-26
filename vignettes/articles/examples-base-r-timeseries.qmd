@@ -83,9 +83,11 @@ cpgram(lh, main = "Luteinizing hormone: cumulative periodogram")
 so every January sits together and the seasonal shape is read directly.
 maidr reads it as a **line**.
 
-> **Note:** `monthplot()` has no default for `xlab` -- the axis it writes
-> carries the cycle labels, not a quantity -- so x is named only when the
-> call names it. Left out, y falls back to the series name — `nottem` here.
+> **Note:** `monthplot()` has no default for `xlab`. The axis it writes
+> carries the cycle labels, J to D, so `xlab` names what they are, and
+> each segment is read under it: "Year is 1921, Temperature (F) is 44.2,
+> Month is Jan". Left out, it is not invented; a `ylab` left out falls
+> back to the series name — `nottem` here.
 
 ```{r}
 monthplot(

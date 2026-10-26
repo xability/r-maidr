@@ -926,6 +926,13 @@
   shows the data it was drawn with. An argument written longer than R lets
   a name be (10,000 bytes), or written as `..1`, is still titled with its
   values (#353).
+* `monthplot()`'s `xlab` names the series, not the years. It names the axis
+  the month labels are written along, and was put on the cycles, so
+  `monthplot(nottem, xlab = "Month")` was read "Month is 1921, Temperature
+  (F) is 44.2, Group is Jan" and described with a "Month range: 1920 to
+  1939". It is now the name each month is read under, and the cycles are
+  "Year" for a monthly or quarterly time series, "Cycle" otherwise: "Year is
+  1921, Temperature (F) is 44.2, Month is Jan".
 * The data a screen reader reads names a Base R chart's axes, and a
   histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
   as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,

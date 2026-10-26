@@ -113,9 +113,17 @@ BaseRSubseriesLayerProcessor <- R6::R6Class(
     #' off the recorded call text instead, the way the correlograms recover
     #' their series names (#276).
     #'
-    #' There is no default for `xlab`: `monthplot` blanks it unless the caller
-    #' passes one, because the axis it writes carries the cycle labels and not
-    #' a quantity. An unset label is left unset rather than invented.
+    #' `xlab` names the axis `monthplot` writes the cycle labels along, J F M
+    #' ... D, so it names what the series are: it is the `z` label, the word
+    #' each series' name is announced under. It used to be put on `x`, which
+    #' holds the cycles, so `monthplot(nottem, xlab = "Month")` was read
+    #' "Month is 1921, ..., Group is Jan". There is no default for it:
+    #' `monthplot` blanks it unless the caller passes one, and an unset label
+    #' is left unset rather than invented.
+    #'
+    #' The cycles are what the times count, which the chart does not write
+    #' on any axis. A monthly or quarterly `ts` counts them in years, the unit
+    #' its `time()` is in; anything else in cycles.
     #'
     #' @param layer_info Layer information for the recorded call
     #' @return An `axes` list from [build_axes()]
@@ -124,8 +132,9 @@ BaseRSubseriesLayerProcessor <- R6::R6Class(
       written <- private$written_args(layer_info)
 
       build_axes(
-        x = private$label(args$xlab, NULL),
-        y = private$label(args$ylab, written$x)
+        x = private$cycle_name(args),
+        y = private$label(args$ylab, written$x),
+        z = private$label(args$xlab, NULL)
       )
     },
     #' @description
@@ -257,6 +266,17 @@ BaseRSubseriesLayerProcessor <- R6::R6Class(
         phase = as.numeric(phase),
         labels = labels
       )
+    },
+    # What the times count. `monthplot.ts` derives them from `time()`, which
+    # a monthly or quarterly series keeps in years; times the caller wrote,
+    # or a series of another frequency, count cycles of unknown unit.
+    cycle_name = function(args) {
+      x <- resolve_xy_args(args)$x
+      if (stats::is.ts(x) && is.null(private$given(args$times)) &&
+            isTRUE(stats::frequency(x) %in% c(4, 12))) {
+        return("Year")
+      }
+      "Cycle"
     },
     # `monthplot.ts`'s own table: quarters and months are named, and any other
     # frequency is numbered.
