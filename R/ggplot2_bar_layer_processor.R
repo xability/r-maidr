@@ -185,9 +185,9 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       # One row per bar from here on. A layer whose rows share a category is
       # drawn as one bar per category, each a stack of segments, and is read
       # as those bars (see `stack_rows()`).
-      stacks <- self$stack_rows_of(plot, built_data)
+      stacks <- self$stack_rows_of(plot, self$drawn_rows(built_data))
       if (!is.null(stacks)) {
-        built_data <- self$collapse_stacks(built_data, stacks)
+        built_data <- self$collapse_stacks(self$drawn_rows(built_data), stacks)
       }
 
       # For faceted plots, get x values from built data or scale mapping
@@ -350,8 +350,8 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     #' @return `NULL` when every bar is one row; otherwise a list with one
     #'   integer vector per bar, in the order the bars are read (along the
     #'   category axis), holding the positions of its rows among the panel's
-    #'   rows -- which are also the positions of its rects in the panel's rect
-    #'   grob, drawn in row order.
+    #'   drawn rows (`drawn_rows()`) -- which are also the positions of its
+    #'   rects in the panel's rect grob, drawn in row order.
     stack_rows = function(plot, built, panel_id = NULL) {
       rows <- self$get_layer_built_data(built, panel_id)
       if (is.null(rows)) {
@@ -360,7 +360,24 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       if (isTRUE(rows$flipped_aes[1])) {
         rows <- self$unflip_columns(rows)
       }
-      self$stack_rows_of(plot, rows)
+      self$stack_rows_of(plot, self$drawn_rows(rows))
+    },
+
+    #' @description The rows of a panel that ggplot2 draws a rect for
+    #'
+    #' A row missing its position or extent is drawn as no rect. ggplot2
+    #' 3.4.4 drops such a row while stacking ("Removed 1 rows containing
+    #' missing values (`position_stack()`)"); left among the rows by a
+    #' release that drops it only as it draws, it would put every later rect
+    #' of the panel one place out from the row it was read from.
+    #'
+    #' @param rows The layer's built rows for one panel, the category in `x`.
+    #' @return The rows with a finite `x`, `ymin` and `ymax`.
+    drawn_rows = function(rows) {
+      finite <- function(column) {
+        if (is.null(column)) rep(TRUE, nrow(rows)) else is.finite(column)
+      }
+      rows[finite(rows$x) & finite(rows$ymin) & finite(rows$ymax), , drop = FALSE]
     },
 
     #' @description `stack_rows()` on rows already read

@@ -24,6 +24,13 @@ bar_points <- function(data) {
   vapply(data, function(p) sprintf("%s=%g", p$x, p$y), character(1))
 }
 
+# The elements a `#id rect` selector names in a rendering.
+selected_rects <- function(html, selector) {
+  id <- sub(" rect$", "", sub("^#", "", gsub("\\", "", selector, fixed = TRUE)))
+  doc <- xml2::read_html(html)
+  xml2::xml_find_all(doc, sprintf("//*[@id='%s']/rect", id))
+}
+
 test_that("a stack of segments is read as one bar, its value the stack's total", {
   plot <- stack_plot()
   processor <- maidr:::Ggplot2BarLayerProcessor$new(list(index = 1))
@@ -34,12 +41,53 @@ test_that("a stack of segments is read as one bar, its value the stack's total",
 })
 
 test_that("a stack below zero counts its negative segments down", {
+  # ggplot2 stacks a category's negative segments down from zero and its
+  # positive ones up, so "a" is drawn from -2 to 3. One value cannot say
+  # both ends; the bar is read as the sum of its segments, 1, the total a
+  # stacked bar adds up to, as for an all-negative stack, -1.
   frame <- data.frame(g = c("a", "a", "b", "b", "c"), v = c(3, -2, 5, 4, -1))
   plot <- ggplot2::ggplot(frame, ggplot2::aes(g, v)) + ggplot2::geom_col()
   processor <- maidr:::Ggplot2BarLayerProcessor$new(list(index = 1))
   data <- processor$extract_data(plot, ggplot2::ggplot_build(plot))
 
   expect_equal(bar_points(data), c("a=1", "b=9", "c=-1"))
+})
+
+test_that("a segment with no value is no part of its bar", {
+  # ggplot2 draws no rect for a missing value, and says so: "Removed 1 rows
+  # containing missing values". The bar is the segments it drew, and each
+  # outline spans only those.
+  skip_if_not_installed("xml2")
+  frame <- data.frame(g = c("a", "a", "a", "b", "b"), v = c(3, NA, 2, 5, 4))
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(g, v)) + ggplot2::geom_col()
+  html <- rendered(plot)
+  layer <- layers_from(html)[[1]]
+
+  expect_equal(bar_points(layer$data), c("a=5", "b=9"))
+  heights <- as.numeric(xml2::xml_attr(selected_rects(html, layer$selectors), "height"))
+  expect_equal(heights / heights[2], c(5, 9) / 9, tolerance = 1e-3)
+})
+
+test_that("a built row drawn as no rect is left out of its stack", {
+  # ggplot2 3.4.4 drops the missing row while it stacks. Kept in the built
+  # data, as a build that drops it only when drawing would keep it, the row
+  # has no rect, so counting it in its stack would put every later rect of
+  # the panel one place out: "b" would be outlined over rects 4 and 5, of
+  # which the rect grob has four.
+  frame <- data.frame(g = c("a", "a", "b", "b"), v = c(3, 2, 5, 4))
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(g, v)) + ggplot2::geom_col()
+  built <- ggplot2::ggplot_build(plot)
+  rows <- built$data[[1]]
+  missing <- rows[1, ]
+  missing$y <- NA
+  missing$ymin <- NA
+  missing$ymax <- NA
+  built$data[[1]] <- rbind(rows[1, ], missing, rows[-1, ])
+  processor <- maidr:::Ggplot2BarLayerProcessor$new(list(index = 1))
+
+  expect_equal(bar_points(processor$extract_data(plot, built)), c("a=5", "b=9"))
+  # The rects of the drawn rows, in the order the rect grob holds them.
+  expect_equal(processor$stack_rows(plot, built), list(1:2, 3:4))
 })
 
 test_that("a horizontal stack is read along y, one bar per category", {
@@ -65,13 +113,6 @@ test_that("bars of one row each keep their rects as their selectors", {
   expect_match(layer$selectors, "^#geom_rect\\\\\\.rect\\\\\\.[0-9]+\\\\\\.1 rect$")
   expect_false(grepl(".stacked.", html, fixed = TRUE))
 })
-
-# The elements a `#id rect` selector names in a rendering.
-selected_rects <- function(html, selector) {
-  id <- sub(" rect$", "", sub("^#", "", gsub("\\", "", selector, fixed = TRUE)))
-  doc <- xml2::read_html(html)
-  xml2::xml_find_all(doc, sprintf("//*[@id='%s']/rect", id))
-}
 
 test_that("each stack gets one invisible rect spanning it, which the selector names", {
   skip_if_not_installed("xml2")

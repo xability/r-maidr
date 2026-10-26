@@ -20,6 +20,7 @@ Processes bar plot layers with complete logic included
     \item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
     \item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
     \item \href{#method-Ggplot2BarLayerProcessor-stack_rows}{\code{Ggplot2BarLayerProcessor$stack_rows()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-drawn_rows}{\code{Ggplot2BarLayerProcessor$drawn_rows()}}
     \item \href{#method-Ggplot2BarLayerProcessor-stack_rows_of}{\code{Ggplot2BarLayerProcessor$stack_rows_of()}}
     \item \href{#method-Ggplot2BarLayerProcessor-collapse_stacks}{\code{Ggplot2BarLayerProcessor$collapse_stacks()}}
     \item \href{#method-Ggplot2BarLayerProcessor-format_x_value}{\code{Ggplot2BarLayerProcessor$format_x_value()}}
@@ -268,8 +269,36 @@ rather than stacking them, and is left as it was.
     \code{NULL} when every bar is one row; otherwise a list with one
 integer vector per bar, in the order the bars are read (along the
 category axis), holding the positions of its rows among the panel's
-rows -- which are also the positions of its rects in the panel's rect
-grob, drawn in row order.
+drawn rows (\code{drawn_rows()}) -- which are also the positions of its
+rects in the panel's rect grob, drawn in row order.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-drawn_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-drawn_rows}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$drawn_rows()}}{
+  The rows of a panel that ggplot2 draws a rect for
+
+A row missing its position or extent is drawn as no rect. ggplot2
+3.4.4 drops such a row while stacking ("Removed 1 rows containing
+missing values (\code{position_stack()})"); left among the rows by a
+release that drops it only as it draws, it would put every later rect
+of the panel one place out from the row it was read from.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$drawn_rows(rows)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{rows}}{The layer's built rows for one panel, the category in \code{x}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The rows with a finite \code{x}, \code{ymin} and \code{ymax}.
   }
 }
 
