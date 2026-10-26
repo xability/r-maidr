@@ -948,6 +948,10 @@
   index, "Day is 2, Hour is 1" for the cell the chart shows as Tue at 9am,
   and "Highest cell: 3, 4"; it now reads "Day is Tue, Hour is 9am". An
   `axis()` that names some cells and not others names none.
+* The two halves of a `biplot()` are titled "Observations" and "Variables",
+  under the chart's own title. Both carried the chart's title and plot the
+  same two components, so nothing in the lobby or the description said
+  which half was which.
 * The data a screen reader reads names a Base R chart's axes, and a
   histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
   as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,
