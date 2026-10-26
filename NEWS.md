@@ -1097,6 +1097,12 @@
   lattice's readings as experimental. Five lattice example scripts ship
   with the package, listed by `run_example()` and run with
   `run_example("<name>", type = "lattice")` (#333).
+* The keyboard table in the README, the getting-started vignette and the
+  examples hub says what the arrows do on a horizontal chart. It said Up and
+  Down move between "box plot sections", which holds for a vertical box
+  plot only: on a horizontal one, as the vignette's own `bwplot()` is, Up
+  and Down move between the boxes and Left and Right along the sections
+  (#411).
 
 # maidr 0.5.0
 
