@@ -113,7 +113,11 @@ BaseRCorrelogramLayerProcessor <- R6::R6Class(
     #' @return Named list with `x` and `y`
     extract_axis_titles = function(layer_info) {
       computed <- private$replay(layer_info)
-      build_axes(x = "Lag", y = private$value_axis(layer_info, computed))
+      args <- layer_info$plot_call$args
+      build_axes(
+        x = recorded_axis_label(args, "xlab", "Lag"),
+        y = recorded_axis_label(args, "ylab", private$value_axis(computed))
+      )
     },
 
     #' @description Title the chart the way the drawing does.
@@ -228,17 +232,18 @@ BaseRCorrelogramLayerProcessor <- R6::R6Class(
       symbols <- Filter(is.symbol, positional)
       vapply(symbols, function(sym) as.character(sym), character(1))
     },
-    # What the spikes measure, in the words the drawing uses.
-    value_axis = function(layer_info, computed) {
+    # What the spikes measure, in the words the drawing uses: `plot.acf()`
+    # titles its y axis by the type of the object it is handed, the same for
+    # `acf()`, `pacf()` and `ccf()`, so a cross-correlation is drawn under
+    # "ACF". The reading said "CCF", and "Autocovariance" for a covariance
+    # the axis calls "ACF (cov)".
+    value_axis = function(computed) {
       kind <- if (is.null(computed)) NULL else computed$type
       if (identical(kind, "covariance")) {
-        return("Autocovariance")
+        return("ACF (cov)")
       }
       if (identical(kind, "partial")) {
         return("Partial ACF")
-      }
-      if (identical(as.character(layer_info$function_name), "ccf")) {
-        return("CCF")
       }
       "ACF"
     }

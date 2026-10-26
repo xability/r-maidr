@@ -33,7 +33,8 @@ user study and each may change without a deprecation period. The
 `acf()`, `pacf()` and `ccf()` draw a spike per lag, and maidr reads each as
 a **lollipop**: one term per lag, carrying the correlation at that lag. The
 axes come from the function itself, so the reading says `Lag` against
-`ACF`, `Partial ACF` or `CCF` without being told.
+`ACF` or `Partial ACF`, as the chart's own axis does, without being told:
+`ccf()` draws its cross-correlations under `ACF` too.
 
 `acf()` starts at lag 0, whose autocorrelation is always exactly 1, so the
 first term of an ACF is a constant rather than a measurement. `pacf()` has

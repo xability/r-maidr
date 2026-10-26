@@ -938,6 +938,10 @@
   `qqnorm()`, where it was "X is -2.33, Y is -2.2": a line drawn on a plot
   took the plot's titles only when drawn with `abline()`, `lines()` or
   `points()`.
+* A correlogram's value axis is named as `plot.acf()` names it: "ACF" for
+  a `ccf()` as for an `acf()`, where the reading said "CCF" while the chart
+  said "ACF", and "ACF (cov)" for a covariance, where it said
+  "Autocovariance". An `xlab` or `ylab` the call gives is read too.
 * The data a screen reader reads names a Base R chart's axes, and a
   histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
   as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,
