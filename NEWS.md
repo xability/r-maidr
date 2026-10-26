@@ -893,7 +893,7 @@
   could not read, though it is drawn through the curve's own points. A
   polygon through the points of a line or density curve read from the same
   plot is now left out of the reading, as a legend is, and drawn as it
-  was; any other polygon still makes the chart a picture.
+  was; any other polygon still makes the chart a picture (#409).
 * `layout(1)`, and `par(op)` with the settings `op <- par(mfrow = ...)`
   saved, are read as the resets they are: a chart drawn after one is read
   as a single panel. maidr kept the grid set before the reset, and described

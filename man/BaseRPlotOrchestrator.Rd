@@ -468,7 +468,9 @@ counted as an overlay maidr could not read, and the whole chart was
 drawn as a picture. A polygon whose points are those of a curve read
 from the same plot is left out of the reading, as a legend is, and
 drawn as it was. Any other polygon still counts as data maidr cannot
-read.
+read, a polygon closed down to a baseline among them:
+\code{polygon(c(d$x, rev(d$x)), c(d$y, rep(0, n)))} has points the curve
+does not.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$fills_read_curve(layer)}

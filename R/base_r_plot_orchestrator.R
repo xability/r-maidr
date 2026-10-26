@@ -1391,7 +1391,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' drawn as a picture. A polygon whose points are those of a curve read
     #' from the same plot is left out of the reading, as a legend is, and
     #' drawn as it was. Any other polygon still counts as data maidr cannot
-    #' read.
+    #' read, a polygon closed down to a baseline among them:
+    #' `polygon(c(d$x, rev(d$x)), c(d$y, rep(0, n)))` has points the curve
+    #' does not.
     #'
     #' @param layer A detected layer entry
     #' @return TRUE when the layer is a `polygon()` through the points of a

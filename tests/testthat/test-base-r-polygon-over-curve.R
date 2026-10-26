@@ -81,12 +81,37 @@ test_that("a curve drawn with lines() over a histogram is shaded the same way", 
   )
 })
 
+test_that("a polygon through a line's own points is read as the line", {
+  skip_if_no_render()
+  x <- 1:10
+  y <- c(3, 5, 4, 6, 8, 7, 9, 8, 10, 9)
+  chart <- polygon_export(function() {
+    plot(x, y, type = "l")
+    polygon(x, y, col = "grey")
+  })
+
+  expect_false(fell_back(chart$html))
+  expect_equal(vapply(chart$layers, function(layer) layer$type, ""), "line")
+})
+
 test_that("a polygon that is not a curve of the chart is still not read", {
   skip_if_no_render()
   d <- stats::density(ages)
   chart <- polygon_export(function() {
     plot(d)
     polygon(c(10, 20, 30), c(0, 0.02, 0))
+  })
+
+  expect_true(fell_back(chart$html))
+})
+
+test_that("a polygon closed down to a baseline is not taken for the curve", {
+  # It has points the curve does not: the baseline it is closed along.
+  skip_if_no_render()
+  d <- stats::density(ages)
+  chart <- polygon_export(function() {
+    plot(d)
+    polygon(c(d$x, rev(d$x)), c(d$y, rep(0, length(d$y))), col = "grey")
   })
 
   expect_true(fell_back(chart$html))
