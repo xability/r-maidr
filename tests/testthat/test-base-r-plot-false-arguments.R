@@ -31,8 +31,10 @@ plot_false_export <- function(draw) {
   suppressWarnings(suppressMessages(save_html(file = file)))
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
   document <- xml2::read_html(file)
+  subplots <- schema_from(html)$subplots
   list(
-    layers = schema_from(html)$subplots[[1]][[1]]$layers,
+    layers = subplots[[1]][[1]]$layers,
+    subplots = subplots,
     ids = xml2::xml_attr(xml2::xml_find_all(document, "//*[@id]"), "id")
   )
 }
@@ -84,4 +86,34 @@ test_that("the summaries computed first and drawn after are read the same way", 
   })
   expect_equal(named_ids(nested$layers[[1]]), named_ids(apart$layers[[1]]))
   expect_equal(nested$layers[[1]]$data, apart$layers[[1]]$data)
+})
+
+test_that("in a grid, each panel is read on its own plot", {
+  # Only the computing call is let go as it returns: the call it was made
+  # for still starts its plot, and the panels around it keep theirs.
+  skip_if_no_render()
+  chart <- plot_false_export(function() {
+    par(mfrow = c(1, 3))
+    bxp(boxplot(count ~ spray, data = InsectSprays, plot = FALSE))
+    hist(mtcars$mpg)
+    barplot(hist(mtcars$hp, plot = FALSE)$counts)
+  })
+
+  cells <- chart$subplots[[1]]
+  expect_length(cells, 3L)
+  expect_equal(
+    vapply(cells, function(cell) cell$layers[[1]]$type, character(1)),
+    c("box", "hist", "bar")
+  )
+  for (k in seq_along(cells)) {
+    ids <- named_ids(cells[[k]]$layers[[1]])
+    expect_gt(length(ids), 0L)
+    expect_true(
+      all(startsWith(ids, paste0("graphics-plot-", k, "-"))),
+      label = paste(ids, collapse = " ")
+    )
+    for (id in ids) {
+      expect_true(any(startsWith(chart$ids, id)), label = id)
+    }
+  }
 })

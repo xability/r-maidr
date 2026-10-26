@@ -1220,7 +1220,7 @@
   a plot after the last: every selector named `graphics-plot-2-...` on a
   page whose only plot is `graphics-plot-1`, and the box plot had no
   highlight at all. A call that only computes is no longer followed once
-  it returns.
+  it returns (#408).
 
 ## Documentation
 
