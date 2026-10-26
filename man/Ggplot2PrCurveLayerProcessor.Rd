@@ -84,6 +84,7 @@ Emitted with \code{type = "pr_curve"}, which the core has read since maidr
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2RocLayerProcessor" data-id="as_rates"><a href='../../maidr/html/Ggplot2RocLayerProcessor.html#method-Ggplot2RocLayerProcessor-as_rates'><code>Ggplot2RocLayerProcessor$as_rates()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2RocLayerProcessor" data-id="attach_areas"><a href='../../maidr/html/Ggplot2RocLayerProcessor.html#method-Ggplot2RocLayerProcessor-attach_areas'><code>Ggplot2RocLayerProcessor$attach_areas()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2RocLayerProcessor" data-id="attach_thresholds"><a href='../../maidr/html/Ggplot2RocLayerProcessor.html#method-Ggplot2RocLayerProcessor-attach_thresholds'><code>Ggplot2RocLayerProcessor$attach_thresholds()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2RocLayerProcessor" data-id="named_x_values"><a href='../../maidr/html/Ggplot2RocLayerProcessor.html#method-Ggplot2RocLayerProcessor-named_x_values'><code>Ggplot2RocLayerProcessor$named_x_values()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2RocLayerProcessor" data-id="rows_read"><a href='../../maidr/html/Ggplot2RocLayerProcessor.html#method-Ggplot2RocLayerProcessor-rows_read'><code>Ggplot2RocLayerProcessor$rows_read()</code></a></span></li>
 </ul>
 </details>}}

@@ -75,6 +75,16 @@ Ggplot2RocLayerProcessor <- R6::R6Class(
       result
     },
 
+    #' @description A rate is read as the number it is, whatever the axis's
+    #'   breaks are named: `as_rates()` reads `x` back as a number
+    #' @param layer_data The built layer data
+    #' @param built Built plot data
+    #' @param panel_index Index into `built$layout$panel_params`
+    #' @return NULL
+    named_x_values = function(layer_data, built, panel_index) {
+      NULL
+    },
+
     #' @description Hand the rates back as numbers, inverting `x` when asked
     #'
     #' The line processor stringifies `x` on the way out, because a line's x

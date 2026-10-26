@@ -38,6 +38,7 @@ Emitted with \code{type = "roc"}, which the core has read since maidr 4.9.0.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2RocLayerProcessor-process}{\code{Ggplot2RocLayerProcessor$process()}}
+    \item \href{#method-Ggplot2RocLayerProcessor-named_x_values}{\code{Ggplot2RocLayerProcessor$named_x_values()}}
     \item \href{#method-Ggplot2RocLayerProcessor-as_rates}{\code{Ggplot2RocLayerProcessor$as_rates()}}
     \item \href{#method-Ggplot2RocLayerProcessor-attach_thresholds}{\code{Ggplot2RocLayerProcessor$attach_thresholds()}}
     \item \href{#method-Ggplot2RocLayerProcessor-attach_areas}{\code{Ggplot2RocLayerProcessor$attach_areas()}}
@@ -128,6 +129,31 @@ Emitted with \code{type = "roc"}, which the core has read since maidr 4.9.0.
   }
   \subsection{Returns}{
     List with data, selectors, title, axes and type
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2RocLayerProcessor-named_x_values"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2RocLayerProcessor-named_x_values}{}}}
+\subsection{\code{Ggplot2RocLayerProcessor$named_x_values()}}{
+  A rate is read as the number it is, whatever the axis's
+breaks are named: \code{as_rates()} reads \code{x} back as a number
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2RocLayerProcessor$named_x_values(layer_data, built, panel_index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_data}}{The built layer data}
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_index}}{Index into \code{built$layout$panel_params}}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    NULL
   }
 }
 

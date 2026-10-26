@@ -134,11 +134,73 @@ BaseRLineLayerProcessor <- R6::R6Class(
       # Check for custom axis labels from axis() calls
       x_labels <- self$get_axis_labels(layer_info, axis_side = 1)
 
-      if (is_multiline) {
+      series <- if (is_multiline) {
         self$extract_multiline_data(x, y, x_labels)
       } else {
         self$extract_single_line_data(x, y, x_labels)
       }
+      self$name_y_ticks(series, layer_info)
+    },
+    #' @description Name each point after the tick of a y axis the author
+    #'   named that it sits on
+    #'
+    #' `axis(2, at = 1:5, labels = c("N3", "N2", "N1", "REM", "Awake"))`
+    #' draws a y axis that codes an ordered category with a number, as a
+    #' hypnogram's sleep stages. When every point sits on one of those ticks
+    #' (`tick_names_at()`), each carries the tick's name as its `label`, which
+    #' is announced in place of the number, as a factor's level is on a
+    #' ggplot2 line; `y` stays the number, which places the tone and the
+    #' braille.
+    #'
+    #' @param series List of series, as `extract_single_line_data()` and
+    #'   `extract_multiline_data()` return them
+    #' @param layer_info Layer information containing group data
+    #' @return The series, every point named where every point can be
+    name_y_ticks = function(series, layer_info) {
+      ticks <- self$get_axis_ticks(layer_info, axis_side = 2)
+      if (is.null(ticks) || length(series) == 0) {
+        return(series)
+      }
+      sizes <- vapply(series, length, integer(1))
+      y <- unlist(lapply(series, function(points) {
+        vapply(points, function(point) {
+          if (length(point$y) == 1L) as.numeric(point$y) else NA_real_
+        }, numeric(1))
+      }))
+      tick_names <- tick_names_at(y, ticks$at, ticks$labels)
+      if (is.null(tick_names)) {
+        return(series)
+      }
+      before <- cumsum(sizes) - sizes
+      lapply(seq_along(series), function(s) {
+        points <- series[[s]]
+        for (i in seq_along(points)) {
+          name <- tick_names[before[s] + i]
+          if (!is.na(name)) {
+            points[[i]]$label <- name
+          }
+        }
+        points
+      })
+    },
+    #' @description The positions and names of the ticks an `axis()` call
+    #'   drawn on this plot named with text
+    #' @param layer_info Layer information containing group data
+    #' @param axis_side Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
+    #' @return `list(at, labels)`, or NULL when no such call named its ticks
+    get_axis_ticks = function(layer_info, axis_side = 2) {
+      for (call in layer_info$group$low_calls) {
+        if (identical(call$function_name, "axis") && !isTRUE(call$overlay)) {
+          args <- call$args
+          at <- args[["at"]]
+          labels <- args[["labels"]]
+          if (identical(as.numeric(args[[1]]), as.numeric(axis_side)) &&
+            is.character(labels) && is.numeric(at) && length(labels) == length(at)) {
+            return(list(at = at, labels = labels))
+          }
+        }
+      }
+      NULL
     },
     #' @description Get custom axis labels from axis() LOW-level calls
     #' @param layer_info Layer information containing group data

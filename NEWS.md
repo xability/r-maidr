@@ -759,6 +759,14 @@
   labeller: `labeller(vs = c("0" = "V-engine", "1" = "Straight"))` names it
   "V-engine" where it was "0", and `label_both` "cyl: 4". A `label_parsed`
   label is read as written, "alpha^2".
+* A line whose x breaks the author named, as
+  `scale_x_continuous(breaks = 1:12, labels = month.abb)` names them, is
+  read by those names when every point sits on one: "Month is Feb" where it
+  said "Month is 2", and "Month range: Jan to Dec" in the description, in
+  a facet's panels as in a single plot. Labels a function makes from the
+  numbers, such as `scales::label_dollar()`, still leave the numbers to the
+  axis's format, and a line with a point between named breaks keeps its
+  numbers.
 * The `d` key opens the chart description, and `L` then `T` says the
   title, on a box plot, violin plot, heat map, scatter plot, smooth,
   volcano plot and gantt chart. Their layers carried an empty object, `{}`,
@@ -1024,6 +1032,12 @@
   they derive, even where R draws none. On a chart of several y axes, drawn
   with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
   written beside its own axis (#359).
+* A line or step chart whose y axis the author named tick by tick, as a
+  hypnogram's `axis(2, at = 1:5, labels = c("N3", "N2", "N1", "REM",
+  "Awake"))`, is read by those names: "Sleep stage is N1" where it said
+  "Sleep stage is 3", and the y value still sets the tone and the braille,
+  as on a ggplot2 line over a factor. A point is named only when every
+  point of its layer sits on a named tick.
 * A Base R chart is the page R's device shows: the last one. After
   `hist(mtcars$mpg); hist(mtcars$hp)` R shows the second histogram alone,
   on a page of its own, but `show()` and `save_html()` made one chart of
