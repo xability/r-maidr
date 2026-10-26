@@ -1103,6 +1103,11 @@
   plot only: on a horizontal one, as the vignette's own `bwplot()` is, Up
   and Down move between the boxes and Left and Right along the sections
   (#411).
+* The Manhattan plot in the `volcano` example and in `?maidr_manhattan`
+  titles its x axis "Genomic position", which is what its x holds, and
+  names each chromosome's stretch on the ticks, "chr1" to "chr3". The axis
+  was titled "Chromosome", so a SNP on chromosome 3 was read "Chromosome is
+  450" (#411).
 
 # maidr 0.5.0
 
