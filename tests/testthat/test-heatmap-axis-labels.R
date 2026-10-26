@@ -112,6 +112,23 @@ test_that("a binned scatter names its axes too", {
   testthat::expect_equal(axes$z$label, "count")
 })
 
+test_that("the values are named by the legend's title", {
+  skip_if_no_render()
+
+  # `labs(fill = )` titles the legend the cells are read against. The
+  # reader heard "score is 3", the column's name, under a legend titled
+  # "Correlation".
+  axes <- tile_axes(tile_plot() + ggplot2::labs(fill = "Correlation"))
+  testthat::expect_equal(axes$z$label, "Correlation")
+
+  set.seed(1)
+  frame <- data.frame(width = stats::rnorm(200), height = stats::rnorm(200))
+  binned <- ggplot2::ggplot(frame, ggplot2::aes(width, height)) +
+    ggplot2::geom_bin_2d(bins = 4) +
+    ggplot2::labs(fill = "Observations")
+  testthat::expect_equal(tile_axes(binned)$z$label, "Observations")
+})
+
 test_that("an axis with nothing to go on falls back to its aesthetic name", {
   testthat::skip_if_not_installed("ggplot2")
 
