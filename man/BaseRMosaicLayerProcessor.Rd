@@ -127,6 +127,13 @@ category-then-series exactly as a stack. \code{mosaicplot()} splits along
 the first dimension into columns and each column along the second, so
 the first dimension is the category and the second the fill.
 
+The fills are emitted from the last level to the first. A segmented
+layer's first series is its bottom segment, and Up moves to the next,
+while \code{mosaicplot()} draws the first level of the second dimension at
+the top of each column, as \code{spineplot()} does. Emitted in table order,
+the reader started on the top tile, Up moved down the column, and the
+column's sum came after its bottom tile.
+
 Each cell carries four numbers rather than one:
 \itemize{
 \item \code{y}, the cell's conditional proportion within its column -- the

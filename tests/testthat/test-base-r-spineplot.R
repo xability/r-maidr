@@ -110,10 +110,13 @@ test_that("a spine plot is read as the mosaic it draws", {
 test_that("the table is the one spineplot drew, replayed out of the call", {
   layer <- processed(list(table(LEVELS, ANSWERS)))
 
+  # Bottom tile first: `spineplot()` stacks the last level, yes, at the
+  # bottom of each column, and a segmented layer's first series is its
+  # bottom segment.
   expect_equal(
     cells(layer),
-    c("low/no=5", "mid/no=4", "high/no=3",
-      "low/yes=2", "mid/yes=6", "high/yes=1")
+    c("low/yes=2", "mid/yes=6", "high/yes=1",
+      "low/no=5", "mid/no=4", "high/no=3")
   )
 })
 
@@ -122,8 +125,8 @@ test_that("each cell carries its column's width as well as its proportion", {
   # proportions arrive with the group sizes they were computed from.
   first <- processed(list(table(LEVELS, ANSWERS)))$data[[1]][[1]]
 
-  expect_equal(first$count, 5)
-  expect_equal(first$y, 5 / 7)
+  expect_equal(first$count, 2)
+  expect_equal(first$y, 2 / 7)
   expect_equal(first$width, 7 / 21)
 })
 
@@ -134,10 +137,11 @@ test_that("a formula is resolved the way spineplot resolves it", {
     answer ~ level
   })
 
+  # Bottom tile first, as for the table above.
   expect_equal(
     cells(processed(list(formula))),
-    c("low/no=5", "mid/no=4", "high/no=3",
-      "low/yes=2", "mid/yes=6", "high/yes=1")
+    c("low/yes=2", "mid/yes=6", "high/yes=1",
+      "low/no=5", "mid/no=4", "high/no=3")
   )
 })
 
@@ -182,8 +186,8 @@ test_that("the caller's own labels and title win", {
 
 test_that("each cell points at the tile it was drawn into", {
   # Column-major, and within a column the LAST fill level first -- the order
-  # measured off the drawing. The payload runs fill-major, so the two are
-  # deliberately not the same walk.
+  # measured off the drawing. The payload runs fill-major from the last fill,
+  # the bottom tiles, so the two are deliberately not the same walk.
   gt <- spine_grobs(table(LEVELS, ANSWERS))
   skip_if(is.null(gt), "gridGraphics could not echo the drawing")
 
@@ -192,12 +196,12 @@ test_that("each cell points at the tile it was drawn into", {
   expect_equal(
     unlist(selectors),
     c(
-      "#graphics-plot-1-rect-1\\.1\\.2",
-      "#graphics-plot-1-rect-1\\.1\\.4",
-      "#graphics-plot-1-rect-1\\.1\\.6",
       "#graphics-plot-1-rect-1\\.1\\.1",
       "#graphics-plot-1-rect-1\\.1\\.3",
-      "#graphics-plot-1-rect-1\\.1\\.5"
+      "#graphics-plot-1-rect-1\\.1\\.5",
+      "#graphics-plot-1-rect-1\\.1\\.2",
+      "#graphics-plot-1-rect-1\\.1\\.4",
+      "#graphics-plot-1-rect-1\\.1\\.6"
     )
   )
 })
@@ -218,11 +222,11 @@ test_that("a cell of zero is drawn, so no later tile shifts", {
 
   expect_equal(
     cells(layer),
-    c("a/no=5", "b/no=3", "c/no=2", "a/yes=0", "b/yes=7", "c/yes=4")
+    c("a/yes=0", "b/yes=7", "c/yes=4", "a/no=5", "b/no=3", "c/no=2")
   )
   # One row per fill, one cell per category: the grid the frontend reads.
   expect_equal(lengths(layer$selectors), c(3L, 3L))
-  expect_equal(layer$selectors[[2]][[1]], "#graphics-plot-1-rect-1\\.1\\.1")
+  expect_equal(layer$selectors[[1]][[1]], "#graphics-plot-1-rect-1\\.1\\.1")
 })
 
 test_that("a panel holding more than one rect grob is declined", {

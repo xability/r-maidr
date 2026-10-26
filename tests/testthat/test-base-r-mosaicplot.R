@@ -21,6 +21,11 @@
 mosaic_layers <- base_r_layers
 mosaic_types <- base_r_layer_types
 
+# The series of a mosaic layer whose fill level is `z`.
+series_named <- function(layer, z) {
+  layer$data[[match(z, vapply(layer$data, function(series) series[[1]]$z, ""))]]
+}
+
 # 4 hair colours x 4 eye colours, the textbook example. Column totals
 # 56 / 143 / 34 / 46 out of 279.
 HAIR_EYE <- HairEyeColor[, , 1]
@@ -33,13 +38,18 @@ test_that("a mosaic is emitted fill-major, the way a stack is", {
   # `MosaicTrace` extends `SegmentedTrace`, which navigates
   # category-then-series and reads `data[[fill]][[category]]`. Getting this
   # transposed would put the eye colours on the category axis.
+  #
+  # Bottom tile first: a segmented layer's first series is its bottom
+  # segment, and `mosaicplot()` draws the first eye colour, Brown, at the top
+  # of each column. In table order the reader started on the top tile and Up
+  # moved down the column.
   layer <- mosaic_layers(function() mosaicplot(HAIR_EYE))[[1]]
 
   testthat::expect_length(layer$data, ncol(HAIR_EYE))
   testthat::expect_length(layer$data[[1]], nrow(HAIR_EYE))
   testthat::expect_identical(
     vapply(layer$data, function(series) series[[1]]$z, ""),
-    colnames(HAIR_EYE)
+    rev(colnames(HAIR_EYE))
   )
   testthat::expect_identical(
     vapply(layer$data[[1]], function(cell) cell$x, ""),
@@ -50,7 +60,8 @@ test_that("a mosaic is emitted fill-major, the way a stack is", {
 test_that("a tile's y is its conditional proportion within its column", {
   # The tile's drawn height, and what a stack's value would be. 32 of the 56
   # black-haired people have brown eyes.
-  first <- mosaic_layers(function() mosaicplot(HAIR_EYE))[[1]]$data[[1]][[1]]
+  layer <- mosaic_layers(function() mosaicplot(HAIR_EYE))[[1]]
+  first <- series_named(layer, "Brown")[[1]]
 
   testthat::expect_equal(first$y, 32 / 56)
   testthat::expect_equal(first$count, 32)
@@ -75,8 +86,8 @@ test_that("the counts the chart was drawn from travel with it", {
   # working from proportions does not have them -- this one does.
   layer <- mosaic_layers(function() mosaicplot(HAIR_EYE))[[1]]
 
-  counts <- vapply(layer$data[[2]], function(cell) cell$count, 0)
-  testthat::expect_equal(counts, unname(HAIR_EYE[, 2]))
+  counts <- vapply(series_named(layer, "Blue"), function(cell) cell$count, 0)
+  testthat::expect_equal(counts, unname(HAIR_EYE[, "Blue"]))
 })
 
 test_that("a column that observed nothing reports no proportion", {
@@ -190,7 +201,8 @@ test_that("a mosaic addresses the tile it is standing on", {
   # `polygon-1`..`-4` share the leftmost column's x extent (50 to 219.8),
   # `-5`..`-8` the next (237.8 to 671.4), and within a column the grob number
   # runs down the fill levels in the table's own order. The emitted data is
-  # fill-major, so cell (fill f, column c) is grob (c - 1) * fills + f.
+  # fill-major from the bottom tile, the last fill, so cell (fill f, column
+  # c) is grob (c - 1) * fills + f and the grid's first row is grob 4, 8, ...
   grid <- mosaic_layers(function() mosaicplot(HAIR_EYE))[[1]]$selectors
   # One row per fill, one cell per category: the grid the frontend reads.
   testthat::expect_equal(lengths(grid), rep(nrow(HAIR_EYE), ncol(HAIR_EYE)))
@@ -199,11 +211,11 @@ test_that("a mosaic addresses the tile it is standing on", {
   testthat::expect_length(selectors, nrow(HAIR_EYE) * ncol(HAIR_EYE))
   testthat::expect_equal(
     selectors[1:4],
-    paste0("#graphics-plot-1-polygon-", c(1, 5, 9, 13), "\\.1 polygon")
+    paste0("#graphics-plot-1-polygon-", c(4, 8, 12, 16), "\\.1 polygon")
   )
   testthat::expect_equal(
     selectors[5],
-    "#graphics-plot-1-polygon-2\\.1 polygon"
+    "#graphics-plot-1-polygon-3\\.1 polygon"
   )
   testthat::expect_length(unique(selectors), length(selectors))
 })
@@ -271,7 +283,7 @@ test_that("a mosaic given an xlab still reads its table", {
 
   testthat::expect_equal(layer$type, "mosaic")
   testthat::expect_length(layer$data, ncol(HAIR_EYE))
-  testthat::expect_equal(layer$data[[1]][[1]]$count, 32)
+  testthat::expect_equal(series_named(layer, "Brown")[[1]]$count, 32)
 })
 
 test_that("a stacked bar is unchanged", {
@@ -342,7 +354,7 @@ test_that("a formula call over raw rows is read rather than pictured", {
   testthat::expect_equal(layer$type, "mosaic")
   testthat::expect_equal(
     counts_of(layer),
-    lapply(seq_len(ncol(HAIR_EYE)), function(i) unname(HAIR_EYE[, i]))
+    lapply(rev(seq_len(ncol(HAIR_EYE))), function(i) unname(HAIR_EYE[, i]))
   )
 })
 
@@ -359,7 +371,7 @@ test_that("a formula call over a table sums the margins it names", {
   testthat::expect_equal(
     counts_of(layer),
     lapply(
-      seq_len(ncol(HairEyeColor[, , 1])),
+      rev(seq_len(ncol(HairEyeColor[, , 1]))),
       function(i) unname(marginSums(HairEyeColor, c("Hair", "Eye"))[, i])
     )
   )

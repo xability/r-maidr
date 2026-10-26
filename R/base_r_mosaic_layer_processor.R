@@ -62,6 +62,13 @@ BaseRMosaicLayerProcessor <- R6::R6Class(
     #' the first dimension into columns and each column along the second, so
     #' the first dimension is the category and the second the fill.
     #'
+    #' The fills are emitted from the last level to the first. A segmented
+    #' layer's first series is its bottom segment, and Up moves to the next,
+    #' while `mosaicplot()` draws the first level of the second dimension at
+    #' the top of each column, as `spineplot()` does. Emitted in table order,
+    #' the reader started on the top tile, Up moved down the column, and the
+    #' column's sum came after its bottom tile.
+    #'
     #' Each cell carries four numbers rather than one:
     #'
     #' * `y`, the cell's conditional proportion within its column -- the
@@ -91,7 +98,7 @@ BaseRMosaicLayerProcessor <- R6::R6Class(
       total <- sum(table)
       column_totals <- rowSums(table)
 
-      lapply(seq_along(fills), function(fill_index) {
+      lapply(rev(seq_along(fills)), function(fill_index) {
         lapply(seq_along(categories), function(category_index) {
           count <- table[category_index, fill_index]
           column_total <- column_totals[[category_index]]
@@ -231,7 +238,8 @@ BaseRMosaicLayerProcessor <- R6::R6Class(
           }
         }
       }
-      lapply(seq_len(fills), function(fill_index) {
+      # In the order of the data: the bottom tile of each column first.
+      lapply(rev(seq_len(fills)), function(fill_index) {
         lapply(seq_len(categories), function(category_index) {
           tile_of[category_index, fill_index]
         })

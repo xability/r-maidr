@@ -833,6 +833,12 @@
   small chart or in the panels of a `par(mfrow)` grid: 10, 12 and 14 on a
   short y axis where R shows 10 and 14. The labels R leaves out are now
   left out too, measured as R measures them at the chart's size (#355).
+* Up moves up a column of a `mosaicplot()` or `spineplot()`, and Down down
+  it. Both draw the first level of the second variable at the top of each
+  column, and maidr emitted it as the first series, which maidr.js reads
+  as the bottom segment: the reader started on the top tile, Up moved the
+  highlight down the column, and the column's sum came after its bottom
+  tile. The series now run from the bottom tile up (#412).
 * A Base R `layout()` page is drawn with the `widths`, `heights` and
   `respect` its call sets. maidr set the page up again from the matrix
   alone, so every column was as wide and every row as tall as the others:
