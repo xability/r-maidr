@@ -48,15 +48,21 @@ ENERGY <- matrix(
 )
 
 #' Each bar of a layer as `category:value`, or `series/category:value`, in
-#' the order the layer reads them
+#' the order the layer reads them. A horizontal layer carries the value as
+#' `x` and the category as `y`.
 bar_readings <- function(layer) {
+  horizontal <- identical(layer$orientation, "horz")
   points <- layer$data
   if (length(points) && is.list(points[[1]]) && is.null(names(points[[1]]))) {
     points <- unlist(points, recursive = FALSE)
   }
   vapply(points, function(point) {
-    category <- if (is.null(point$z)) point$x else paste0(point$z, "/", point$x)
-    paste0(category, ":", point$y)
+    category <- if (horizontal) point$y else point$x
+    value <- if (horizontal) point$x else point$y
+    if (!is.null(point$z)) {
+      category <- paste0(point$z, "/", category)
+    }
+    paste0(category, ":", value)
   }, character(1))
 }
 
@@ -102,6 +108,24 @@ test_that("a dodged barplot() keeps its regions and its series in order", {
   # own row: the first row is Q2's.
   testthat::expect_equal(
     bar_readings(base_r_layers(draw)[[1]]),
+    c(
+      "Q2/North:150", "Q2/South:180", "Q2/East:200", "Q2/West:220",
+      "Q1/North:130", "Q1/South:160", "Q1/East:170", "Q1/West:190"
+    )
+  )
+})
+
+test_that("a horizontal dodged barplot() keeps its series with their names", {
+  draw <- function() barplot(SALES, beside = TRUE, horiz = TRUE, legend.text = rownames(SALES))
+  args <- recorded_barplot_args(draw)
+
+  testthat::expect_identical(maidr:::recorded_barplot_height(args), SALES)
+  testthat::expect_identical(args$legend.text, c("Q2", "Q1"))
+
+  layer <- base_r_layers(draw)[[1]]
+  testthat::expect_equal(layer$orientation, "horz")
+  testthat::expect_equal(
+    bar_readings(layer),
     c(
       "Q2/North:150", "Q2/South:180", "Q2/East:200", "Q2/West:220",
       "Q1/North:130", "Q1/South:160", "Q1/East:170", "Q1/West:190"
