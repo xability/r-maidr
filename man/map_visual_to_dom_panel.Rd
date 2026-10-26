@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggplot2_facet_utils.R
 \name{map_visual_to_dom_panel}
 \alias{map_visual_to_dom_panel}
-\title{Map visual panel position to DOM panel name}
+\title{The gtable panel drawn at a facet panel's place in the grid}
 \usage{
 map_visual_to_dom_panel(panel_info, gtable)
 }
@@ -15,15 +15,25 @@ map_visual_to_dom_panel(panel_info, gtable)
 Gtable panel name or NULL if not found
 }
 \description{
-This function handles the mismatch between visual layout order (row-major)
-and DOM element generation order (column-major) in gridSVG.
+ggplot2 reports where it lays each facet panel out as \code{ROW} and \code{COL} in
+\code{built$layout$layout}, and names the panels of the gtable it draws
+\verb{panel-<a>-<b>}. What \code{a} and \code{b} count is not the row and the column,
+and differs between facets and releases. ggplot2 3.4.4 and 3.5 name a
+\code{facet_grid()} panel \verb{panel-<row>-<col>}, but write the \code{facet_wrap()}
+names in an order that matches no grid: a 2 x 2 wrap is \verb{panel-<row>-<col>},
+a 2 x 3 one has \code{panel-3-1} in the first row, second column. ggplot2 4.0
+names a wrap's panels \verb{panel-<col>-<row>}. Reading the name as the column-
+major position of the panel, as this did, gave each 2 x 2 wrap and grid
+the two off-diagonal panels each other's names, and most panels of a
+grid that is not square another panel's name, so their selectors named
+the marks of another panel: the highlight lit the other panel's marks,
+and maidr.js, which places a subplot where its first mark is drawn, put
+the subplots out of order.
 }
 \details{
-Visual layout (row-major):
-1  2
-3  4
-
-DOM order (column-major):
-1  3
-2  4
+What every release keeps is where a panel is drawn: its row and column in
+the gtable's layout, \code{t} and \code{l}. A panel's rank among the distinct \code{t}
+of the panels is its row, and its rank among the distinct \code{l} its column,
+whatever the gtable calls it.
 }
+\keyword{internal}

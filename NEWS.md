@@ -746,6 +746,18 @@
 
 ### ggplot2
 
+* Each subplot of a `facet_wrap()` or `facet_grid()` chart highlights the
+  marks of its own panel. maidr found a panel's marks in the panel ggplot2
+  draws under a name it worked out from the panel's place in the grid, and
+  ggplot2 does not name its panels that way: in a 2 x 2 grid the top right
+  and bottom left panels were given each other's marks, and in a grid of
+  two rows and three columns, or three and two, four of the six panels
+  another's. Inside such a subplot the reader heard its values while the
+  highlight lit the other panel's marks, and the subplots were put out of
+  order, as maidr.js places each where its first mark is drawn: the 2 x 2
+  wrap of Regions A to D opened on Region C, and Down from Region D went up
+  to Region B. A panel is now found where ggplot2 draws it, which every
+  release of ggplot2 says the same way.
 * The `d` key opens the chart description, and `L` then `T` says the
   title, on a box plot, violin plot, heat map, scatter plot, smooth,
   volcano plot and gantt chart. Their layers carried an empty object, `{}`,
