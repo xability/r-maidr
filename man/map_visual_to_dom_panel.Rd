@@ -34,6 +34,8 @@ the subplots out of order.
 What every release keeps is where a panel is drawn: its row and column in
 the gtable's layout, \code{t} and \code{l}. A panel's rank among the distinct \code{t}
 of the panels is its row, and its rank among the distinct \code{l} its column,
-whatever the gtable calls it.
+whatever the gtable calls it. A place no panel is drawn at names none:
+guessing at another panel would hand the layer that panel's marks, as
+\code{find_gtable_panel_grob()} declines to.
 }
 \keyword{internal}

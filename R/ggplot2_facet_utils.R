@@ -203,7 +203,8 @@ facet_group_rows <- function(values, group) {
 #' @param panel_info Panel information
 #' @param panel_data Panel-specific data
 #' @param facet_groups Facet group information
-#' @param gtable_panel_name Gtable panel name
+#' @param gtable_panel_name Gtable panel name, or NULL when no panel is drawn
+#'   at the panel's place, which is then read without marks
 #' @param built Built plot data
 #' @param layout Layout information
 #' @param gtable Gtable object
@@ -286,7 +287,14 @@ process_facet_panel <- function(
   }
 
   combined_data <- combine_facet_layer_data(layer_results)
-  combined_selectors <- combine_facet_layer_selectors(layer_results)
+  # A panel `map_visual_to_dom_panel()` found drawn nowhere names no marks:
+  # the name the processors were handed in its place is a guess, which may
+  # be another panel's.
+  combined_selectors <- if (is.null(gtable_panel_name)) {
+    list()
+  } else {
+    combine_facet_layer_selectors(layer_results)
+  }
 
   subplot_id <- paste0("maidr-subplot-", generate_unique_id(), "-", panel_info$PANEL)
 
@@ -526,7 +534,9 @@ combine_facet_layer_selectors <- function(layer_results) {
 #' What every release keeps is where a panel is drawn: its row and column in
 #' the gtable's layout, `t` and `l`. A panel's rank among the distinct `t`
 #' of the panels is its row, and its rank among the distinct `l` its column,
-#' whatever the gtable calls it.
+#' whatever the gtable calls it. A place no panel is drawn at names none:
+#' guessing at another panel would hand the layer that panel's marks, as
+#' `find_gtable_panel_grob()` declines to.
 #'
 #' @param panel_info Panel information from layout
 #' @param gtable Gtable object
@@ -547,13 +557,5 @@ map_visual_to_dom_panel <- function(panel_info, gtable) {
   if (length(hit) == 1L) {
     return(panels$name[hit])
   }
-
-  # Fallback: the name read as row and column
-  expected_name <- paste0("panel-", panel_info$ROW, "-", panel_info$COL)
-  if (expected_name %in% panels$name) {
-    return(expected_name)
-  }
-
-  # Final fallback: return first available panel
-  panels$name[1]
+  NULL
 }

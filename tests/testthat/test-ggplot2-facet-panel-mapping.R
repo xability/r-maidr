@@ -115,4 +115,33 @@ test_that("the panel is found by where it is drawn, whatever it is named", {
   expect_equal(at(1, 2), "panel-2-1")
   expect_equal(at(2, 1), "panel-1-2")
   expect_equal(at(2, 2), "panel-2-2")
+  # A place no panel is drawn at names none, rather than another panel.
+  expect_null(at(3, 1))
+})
+
+test_that("a panel found drawn nowhere is read without marks", {
+  # Its processors are handed the guess `panel-<row>-<col>`, which a panel
+  # may be named whatever its place: under ggplot2 4.0's names, the guess
+  # for row 1, column 2 is the name of the panel in row 2, column 1.
+  plot <- ggplot2::ggplot(facet_bars(4), ggplot2::aes(category, value)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(~panel, ncol = 2)
+  built <- ggplot2::ggplot_build(plot)
+  gtable <- ggplot2::ggplot_gtable(built)
+  panel_info <- built$layout$layout[built$layout$layout$ROW == 1 &
+    built$layout$layout$COL == 2, ]
+  panel_data <- built$data[[1]][built$data[[1]]$PANEL == panel_info$PANEL, ]
+  read <- function(gtable_panel_name) {
+    subplot <- maidr:::process_facet_panel(
+      plot, panel_info, panel_data,
+      maidr:::get_facet_groups(panel_info, built),
+      gtable_panel_name, built, list(title = "", axes = list()), gtable
+    )
+    subplot$layers[[1]]
+  }
+
+  expect_length(read(maidr:::map_visual_to_dom_panel(panel_info, gtable))$selectors, 1)
+  layer <- read(NULL)
+  expect_length(layer$data, 3)
+  expect_length(layer$selectors, 0)
 })
