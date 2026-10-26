@@ -1211,16 +1211,12 @@
   highlight drawn along them. Each call is drawn with the `xpd` R had as
   it started, so a line drawn after `par(xpd = NA)` still runs past the
   plot region, as R draws it (#415).
-* A chart drawn from a call that only computes is read on the plot it
-  draws. `bxp(boxplot(count ~ spray, data = InsectSprays, plot = FALSE))`
-  and `barplot(hist(x, plot = FALSE)$counts)` draw one plot, but the
-  computing call, made from the drawing call's arguments, was followed as
-  one that draws until the next call started, and took the plot the
-  drawing call started for its own. The drawing call was read as drawn on
-  a plot after the last: every selector named `graphics-plot-2-...` on a
-  page whose only plot is `graphics-plot-1`, and the box plot had no
-  highlight at all. A call that only computes is no longer followed once
-  it returns (#408).
+* `bxp(boxplot(x, plot = FALSE))` and `barplot(hist(x, plot = FALSE)$counts)`
+  highlight the chart being read. Every selector named a plot after the
+  last, `graphics-plot-2-...` on a page whose only plot is
+  `graphics-plot-1`, so no move highlighted anything: the computing call,
+  made from the drawing call's arguments, took the plot the drawing call
+  started (#408).
 
 ## Documentation
 
