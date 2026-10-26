@@ -228,6 +228,12 @@
   description, where a line said the rates and nothing else. Any other
   line keeps its reading. Needs maidr.js 4.14.0 or later, which this
   release bundles.
+* A grouped point layer is named as the key names its group: the entry,
+  after the key's title when the key draws one. `xyplot(mpg ~ wt, groups =
+  factor(cyl), auto.key = list(title = "Cylinders"))` reads "Cylinders 6"
+  where "6" said nothing of what was counted; a key with no title, as
+  `auto.key = TRUE` draws, names a layer by its entry alone, as before
+  (#413).
 
 ### pheatmap
 
@@ -773,6 +779,16 @@
   after the column the fill was mapped to, and the description's Z axis
   said "value". Without `labs(fill = )` the value is still named after
   that column, or "count" for `geom_bin_2d()`.
+* A scatter plot coloured by group, `aes(colour = group)`, is read as one
+  layer per group, as a grouped lattice `xyplot()` is. It was read as one
+  cloud, each point carrying its group in a `color` field maidr.js does not
+  read, so a reader never heard which group a point was in, PageUp said "No
+  additional layer", and the description named no groups. Each group is a
+  layer in the legend's order, named as the legend names it, "Cylinders 4"
+  for the entry "4" under the title "Cylinders" ("Group A" on its own
+  under the title "Group"), and highlighted through its own points. A
+  colour mapped to a continuous value is not a group, and a faceted
+  scatter is still read whole (#413).
 * A layer that maps x or y in its own `aes()` is read under the axis title,
   `labs()` included, as the chart shows it. The layer's own mapping replaced
   the title outright, so `geom_histogram(aes(y = after_stat(density))) +
@@ -935,6 +951,18 @@
   `plot(v)` as "Index" against "v", and the lines and density curves drawn
   over either chart name the same axes. A title the call gives, or blanks
   with `main = NULL`, still wins (#353).
+* A Base R scatter plot whose colours a `legend()` names is read as one
+  layer per legend entry. `plot(x, y, col = colours[group])` followed by
+  `legend(legend = c("4 cyl", "6 cyl", "8 cyl"), col = colours)` was read
+  as one cloud, each point carrying its colour's name, "coral", in a field
+  maidr.js does not read. Each colour the legend names is now a layer in
+  the legend's order, named for its entry, after the legend's `title`
+  when it has one, and highlighted through its own points. Points in a
+  colour no legend names are read as before (#413).
+* Each group of a `stripchart()` is a layer named after it, so the layers
+  read "A" to "F" in the description and on PageUp, where each was "Scatter
+  Plot". The name was written to a `fill` field maidr.js does not read for
+  a layer (#413).
 * A Base R chart titled with a plotmath call, `main = bquote(mu == .(n))`
   or `xlab = quote(x[i])`, keeps its drawing and its data. maidr handed the
   recorded call on to be evaluated, so the chart maidr exported had nothing

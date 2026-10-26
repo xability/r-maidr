@@ -91,20 +91,31 @@ test_that("a mapped aesthetic still lines up with the samples that survive", {
   # highlight for a wrong legend.
   plot <- ggplot2::ggplot(gap_df(), ggplot2::aes(x, y, colour = g)) +
     ggplot2::geom_point()
-  points <- points_of(plot)
+  layers <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()$subplots[[1]][[1]]$layers
 
-  testthat::expect_equal(length(points), drawn_count(plot))
+  testthat::expect_equal(sum(lengths(lapply(layers, `[[`, "data"))), drawn_count(plot))
 
   # Row 2 (g = "b") is the dropped one, so the survivors carry a, a, b in x
-  # order. Asserted unconditionally and on the key the payload really uses:
-  # an earlier version read `fill`, which a `colour` mapping never sets, and
-  # guarded the comparison behind "if any are present" -- so it passed with
-  # the row indices left unfiltered, which is the very thing it is here to
-  # catch.
+  # order: a layer per colour holds x = 1 and 3, then x = 4. Asserted
+  # unconditionally: an earlier version read `fill`, which a `colour`
+  # mapping never sets, and guarded the comparison behind "if any are
+  # present" -- so it passed with the row indices left unfiltered, which is
+  # the very thing it is here to catch.
   testthat::expect_equal(
-    vapply(points, function(p) as.character(p$color), character(1)),
-    c("a", "a", "b")
+    vapply(layers, function(layer) layer$name, character(1)),
+    c("g a", "g b")
   )
+  testthat::expect_equal(
+    lapply(layers, function(layer) vapply(layer$data, function(p) as.numeric(p$x), numeric(1))),
+    list(c(1, 3), 4)
+  )
+  # And each names its own of the three marks drawn: the first two, then the
+  # third.
+  drawn_at <- lapply(layers, function(layer) {
+    ids <- trimws(strsplit(layer$selectors[[1]], ",", fixed = TRUE)[[1]])
+    sub("^.*\\.", "", ids)
+  })
+  testthat::expect_equal(drawn_at, list(c("1", "2"), "3"))
 })
 
 test_that("a scatter with nothing missing is unchanged", {

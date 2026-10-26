@@ -96,7 +96,7 @@ test_that("each group becomes its own layer, in the order drawn", {
 
   expect_true(isTRUE(result$multi_layer))
   expect_equal(
-    vapply(result$layers, function(l) l$fill, character(1)),
+    vapply(result$layers, function(l) l$name, character(1)),
     c("First", "Second", "Third")
   )
   expect_equal(
@@ -134,7 +134,7 @@ test_that("a bare vector is the one group stripchart draws it as", {
 
   expect_equal(length(result$layers), 1)
   expect_equal(field(result$layers[[1]], "x"), c(3.1, 4.2, 5.0))
-  expect_equal(result$layers[[1]]$fill, "1")
+  expect_equal(result$layers[[1]]$name, "1")
 })
 
 test_that("vertical = TRUE swaps which axis holds the values", {
@@ -148,7 +148,7 @@ test_that("vertical = TRUE swaps which axis holds the values", {
 test_that("a formula is split by the grouping column it names", {
   layers <- processed(list(len ~ supp, data = ToothGrowth))$layers
 
-  expect_equal(vapply(layers, function(l) l$fill, character(1)), c("OJ", "VC"))
+  expect_equal(vapply(layers, function(l) l$name, character(1)), c("OJ", "VC"))
   expect_equal(
     field(layers[[1]], "x"),
     ToothGrowth$len[ToothGrowth$supp == "OJ"]
@@ -163,7 +163,7 @@ test_that("a formula grouping on two variables splits on their interaction", {
   layers <- processed(list(len ~ supp + dose, data = ToothGrowth))$layers
 
   expect_equal(
-    vapply(layers, function(l) l$fill, character(1)),
+    vapply(layers, function(l) l$name, character(1)),
     levels(interaction(ToothGrowth$supp, ToothGrowth$dose))
   )
   expect_equal(
@@ -181,7 +181,7 @@ test_that("a formula with no data is read from the environment it was written in
 
   layers <- processed(list(formula))$layers
 
-  expect_equal(vapply(layers, function(l) l$fill, character(1)), c("OJ", "VC"))
+  expect_equal(vapply(layers, function(l) l$name, character(1)), c("OJ", "VC"))
   expect_equal(field(layers[[1]], "x"), c(1, 2, 3))
   expect_equal(field(layers[[2]], "x"), c(10, 11, 12))
 })
@@ -202,7 +202,7 @@ test_that("a rebound variable moves the reading with it (#254)", {
   assign("supp", rep(c("XX", "YY"), each = 3), envir = env)
   layers <- processed(list(formula))$layers
 
-  expect_equal(vapply(layers, function(l) l$fill, character(1)), c("XX", "YY"))
+  expect_equal(vapply(layers, function(l) l$name, character(1)), c("XX", "YY"))
   expect_equal(field(layers[[1]], "x"), c(99, 98, 97))
 })
 
@@ -222,14 +222,14 @@ test_that("a one-sided formula names no groups and is declined", {
 test_that("group.names renames the groups the way the axis shows them", {
   layers <- processed(list(GROUPS, group.names = c("L", "M", "R")))$layers
 
-  expect_equal(vapply(layers, function(l) l$fill, character(1)), c("L", "M", "R"))
+  expect_equal(vapply(layers, function(l) l$name, character(1)), c("L", "M", "R"))
   expect_equal(field(layers[[1]], "yLabel"), rep("L", 5))
 })
 
 test_that("group.names of the wrong length is ignored, as stripchart ignores it", {
   layers <- processed(list(GROUPS, group.names = c("L", "M")))$layers
 
-  expect_equal(vapply(layers, function(l) l$fill, character(1)), names(GROUPS))
+  expect_equal(vapply(layers, function(l) l$name, character(1)), names(GROUPS))
 })
 
 test_that("at places the groups where the caller put them", {
@@ -339,7 +339,7 @@ test_that("a drawn stripchart reaches the schema with its groups intact", {
     stripchart(GROUPS, main = "Spread", xlab = "Value", ylab = "Group")
   })
 
-  expect_equal(vapply(layers, function(l) l$fill, character(1)), names(GROUPS))
+  expect_equal(vapply(layers, function(l) l$name, character(1)), names(GROUPS))
   expect_equal(vapply(layers, function(l) length(l$data), integer(1)), c(5L, 4L, 2L))
   expect_equal(layers[[1]]$axes$x$label, "Value")
   expect_equal(layers[[1]]$title, "Spread")

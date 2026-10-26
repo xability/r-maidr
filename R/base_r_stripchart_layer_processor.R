@@ -97,7 +97,7 @@ BaseRStripchartLayerProcessor <- R6::R6Class(
           selectors = self$group_selectors(info, index),
           axes = axes,
           title = title,
-          fill = names(groups)[index],
+          name = names(groups)[index],
           type = "point"
         )
       })

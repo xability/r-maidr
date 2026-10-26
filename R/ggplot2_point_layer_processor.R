@@ -24,11 +24,24 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
       extracted_data <- self$extract_data(plot, built, panel_id)
 
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
       axes <- self$extract_axes_labels(plot, built, panel_id)
+
+      # A facet panel's layers are read as one entry (`process_facet_panel()`),
+      # which has no room for a layer per group, so a faceted scatter is read
+      # whole, as before.
+      if (is.null(panel_id)) {
+        grouped <- self$colour_group_layers(plot, built, extracted_data, selectors, axes)
+        if (!is.null(grouped)) {
+          return(grouped)
+        }
+      }
 
       # For point plots, data is directly the array of points
       data <- extracted_data
@@ -38,6 +51,99 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         selectors = selectors,
         axes = axes
       )
+    },
+
+    #' @description One point layer per colour group, named as the legend names it
+    #'
+    #' `aes(colour = group)` draws each group of points in its own colour and
+    #' names the colours in a legend. The layer was read as one cloud, each
+    #' point carrying the group in a `color` field maidr.js does not read, so
+    #' a reader never heard which group a point was in and could not walk one
+    #' group at a time. The groups are now layers of their own, as a grouped
+    #' lattice `xyplot()` and py-maidr's hue scatters are read: in the order
+    #' the legend lists them, each named for its entry and the legend's title
+    #' (`group_layer_name()`), and highlighted through its own points.
+    #'
+    #' ggplot2 draws every point of the layer in one grob, in row order, and
+    #' the export numbers each `<use>` by its place in it. A group's points are
+    #' named by those numbers: a selector list matches in document order,
+    #' which is the order the group's points are emitted in.
+    #'
+    #' A colour mapped to a continuous scale is a value, not a group, and is
+    #' left as it was; so is a layer in which any point has no group. Only a
+    #' plain `geom_point()` layer is split: a volcano or Manhattan layer,
+    #' read through this processor too, is one reading with its threshold,
+    #' and its colour groups are announced as each point's region.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data
+    #' @param points The layer's points, from `extract_data()`
+    #' @param selectors The layer's selectors, from `generate_selectors()`
+    #' @param axes The layer's axes
+    #' @return A multi-layer result, or NULL when the layer is not grouped by
+    #'   colour into two groups or more
+    colour_group_layers = function(plot, built, points, selectors, axes) {
+      layer <- self$get_own_layer(plot)
+      if (is.null(layer) || !identical(class(layer$geom)[1], "GeomPoint")) {
+        return(NULL)
+      }
+      scale <- tryCatch(built$plot$scales$get_scales("colour"), error = function(e) NULL)
+      if (length(points) == 0 || is.null(scale) ||
+            !isTRUE(tryCatch(scale$is_discrete(), error = function(e) FALSE))) {
+        return(NULL)
+      }
+      groups <- vapply(
+        points,
+        function(point) if (is.null(point$color)) NA_character_ else as.character(point$color),
+        character(1)
+      )
+      if (anyNA(groups)) {
+        return(NULL)
+      }
+      limits <- tryCatch(as.character(scale$get_limits()), error = function(e) character(0))
+      levels <- c(limits[limits %in% groups], setdiff(unique(groups), limits))
+      if (length(levels) < 2L) {
+        return(NULL)
+      }
+      entries <- tryCatch(
+        as.character(scale$get_labels(levels)),
+        error = function(e) NULL
+      )
+      if (length(entries) != length(levels) || anyNA(entries)) {
+        entries <- levels
+      }
+      title <- resolve_legend_label(
+        plot,
+        built = built,
+        aes_names = c("colour", "color"),
+        layer_index = self$get_layer_index()
+      )
+
+      # The container's id, as `generate_selectors()` wrote it: `g#<id> > use`.
+      container <- NULL
+      if (length(selectors) == 1L && grepl("^g#.* > use$", selectors[[1]])) {
+        container <- sub("^g#(.*) > use$", "\\1", selectors[[1]])
+      }
+
+      layers <- lapply(seq_along(levels), function(k) {
+        at <- which(groups == levels[k])
+        layer <- list(
+          type = "point",
+          data = lapply(points[at], function(point) {
+            point$color <- NULL
+            point
+          }),
+          selectors = if (is.null(container)) {
+            list()
+          } else {
+            list(paste0("#", container, "\\.", at, collapse = ", "))
+          },
+          axes = axes,
+          name = group_layer_name(entries[k], title)
+        )
+        layer
+      })
+      list(multi_layer = TRUE, layers = layers)
     },
 
     #' @description Extract axis information from the plot
