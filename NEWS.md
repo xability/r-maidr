@@ -933,6 +933,11 @@
   1939". It is now the name each month is read under, and the cycles are
   "Year" for a monthly or quarterly time series, "Cycle" otherwise: "Year is
   1921, Temperature (F) is 44.2, Month is Jan".
+* A `qqline()` is read under the axis titles of the plot it is drawn on,
+  "Theoretical Quantiles is -2.33, Sample Quantiles is -2.2" on a
+  `qqnorm()`, where it was "X is -2.33, Y is -2.2": a line drawn on a plot
+  took the plot's titles only when drawn with `abline()`, `lines()` or
+  `points()`.
 * The data a screen reader reads names a Base R chart's axes, and a
   histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
   as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,

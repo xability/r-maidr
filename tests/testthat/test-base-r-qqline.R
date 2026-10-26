@@ -267,3 +267,28 @@ test_that("the line is bound to the grob the chart drew it in", {
 test_that("a Q-Q plot with no line is unchanged", {
   testthat::expect_equal(qqline_types(function() qqnorm(SAMPLE)), "point")
 })
+
+
+test_that("the line is read under the axis titles of the plot it is drawn on", {
+  # `qqline()` writes no axis of its own. Read under its own call it was
+  # "X is -2.33, Y is -2.2" on a `qqnorm()` whose axes read Theoretical
+  # Quantiles and Sample Quantiles.
+  layers <- qqline_layers(function() {
+    qqnorm(SAMPLE)
+    qqline(SAMPLE)
+  })
+  line <- layers[[2]]
+
+  testthat::expect_equal(line$axes$x$label, "Theoretical Quantiles")
+  testthat::expect_equal(line$axes$y$label, "Sample Quantiles")
+  testthat::expect_equal(line$axes$x$label, layers[[1]]$axes$x$label)
+  testthat::expect_equal(line$axes$y$label, layers[[1]]$axes$y$label)
+
+  # The plot's own titles, written or swapped by `datax`, are the line's too.
+  layers <- qqline_layers(function() {
+    qqnorm(SAMPLE, datax = TRUE, ylab = "Normal scores")
+    qqline(SAMPLE, datax = TRUE)
+  })
+  testthat::expect_equal(layers[[2]]$axes$x$label, "Sample Quantiles")
+  testthat::expect_equal(layers[[2]]$axes$y$label, "Normal scores")
+})

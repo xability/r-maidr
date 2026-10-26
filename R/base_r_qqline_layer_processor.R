@@ -200,6 +200,36 @@ BaseRQqlineLayerProcessor <- R6::R6Class(
       "abline"
     },
 
+    #' @description The axis titles of the plot the line is drawn on
+    #'
+    #' `qqline()` writes no axis of its own: it is drawn on the plot before
+    #' it, whose axes say what its two numbers are. The inherited reading
+    #' takes those only for `abline()`, `lines()` and `points()`, so the line
+    #' fell through to its own call, which names nothing, and was read "X is
+    #' -2.33, Y is -2.2" on a `qqnorm()` whose axes read Theoretical Quantiles
+    #' and Sample Quantiles. The titles are now the plot's: on a `qqnorm()` or
+    #' `qqplot()` those the Q-Q reading gives it (`BaseRQqLayerProcessor`),
+    #' defaults included; on another plot those it was written with.
+    #'
+    #' @param layer_info Layer information with the recorded call
+    #' @return Canonical axes list
+    extract_axis_titles = function(layer_info) {
+      high <- if (!is.null(layer_info$group)) layer_info$group$high_call
+      if (is.null(high) || is.null(high$function_name)) {
+        return(super$extract_axis_titles(layer_info))
+      }
+      plot_info <- list(function_name = high$function_name, plot_call = high)
+      defaults <- if (high$function_name %in% c("qqnorm", "qqplot")) {
+        BaseRQqLayerProcessor$new(plot_info)$default_axis_labels(plot_info)
+      } else {
+        written_axis_titles(high)
+      }
+      build_axes(
+        x = recorded_axis_label(high$args, "xlab", defaults$x),
+        y = recorded_axis_label(high$args, "ylab", defaults$y)
+      )
+    },
+
     #' @description A named argument, or the first positional one
     #' @param args The recorded arguments
     #' @param name The formal's name

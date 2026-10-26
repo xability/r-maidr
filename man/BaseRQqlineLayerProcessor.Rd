@@ -65,6 +65,7 @@ unchanged.
     \item \href{#method-BaseRQqlineLayerProcessor-reference_line}{\code{BaseRQqlineLayerProcessor$reference_line()}}
     \item \href{#method-BaseRQqlineLayerProcessor-qq_x_range}{\code{BaseRQqlineLayerProcessor$qq_x_range()}}
     \item \href{#method-BaseRQqlineLayerProcessor-selector_grob_type}{\code{BaseRQqlineLayerProcessor$selector_grob_type()}}
+    \item \href{#method-BaseRQqlineLayerProcessor-extract_axis_titles}{\code{BaseRQqlineLayerProcessor$extract_axis_titles()}}
     \item \href{#method-BaseRQqlineLayerProcessor-named_or_first}{\code{BaseRQqlineLayerProcessor$named_or_first()}}
     \item \href{#method-BaseRQqlineLayerProcessor-clone}{\code{BaseRQqlineLayerProcessor$clone()}}
   }
@@ -93,7 +94,6 @@ unchanged.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-unflip_panel_params'><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="axis_extent"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-axis_extent'><code>BaseRLineLayerProcessor$axis_extent()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_abline_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_abline_data'><code>BaseRLineLayerProcessor$extract_abline_data()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_axis_titles"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_axis_titles'><code>BaseRLineLayerProcessor$extract_axis_titles()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_main_title"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_main_title'><code>BaseRLineLayerProcessor$extract_main_title()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_multiline_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_multiline_data'><code>BaseRLineLayerProcessor$extract_multiline_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_single_line_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_single_line_data'><code>BaseRLineLayerProcessor$extract_single_line_data()</code></a></span></li>
@@ -211,6 +211,37 @@ shape of defect #145 was about.
   }
   \subsection{Returns}{
     The grob family name
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRQqlineLayerProcessor-extract_axis_titles"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRQqlineLayerProcessor-extract_axis_titles}{}}}
+\subsection{\code{BaseRQqlineLayerProcessor$extract_axis_titles()}}{
+  The axis titles of the plot the line is drawn on
+
+\code{qqline()} writes no axis of its own: it is drawn on the plot before
+it, whose axes say what its two numbers are. The inherited reading
+takes those only for \code{abline()}, \code{lines()} and \code{points()}, so the line
+fell through to its own call, which names nothing, and was read "X is
+-2.33, Y is -2.2" on a \code{qqnorm()} whose axes read Theoretical Quantiles
+and Sample Quantiles. The titles are now the plot's: on a \code{qqnorm()} or
+\code{qqplot()} those the Q-Q reading gives it (\code{BaseRQqLayerProcessor}),
+defaults included; on another plot those it was written with.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRQqlineLayerProcessor$extract_axis_titles(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
