@@ -74,6 +74,94 @@ get_facet_groups <- function(panel_info, built) {
   facet_groups
 }
 
+#' The text of a facet panel's strips
+#'
+#' A panel is named for its strips, which ggplot2 writes through the facet's
+#' labeller: `facet_grid(vs ~ am, labeller = labeller(vs = c("0" =
+#' "V-engine", "1" = "Straight")))` writes "V-engine" where `vs` is 0, and
+#' `label_both` writes "cyl: 4". The panels were named by the raw values
+#' instead, "0 & 1", which said neither what the strips say nor which
+#' variable each number was.
+#'
+#' The labeller is called as ggplot2 calls it, on the facet's own layout,
+#' a grid's rows and columns apart, and the panel's line is taken from what
+#' it returns. A facet with no labeller, a labeller that fails, or one that
+#' gives no text for the panel names it by its values, as before.
+#'
+#' @param panel_info Panel information from layout
+#' @param built Built plot data
+#' @param facet_groups The panel's facet values, from `get_facet_groups()`
+#' @return Character vector of the panel's strip labels, or its values
+#' @keywords internal
+facet_strip_labels <- function(panel_info, built, facet_groups) {
+  values <- vapply(facet_groups, function(value) {
+    if (length(value) == 1L && !is.na(value)) as.character(value) else "NA"
+  }, character(1))
+  params <- built$layout$facet$params
+  layout <- built$layout$layout
+  labeller <- params$labeller
+  row <- match(as.character(panel_info$PANEL), as.character(layout$PANEL))
+  if (!is.function(labeller) || is.na(row) || length(values) == 0L) {
+    return(values)
+  }
+
+  sets <- if (length(params$facets) > 0L) {
+    list(list(vars = names(params$facets), type = "cols", facet = "wrap"))
+  } else {
+    list(
+      list(vars = names(params$rows), type = "rows", facet = "grid"),
+      list(vars = names(params$cols), type = "cols", facet = "grid")
+    )
+  }
+
+  labels <- character(0)
+  for (set in sets) {
+    vars <- intersect(set$vars, names(layout))
+    if (length(vars) == 0L) {
+      next
+    }
+    frame <- layout[, vars, drop = FALSE]
+    attr(frame, "type") <- set$type
+    attr(frame, "facet") <- set$facet
+    lines <- tryCatch(labeller(frame), error = function(e) NULL)
+    if (!is.list(lines) || length(lines) == 0L) {
+      return(values)
+    }
+    text <- vapply(lines, strip_label_text, character(1), row = row)
+    if (anyNA(text)) {
+      return(values)
+    }
+    labels <- c(labels, text)
+  }
+  if (length(labels) == 0L) values else labels
+}
+
+#' One line of a strip, as text
+#'
+#' A labeller gives each line as a vector over the panels, of text or, from
+#' `label_parsed` and `label_bquote`, of expressions; an expression is
+#' written out as R would print it.
+#'
+#' @param line One element of a labeller's result
+#' @param row The panel's row of the facet's layout
+#' @return A string, or NA when the line has none for the panel
+#' @keywords internal
+strip_label_text <- function(line, row) {
+  if (length(line) < row) {
+    return(NA_character_)
+  }
+  value <- line[[row]]
+  if (is.expression(value)) {
+    value <- if (length(value) == 1L) value[[1L]] else NULL
+  }
+  text <- if (is.language(value)) {
+    paste(deparse(value), collapse = " ")
+  } else {
+    as.character(value)
+  }
+  if (length(text) != 1L || is.na(text) || !nzchar(text)) NA_character_ else text
+}
+
 #' Rows of a layer's own data that belong to one facet panel
 #'
 #' The obvious `values == group` is wrong the moment the facet column holds
@@ -231,7 +319,10 @@ process_facet_panel <- function(
 
     facet_title <- ""
     if (length(facet_groups) > 0) {
-      facet_title <- paste(facet_groups, collapse = " & ")
+      facet_title <- paste(
+        facet_strip_labels(panel_info, built, facet_groups),
+        collapse = " & "
+      )
     }
 
     # Prefer the axes the layer processors already resolved. They start from

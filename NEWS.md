@@ -758,6 +758,13 @@
   wrap of Regions A to D opened on Region C, and Down from Region D went up
   to Region B. A panel is now found where ggplot2 draws it, which every
   release of ggplot2 says the same way.
+* A facet subplot is named as its strips name it, through the facet's
+  labeller. `facet_grid(vs ~ am, labeller = labeller(vs = c("0" =
+  "V-engine", "1" = "Straight"), am = c("0" = "Automatic", "1" =
+  "Manual")))` named its subplots "0 & 0" to "1 & 1", the raw values, which
+  the chart does not show and which did not say which number was the engine
+  and which the transmission; they are now "V-engine & Automatic" to
+  "Straight & Manual", and `label_both` gives "cyl: 4".
 * The `d` key opens the chart description, and `L` then `T` says the
   title, on a box plot, violin plot, heat map, scatter plot, smooth,
   volcano plot and gantt chart. Their layers carried an empty object, `{}`,
