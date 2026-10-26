@@ -76,9 +76,11 @@ create_enhanced_svg <- function(gt, maidr_data, width = NULL, height = NULL) {
   if (has_candlestick) {
     gt <- clip_chartseries_panel_rects(gt)
   }
-  grid.draw(normalise_negative_rects(
-    split_vectorised_curve_grobs(repair_na_text_justification(gt))
-  ))
+  stacks <- take_bar_stacks(maidr_data)
+  maidr_data <- stacks$maidr_data
+  grid.draw(normalise_negative_rects(split_vectorised_curve_grobs(
+    repair_na_text_justification(outline_bar_stacks(gt, stacks$stacks))
+  )))
 
   # Inject svg_x/svg_y coordinates into violin_kde layers while we have
   # access to the grid viewports (must happen after grid.draw but before
@@ -575,6 +577,152 @@ split_one_curve <- function(curve) {
     children = do.call(grid::gList, children),
     name = curve$name,
     vp = curve$vp
+  )
+}
+
+#' The selector naming the outline drawn over each stacked bar
+#'
+#' A bar layer whose bars are stacks of rects (see
+#' `Ggplot2BarLayerProcessor$stack_rows()`) is highlighted through one
+#' invisible rect per bar, which [outline_bar_stacks()] draws beside the
+#' stack's rects as a grob named `<rect grob>.bars`. Its rects are the bars,
+#' in the order they are read, so this selector matches one element per bar.
+#'
+#' @param grob_name The name of the rect grob the stacks are drawn in.
+#' @return A CSS selector string.
+#' @keywords internal
+bar_stack_selector <- function(grob_name) {
+  id <- paste0(grob_name, ".bars.1")
+  paste0("#", gsub(".", "\\.", id, fixed = TRUE), " rect")
+}
+
+#' Take the stacked bars a chart's layers declare
+#'
+#' A layer whose bars are stacks of rects carries `.bar_stacks` -- the name
+#' of its rect grob and the positions of each bar's rects in it -- for
+#' [outline_bar_stacks()]. The field is removed here: it describes the
+#' drawing, not the data, and must not reach the emitted JSON.
+#'
+#' @param maidr_data The maidr-data structure.
+#' @return A list: `maidr_data` without the fields, and `stacks`, one entry
+#'   per layer that had one.
+#' @keywords internal
+take_bar_stacks <- function(maidr_data) {
+  stacks <- list()
+  for (row_idx in seq_along(maidr_data$subplots)) {
+    for (cell_idx in seq_along(maidr_data$subplots[[row_idx]])) {
+      cell <- maidr_data$subplots[[row_idx]][[cell_idx]]
+      for (layer_idx in seq_along(cell$layers)) {
+        stack <- cell$layers[[layer_idx]]$.bar_stacks
+        if (is.null(stack)) next
+        stacks[[length(stacks) + 1L]] <- stack
+        maidr_data$subplots[[row_idx]][[cell_idx]]$layers[[layer_idx]]$.bar_stacks <- NULL
+      }
+    }
+  }
+  list(maidr_data = maidr_data, stacks = stacks)
+}
+
+#' Draw an invisible rect over each stacked bar
+#'
+#' `geom_bar(stat = "identity")` and `geom_col()` draw a category's rows as a
+#' stack of rects, one per row, which reads as one bar when nothing tells the
+#' segments apart. maidr.js highlights a bar through one element, so each
+#' stack is given one: a rect spanning its segments, with no fill and no
+#' outline, so the drawing is unchanged. The rect grob is wrapped in a gTree
+#' with these rects after it; the grob keeps its name, so its rects keep
+#' their ids.
+#'
+#' A rect grob whose position and size are not all in one unit, or whose
+#' rects the stacks do not index, is left alone: its bars then have no
+#' highlight, which is what they had.
+#'
+#' @param grob A grob, gTree, gList, or gtable (or NULL)
+#' @param stacks The stacks from [take_bar_stacks()]: each a list of `grob`,
+#'   a rect grob's name, and `bars`, a list of the positions of each bar's
+#'   rects in it.
+#' @return The same tree with the outlines drawn after each stacked grob
+#' @keywords internal
+outline_bar_stacks <- function(grob, stacks) {
+  if (is.null(grob) || length(stacks) == 0L) {
+    return(grob)
+  }
+  named <- stats::setNames(
+    lapply(stacks, function(s) s$bars),
+    vapply(stacks, function(s) s$grob, character(1))
+  )
+
+  wrap <- function(g) {
+    if (inherits(g, "rect") && !is.null(g$name) && g$name %in% names(named)) {
+      outline <- bar_stack_outline(g, named[[g$name]])
+      if (is.null(outline)) {
+        return(g)
+      }
+      vp <- g$vp
+      g$vp <- NULL
+      return(grid::gTree(
+        children = grid::gList(g, outline),
+        name = paste0(g$name, ".stacked"),
+        vp = vp
+      ))
+    }
+    for (field in c("children", "grobs")) {
+      if (!is.null(g[[field]])) {
+        for (i in seq_along(g[[field]])) {
+          g[[field]][[i]] <- wrap(g[[field]][[i]])
+        }
+      }
+    }
+    if (inherits(g, "gList")) {
+      for (i in seq_along(g)) {
+        g[[i]] <- wrap(g[[i]])
+      }
+    }
+    g
+  }
+  wrap(grob)
+}
+
+#' One rect per stacked bar, spanning the rects it is drawn as
+#' @param rect A rect grob.
+#' @param bars A list of the positions of each bar's rects in `rect`.
+#' @return A rect grob named `<name>.bars`, or NULL when `rect` cannot be
+#'   measured without a viewport.
+#' @keywords internal
+bar_stack_outline <- function(rect, bars) {
+  fields <- list(x = rect$x, y = rect$y, width = rect$width, height = rect$height)
+  if (!all(vapply(fields, grid::is.unit, logical(1)))) {
+    return(NULL)
+  }
+  unit_name <- unique(unlist(lapply(fields, grid::unitType)))
+  if (length(unit_name) != 1L) {
+    return(NULL)
+  }
+  n <- max(lengths(fields))
+  at <- unlist(bars)
+  if (length(at) == 0L || anyNA(at) || min(at) < 1L || max(at) > n) {
+    return(NULL)
+  }
+  value <- lapply(fields, function(u) rep(as.numeric(u), length.out = n))
+  left <- value$x - rect_anchor(rect, "horizontal") * value$width
+  bottom <- value$y - rect_anchor(rect, "vertical") * value$height
+  right <- left + value$width
+  top <- bottom + value$height
+  span <- function(low, high, f) {
+    vapply(bars, function(i) f(c(low[i], high[i]), na.rm = TRUE), numeric(1))
+  }
+  x0 <- span(left, right, min)
+  x1 <- span(left, right, max)
+  y0 <- span(bottom, top, min)
+  y1 <- span(bottom, top, max)
+  grid::rectGrob(
+    x = grid::unit(x0, unit_name),
+    y = grid::unit(y0, unit_name),
+    width = grid::unit(x1 - x0, unit_name),
+    height = grid::unit(y1 - y0, unit_name),
+    just = c("left", "bottom"),
+    gp = grid::gpar(col = NA, fill = NA),
+    name = paste0(rect$name, ".bars")
   )
 }
 

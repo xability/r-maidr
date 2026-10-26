@@ -23,19 +23,37 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
       data <- self$extract_data(plot, built, panel_id)
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
       # Asked once, and both the key and the layout it decides are set from
       # the one answer -- they describe the same fact and could not be allowed
       # to disagree.
       horizontal <- self$is_flipped(plot, built)
-      list(
+      result <- list(
         data = if (horizontal) self$swap_point_axes(data) else data,
         selectors = selectors,
         orientation = if (horizontal) "horz" else "vert",
         title = if (!is.null(layout$title)) layout$title else "",
         axes = self$extract_layer_axes(plot, layout)
       )
+
+      # A bar drawn as a stack of rects is one bar to read, so its highlight
+      # has to cover the stack: the rects are named by a selector matching
+      # one rect per segment, which is more elements than bars and leaves
+      # maidr.js nothing to highlight. The export draws an invisible rect over
+      # each stack (`outline_bar_stacks()`), and the selector names those.
+      stacks <- self$stack_rows(plot, built, panel_id)
+      if (!is.null(stacks)) {
+        names <- self$rect_grob_names(plot, gt, panel_ctx)
+        if (length(names) == 1L) {
+          result$selectors <- list(bar_stack_selector(names))
+          result$.bar_stacks <- list(grob = names, bars = stacks)
+        }
+      }
+      result
     },
     #' @description Is this layer's category axis `y` rather than `x`?
     #'
@@ -162,6 +180,14 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
 
       if (!is.null(panel_id) && "PANEL" %in% names(built_data)) {
         built_data <- built_data[built_data$PANEL == panel_id, ]
+      }
+
+      # One row per bar from here on. A layer whose rows share a category is
+      # drawn as one bar per category, each a stack of segments, and is read
+      # as those bars (see `stack_rows()`).
+      stacks <- self$stack_rows_of(plot, built_data)
+      if (!is.null(stacks)) {
+        built_data <- self$collapse_stacks(built_data, stacks)
       }
 
       # For faceted plots, get x values from built data or scale mapping
@@ -302,6 +328,80 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       data_points
     },
 
+    #' @description The rows each bar is drawn from, when bars are stacks
+    #'
+    #' `ggplot(mtcars, aes(factor(cyl), mpg)) + geom_bar(stat = "identity")`
+    #' draws three bars, each a stack of one rect per car: `geom_bar()` and
+    #' `geom_col()` stack the rows that share a category by default, and with
+    #' nothing mapped to `fill` the segments are drawn alike, so the page shows
+    #' one bar per category, as tall as its segments together. ggplot2 keeps
+    #' one built row per segment, which the reading took for one bar each:
+    #' 32 bars, the first three labelled with categories that belonged to
+    #' other rows, the rest with none, every value the running total of its
+    #' stack.
+    #'
+    #' A layer mapping `fill` is a stacked bar chart and never reaches this
+    #' processor; a layer drawn with `position = "identity"` overlaps its rows
+    #' rather than stacking them, and is left as it was.
+    #'
+    #' @param plot The ggplot2 object.
+    #' @param built Its `ggplot_build()` result.
+    #' @param panel_id Panel ID for faceted plots (optional).
+    #' @return `NULL` when every bar is one row; otherwise a list with one
+    #'   integer vector per bar, in the order the bars are read (along the
+    #'   category axis), holding the positions of its rows among the panel's
+    #'   rows -- which are also the positions of its rects in the panel's rect
+    #'   grob, drawn in row order.
+    stack_rows = function(plot, built, panel_id = NULL) {
+      rows <- self$get_layer_built_data(built, panel_id)
+      if (is.null(rows)) {
+        return(NULL)
+      }
+      if (isTRUE(rows$flipped_aes[1])) {
+        rows <- self$unflip_columns(rows)
+      }
+      self$stack_rows_of(plot, rows)
+    },
+
+    #' @description `stack_rows()` on rows already read
+    #' @param plot The ggplot2 object.
+    #' @param rows The layer's built rows for one panel, the category in `x`.
+    #' @return As `stack_rows()`.
+    stack_rows_of = function(plot, rows) {
+      layer <- self$get_own_layer(plot)
+      if (is.null(layer) || !inherits(layer$position, "PositionStack")) {
+        return(NULL)
+      }
+      if (is.null(rows) || nrow(rows) < 2L || !anyDuplicated(rows$x)) {
+        return(NULL)
+      }
+      positions <- sort(unique(rows$x))
+      lapply(positions, function(at) which(rows$x == at))
+    },
+
+    #' @description One row per bar, from rows that stack
+    #'
+    #' A bar's value is the sum of its segments, which is where the top of an
+    #' all-positive stack is drawn. ggplot2 stacks negative values down from
+    #' zero, keeping each segment's `ymin` below its `ymax`, so a segment below
+    #' zero counts negatively.
+    #'
+    #' @param rows The layer's built rows for one panel, the category in `x`.
+    #' @param stacks The rows of each bar, from `stack_rows()`.
+    #' @return A data frame with one row per bar, in the order of `stacks`.
+    collapse_stacks = function(rows, stacks) {
+      bars <- rows[vapply(stacks, function(at) at[1], integer(1)), , drop = FALSE]
+      bars$y <- vapply(stacks, function(at) {
+        segment <- rows[at, , drop = FALSE]
+        if (!all(c("ymin", "ymax") %in% names(segment))) {
+          return(as.numeric(segment$y[nrow(segment)]))
+        }
+        height <- segment$ymax - segment$ymin
+        sum(ifelse(segment$ymin < 0, -height, height), na.rm = TRUE)
+      }, numeric(1))
+      bars
+    },
+
     #' @description Format an x-axis value as character.
     #'
     #' Date / POSIXct / POSIXlt values are formatted via `format()` so that a
@@ -420,102 +520,62 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
     #' @return List of selectors
     generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
-      # Prefer panel-scoped selection when panel_ctx is provided
-      if (!is.null(panel_ctx) && !is.null(gt)) {
-        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
-        if (is.null(panel_grob)) {
-          return(list())
-        }
-
-        find_rect_names <- function(grob) {
-          names <- character(0)
-          if (!is.null(grob$name) && grepl("geom_rect\\.rect", grob$name)) {
-            names <- c(names, grob$name)
-          }
-          if (inherits(grob, "gList")) {
-            for (i in seq_along(grob)) {
-              names <- c(names, find_rect_names(grob[[i]]))
-            }
-          }
-          if (inherits(grob, "gTree")) {
-            for (i in seq_along(grob$children)) {
-              names <- c(names, find_rect_names(grob$children[[i]]))
-            }
-          }
-          names
-        }
-
-        rect_names <- self$own_rect_names(panel_grob, find_rect_names)
-        if (length(rect_names) == 0) {
-          return(list())
-        }
-        selectors <- lapply(rect_names, function(name) {
-          svg_id <- paste0(name, ".1")
-          escaped <- gsub("\\.", "\\\\.", svg_id)
-          paste0("#", escaped, " rect")
-        })
-        return(selectors)
-      }
-
-      if (!is.null(grob_id)) {
+      if (!is.null(grob_id) && (is.null(panel_ctx) || is.null(gt))) {
         # For faceted plots: use provided grob ID with .1 suffix (gridSVG adds this)
         full_grob_id <- paste0(grob_id, ".1")
         escaped_grob_id <- gsub("\\.", "\\\\.", full_grob_id)
-        selector <- paste0("#", escaped_grob_id, " rect")
-        return(list(selector))
+        return(list(paste0("#", escaped_grob_id, " rect")))
+      }
+
+      lapply(self$rect_grob_names(plot, gt, panel_ctx), function(name) {
+        svg_id <- paste0(name, ".1")
+        escaped <- gsub("\\.", "\\\\.", svg_id)
+        paste0("#", escaped, " rect")
+      })
+    },
+
+    #' @description The names of the rect grobs this layer drew
+    #'
+    #' Searched in the panel the context names when there is one, and in the
+    #' plot's only panel otherwise.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional; built from `plot` when absent)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return Character vector of rect grob names, empty when none is found
+    rect_grob_names = function(plot, gt = NULL, panel_ctx = NULL) {
+      if (!is.null(panel_ctx) && !is.null(gt)) {
+        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
       } else {
-        # For single plots: use existing logic
         if (is.null(gt)) {
           gt <- ggplot2::ggplotGrob(plot)
         }
-
         panel_index <- which(gt$layout$name == "panel")
-        if (length(panel_index) == 0) {
-          return(list())
-        }
-
-        panel_grob <- gt$grobs[[panel_index]]
-        if (!inherits(panel_grob, "gTree")) {
-          return(list())
-        }
-
-        find_rect_names <- function(grob) {
-          names <- character(0)
-
-          if (!is.null(grob$name) && grepl("geom_rect\\.rect", grob$name)) {
-            names <- c(names, grob$name)
-          }
-
-          if (inherits(grob, "gList")) {
-            for (i in seq_along(grob)) {
-              names <- c(names, find_rect_names(grob[[i]]))
-            }
-          }
-
-          if (inherits(grob, "gTree")) {
-            for (i in seq_along(grob$children)) {
-              names <- c(names, find_rect_names(grob$children[[i]]))
-            }
-          }
-
-          names
-        }
-
-        rect_names <- self$own_rect_names(panel_grob, find_rect_names)
-
-        if (length(rect_names) == 0) {
-          return(list())
-        }
-
-        selectors <- lapply(rect_names, function(name) {
-          layer_id <- gsub("geom_rect\\.rect\\.", "", name)
-          grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-          escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-          paste0("#", escaped_grob_id, " rect")
-        })
-
-        selectors
+        panel_grob <- if (length(panel_index) == 0) NULL else gt$grobs[[panel_index[1]]]
       }
+      if (is.null(panel_grob) || !inherits(panel_grob, "gTree")) {
+        return(character(0))
+      }
+
+      find_rect_names <- function(grob) {
+        names <- character(0)
+        if (!is.null(grob$name) && grepl("geom_rect\\.rect", grob$name)) {
+          names <- c(names, grob$name)
+        }
+        if (inherits(grob, "gList")) {
+          for (i in seq_along(grob)) {
+            names <- c(names, find_rect_names(grob[[i]]))
+          }
+        }
+        if (inherits(grob, "gTree")) {
+          for (i in seq_along(grob$children)) {
+            names <- c(names, find_rect_names(grob$children[[i]]))
+          }
+        }
+        names
+      }
+
+      self$own_rect_names(panel_grob, find_rect_names)
     },
 
     #' @description The rect grob names under this layer's own slot, or under the whole panel
