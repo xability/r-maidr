@@ -153,6 +153,14 @@ exactly as a stack.
 along the first dimension into columns and each column along the second,
 so the first dimension is the category and the second the fill.
 
+The fills are emitted from the last level to the first. A segmented
+layer's first series is its bottom segment, and Up moves to the next,
+while [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+draws the first level of the second dimension at the top of each column,
+as [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+does. Emitted in table order, the reader started on the top tile, Up
+moved down the column, and the column's sum came after its bottom tile.
+
 Each cell carries four numbers rather than one:
 
 - `y`, the cell's conditional proportion within its column – the tile's

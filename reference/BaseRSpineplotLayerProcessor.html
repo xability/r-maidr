@@ -183,7 +183,7 @@ so the positional pairing holds. There is a test for exactly that.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-24">
+<meta name="DC.date" content="2026-10-30">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -362,8 +362,8 @@ at worst, and a spine plot with no highlight still reads (#145).</p>
 <p>The index runs column-major with the fill levels <strong>descending</strong>
 inside a column, which is the order measured off the drawing and
 recorded in the class note. The emitted list is in the payload's own
-order – all categories of the first fill, then the second – so the
-two line up.</p><div class="section">
+order – all categories of the last fill, the bottom tiles, then
+the one before it (see <code>extract_data()</code>) – so the two line up.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRSpineplotLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span>, gt <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

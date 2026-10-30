@@ -63,7 +63,7 @@ the counts, the margins they imply, and the level names from dimnames().">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-04">
+<meta name="DC.date" content="2026-10-30">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -240,6 +240,12 @@ builds <code>MosaicTrace</code> on <code>SegmentedTrace</code> and navigates it
 category-then-series exactly as a stack. <code><a href="base-r-wrappers.html">mosaicplot()</a></code> splits along
 the first dimension into columns and each column along the second, so
 the first dimension is the category and the second the fill.</p>
+<p>The fills are emitted from the last level to the first. A segmented
+layer's first series is its bottom segment, and Up moves to the next,
+while <code><a href="base-r-wrappers.html">mosaicplot()</a></code> draws the first level of the second dimension at
+the top of each column, as <code><a href="base-r-wrappers.html">spineplot()</a></code> does. Emitted in table order,
+the reader started on the top tile, Up moved down the column, and the
+column's sum came after its bottom tile.</p>
 <p>Each cell carries four numbers rather than one:</p><ul><li><p><code>y</code>, the cell's conditional proportion within its column – the
 tile's height, and what a stack's value would be;</p></li>
 <li><p><code>width</code>, the column's share of all observations – carried on every

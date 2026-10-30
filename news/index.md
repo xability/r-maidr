@@ -1063,6 +1063,23 @@
   a short y axis where R shows 10 and 14. The labels R leaves out are
   now left out too, measured as R measures them at the chart’s size
   ([\#355](https://github.com/xability/r-maidr/issues/355)).
+- Up moves up a column of a
+  [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) or
+  [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md), and
+  Down down it. Both draw the first level of the second variable at the
+  top of each column, and maidr emitted it as the first series, which
+  maidr.js reads as the bottom segment: the reader started on the top
+  tile, Up moved the highlight down the column, and the column’s sum
+  came after its bottom tile. The series now run from the bottom tile up
+  ([\#412](https://github.com/xability/r-maidr/issues/412)).
+- An [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  heat map highlights the cell being read. Its selectors named the top
+  band first, as the cells are listed, where a selector grid names the
+  bottom row first (the heat row of the selectors table in maidr.js’s
+  `docs/SCHEMA.md`), so every outline was on the band mirrored top to
+  bottom: the reader on Green, at the bottom, saw the Brown cell at the
+  top outlined
+  ([\#412](https://github.com/xability/r-maidr/issues/412)).
 - A Base R [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   page is drawn with the `widths`, `heights` and `respect` its call
   sets. maidr set the page up again from the matrix alone, so every
