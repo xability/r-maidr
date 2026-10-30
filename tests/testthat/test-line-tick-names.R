@@ -90,6 +90,31 @@ test_that("a Base R line on y ticks the author named is read by the names", {
   )
 })
 
+test_that("a Base R line on ticks named by a factor is read by the names R draws", {
+  # R draws a factor given as `labels` by its values' names, and a date as
+  # it prints (`as.graphicsAnnot()`). Only text labels were read, so these
+  # lines were read by their numbers.
+  stage_labels <- function(layer) {
+    vapply(layer$data[[1]], function(point) {
+      if (is.null(point$label)) "" else point$label
+    }, character(1))
+  }
+  as_factor <- base_r_layers(function() {
+    plot(1:4, c(3, 1, 2, 3), type = "l", yaxt = "n")
+    axis(2, at = 1:3, labels = factor(c("low", "mid", "high"), levels = c("high", "mid", "low")))
+  })[[1]]
+  testthat::expect_identical(stage_labels(as_factor), c("high", "low", "mid", "high"))
+
+  as_dates <- base_r_layers(function() {
+    plot(1:3, c(2, 1, 3), type = "l", yaxt = "n")
+    axis(2, at = 1:3, labels = as.Date("2024-01-01") + 0:2)
+  })[[1]]
+  testthat::expect_identical(
+    stage_labels(as_dates),
+    c("2024-01-02", "2024-01-01", "2024-01-03")
+  )
+})
+
 test_that("a Base R line keeps its numbers unless every point is on a named tick", {
   labels_of <- function(layer) {
     unlist(lapply(layer$data[[1]], function(point) point$label))

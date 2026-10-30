@@ -1160,6 +1160,11 @@
   "Sleep stage is 3", and the y value still sets the tone and the braille,
   as on a ggplot2 line over a factor. A point is named only when every
   point of its layer sits on a named tick.
+* Ticks named by a factor, or by another classed value such as a date, as
+  in `axis(2, at = 1:3, labels = factor(c("low", "mid", "high")))`, name a
+  line's points as text labels do. R draws such labels as the text
+  `as.character()` makes of them, but maidr read only character labels, so
+  the points were read by their numbers.
 * A `stars()` chart highlights the star being read. Its reading emitted no
   selectors, so no move outlined anything; each star is now outlined
   through the polygon it is drawn as, whose corners are the spoke tips the
