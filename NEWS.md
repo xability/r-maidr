@@ -981,6 +981,15 @@
   while the reader stood on setosa, and a title drawn over the plots with
   `title("Overall", outer = TRUE)` was lost to the last plot's. Each plot
   is still read under its own title.
+* A title written after a plot with `title()` titles that plot, as its
+  `main` does: `plot(x); title("Sales")` is read as `plot(x, main =
+  "Sales")` is. maidr read such a title only as the chart's own, on a chart
+  of one panel, and only when given as `main =`. So each panel of a
+  `par(mfrow)` grid titled this way was read without a title, `title("Sales")`
+  was not read at all, and `hist(x, ann = FALSE); title("Sales")` was read
+  under "Histogram of x", which R does not draw there. Written over a plot's
+  own title, as in `qqnorm(x); title("Sales")`, it is the one read, as R
+  draws it on top.
 * A Base R chart is titled the way R titles it. `hist(mtcars$mpg)` writes
   "mtcars$mpg" under its x axis and "Histogram of mtcars$mpg" above it, and
   the chart maidr drew, in `show()`, `save_html()`, a knitted document and

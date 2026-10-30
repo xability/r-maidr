@@ -513,6 +513,38 @@ base_r_title_main <- function(args) {
   if (is.null(main) && length(unnamed) > 0) args[[unnamed[1]]] else main
 }
 
+#' The title each plot was given with a `title()` written after it
+#'
+#' `plot(x); title("Sales")` titles the plot as `plot(x, main = "Sales")`
+#' does, and is how a plot drawn with `ann = FALSE` is titled. R draws it
+#' where the plot's own title goes, so over the plot's own title the last
+#' one written is the one on top, as with `title(xlab = )`
+#' (`with_margin_titles()`). It titles the plot R draws it on, which
+#' `par(mfg = )` can send back to an earlier panel of a grid
+#' (`plot_drawn_on()`). A `title()` in the outer margin (`outer = TRUE`)
+#' titles the page rather than a plot (`base_r_outer_title()`).
+#'
+#' @param groups The plot groups, from [group_device_calls()]
+#' @return One string or NULL per group: the title the last such `title()`
+#'   gave its plot
+#' @keywords internal
+#' @noRd
+base_r_plot_titles <- function(groups) {
+  titles <- vector("list", length(groups))
+  for (g in seq_along(groups)) {
+    for (call in groups[[g]]$low_calls) {
+      if (!identical(call$function_name, "title") || recorded_flag(call$args, "outer")) {
+        next
+      }
+      title <- base_r_annotation_text(base_r_title_main(call$args))
+      if (!is.null(title)) {
+        titles[[plot_drawn_on(call, groups, g)]] <- title
+      }
+    }
+  }
+  titles
+}
+
 #' The title a recorded call drew over the whole page, as one line
 #'
 #' A call given `outer = TRUE` draws in the page's outer margin, over every

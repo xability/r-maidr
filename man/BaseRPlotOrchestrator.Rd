@@ -396,7 +396,8 @@ what is drawn on it: the title R drew over its panels, with
 \code{title(outer = TRUE)} or \code{mtext(outer = TRUE)} along the top; else,
 for one panel, by its title, and for several, by each panel R drew in
 turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
-A panel's title is its plot's, or the one \code{title()} gave it; a plot
+A panel's title is the one a \code{title()} written after its plot gave
+it, or else its plot's own; a plot
 drawn over a panel's, after \code{par(new = TRUE)}, with \code{add = TRUE} or
 sent back to it with \code{par(mfg = )}, is in that panel, which is named
 by the first title drawn on it. The chart's own title is, for several
