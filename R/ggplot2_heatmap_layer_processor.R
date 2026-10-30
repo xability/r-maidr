@@ -321,35 +321,13 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         return(self$extract_binned_data(built_data))
       }
 
-      original_data <- plot$data
-
-      plot_mapping <- plot$mapping
-      layer_mapping <- plot$layers[[layer_index]]$mapping
-
-      # Determine x, y, and fill column names
-      x_col <- if (!is.null(layer_mapping$x)) {
-        rlang::as_label(layer_mapping$x)
-      } else if (!is.null(plot_mapping$x)) {
-        rlang::as_label(plot_mapping$x)
-      } else {
-        names(original_data)[1]
-      }
-
-      y_col <- if (!is.null(layer_mapping$y)) {
-        rlang::as_label(layer_mapping$y)
-      } else if (!is.null(plot_mapping$y)) {
-        rlang::as_label(plot_mapping$y)
-      } else {
-        names(original_data)[2]
-      }
-
-      fill_col <- if (!is.null(layer_mapping$fill)) {
-        rlang::as_label(layer_mapping$fill)
-      } else if (!is.null(plot_mapping$fill)) {
-        rlang::as_label(plot_mapping$fill)
-      } else {
-        names(original_data)[3]
-      }
+      # The values each tile was drawn from, evaluated as ggplot2 evaluates
+      # them (`heat_source_frame()`).
+      source <- heat_source_frame(plot, layer_index)
+      original_data <- source$data
+      x_col <- ".maidr_heat_x"
+      y_col <- ".maidr_heat_y"
+      fill_col <- ".maidr_heat_fill"
 
       # Order categories the same way ggplot2 assigns discrete positions
       # (factor level order, otherwise sorted): position i in built data
@@ -421,7 +399,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         points = points,
         x = as.character(x_values),
         y = as.character(y_values_reversed),
-        fill_label = fill_col
+        fill_label = source$fill_label
       ))
     },
     #' @description Selectors for the tiles, scoped to the panel
@@ -452,6 +430,96 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
     }
   )
 )
+
+#' The data a heatmap layer drew its tiles from, one column per aesthetic
+#'
+#' ggplot2 evaluates each aesthetic in the data the layer draws, its own
+#' `data` or else the plot's (`Layer$layer_data()`), under the layer's
+#' mapping and, unless `inherit.aes = FALSE`, the plot's. So
+#' `aes(fill = score * 2)` draws each tile from twice its score. Each was
+#' looked up instead as a column named after its mapping: "score * 2"
+#' names none, so every cell was read missing, and an expression for `x` or
+#' `y`, as `factor(month, levels = month.abb)`, or a layer drawn from data
+#' of its own, stopped the reading.
+#'
+#' An `x` or `y` the layer does not map is read from the data's first or
+#' second column, as it was before, and as missing where the data has no
+#' such column. A fill the layer does not map is read as missing: its tiles
+#' are all drawn in one colour, so no column of the data is what they show.
+#' It was read from the data's third column, whatever that held. An
+#' aesthetic that cannot be evaluated against the layer's data, or is no
+#' vector there, is read as missing too. An `after_stat()` of a variable
+#' the stat computes names no column of it, as `after_stat(group)` does, or
+#' names a function: `after_stat(density)` is `stats::density()` there,
+#' which stopped the reading. A fill of categories is read by the numbers
+#' its legend shows, as `factor(score * 10)` shows 10, 20 and 30, and as
+#' missing where the names are not numbers, as `fill = grade` and the
+#' colours `after_scale()` gives: a factor was read as its level codes.
+#'
+#' @param plot The ggplot2 object
+#' @param layer_index The layer's index in `plot$layers`
+#' @return A list: `data`, the layer's data with each tile's x, y and fill in
+#'   the columns `.maidr_heat_x`, `.maidr_heat_y` and `.maidr_heat_fill`;
+#'   and `fill_label`, the fill's name as ggplot2 labels it ("score * 2"),
+#'   or `NULL` when the fill is not mapped
+#' @keywords internal
+heat_source_frame <- function(plot, layer_index) {
+  layer <- plot$layers[[layer_index]]
+  data <- tryCatch(layer$layer_data(plot$data), error = function(e) plot$data)
+  if (!is.data.frame(data)) {
+    data <- as.data.frame(data)
+  }
+
+  mapping <- as.list(layer$mapping)
+  if (!isFALSE(layer$inherit.aes)) {
+    inherited <- as.list(plot$mapping)
+    mapping <- c(mapping, inherited[setdiff(names(inherited), names(mapping))])
+  }
+
+  # An unmapped aesthetic with a `position` is read from that column of the
+  # layer's own data, counted before any column is added below; one without
+  # is read as missing.
+  rows <- nrow(data)
+  columns <- names(data)
+  read <- function(aesthetic, position = NULL) {
+    quo <- mapping[[aesthetic]]
+    if (is.null(quo)) {
+      if (is.null(position) || position > length(columns)) {
+        return(rep(NA, rows))
+      }
+      return(data[[columns[position]]])
+    }
+    value <- tryCatch(rlang::eval_tidy(quo, data), error = function(e) NULL)
+    if (!is.atomic(value)) {
+      return(rep(NA, rows))
+    }
+    if (length(value) == 1L && rows != 1L) {
+      value <- rep(value, rows)
+    }
+    if (length(value) == rows) value else rep(NA, rows)
+  }
+
+  fill_mapping <- mapping[["fill"]]
+  fill_label <- if (!is.null(fill_mapping)) rlang::as_label(fill_mapping)
+
+  x <- read("x", 1L)
+  y <- read("y", 2L)
+  fill <- read("fill")
+  # Each cell holds a number. A category's is the one its legend shows,
+  # where its name is a number, as `factor(score * 10)` shows 10, 20 and
+  # 30; categories named otherwise, and colours as `after_scale()` gives,
+  # have none. Read as numbers, a factor gave its level codes, and the rest
+  # came out missing with a coercion warning.
+  if (is.factor(fill) || is.character(fill)) {
+    shown <- as.character(fill)
+    numbers <- suppressWarnings(as.numeric(shown))
+    fill <- if (identical(is.na(numbers), is.na(shown))) numbers else rep(NA, rows)
+  }
+  data[[".maidr_heat_x"]] <- x
+  data[[".maidr_heat_y"]] <- y
+  data[[".maidr_heat_fill"]] <- fill
+  list(data = data, fill_label = fill_label)
+}
 
 #' Whether a heatmap source column can be coded by level
 #'
