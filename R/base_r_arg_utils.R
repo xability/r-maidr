@@ -71,8 +71,7 @@ usable_xy_coords <- function(coords) {
 #'
 #' * **Order.** `match.call()` reorders arguments into formal order; the
 #'   recorded list keeps the user's order and only gains names. Replay does
-#'   `do.call()`, which honours names regardless of position, while
-#'   `apply_barplot_sorting()` and friends still find the height in slot 1.
+#'   `do.call()`, which honours names regardless of position.
 #' * **The dispatch argument stays exactly as written.** S3 dispatch happens
 #'   on the first argument of the *generic*, and methods are free to rename
 #'   it: `plot.formula()` calls it `formula`, not `x`. Naming a positional
@@ -783,29 +782,6 @@ recorded_barplot_height <- function(args) {
     return(NULL)
   }
   args[[unnamed[1]]]
-}
-
-#' Write a `height` back into a recorded `barplot()` call
-#'
-#' The counterpart of [recorded_barplot_height()]: the value goes back into
-#' the slot it was read from, named or positional.
-#'
-#' @param args Recorded argument list
-#' @param height The replacement height
-#' @return The argument list with `height` replaced
-#' @keywords internal
-set_recorded_barplot_height <- function(args, height) {
-  if (!is.null(args[["height"]])) {
-    args[["height"]] <- height
-    return(args)
-  }
-  arg_names <- names(args)
-  unnamed <- if (is.null(arg_names)) seq_along(args) else which(!nzchar(arg_names))
-  if (length(unnamed) == 0) {
-    return(args)
-  }
-  args[[unnamed[1]]] <- height
-  args
 }
 
 #' The formula a recorded call carries, resolved

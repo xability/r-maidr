@@ -95,9 +95,8 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
         # Emit data in recorded-call order: the SVG is replayed from the
         # recorded args, so its rects appear in exactly this order. Any
         # re-sorting here (e.g. alphabetical) would misalign announced
-        # values and highlights with the drawn bars. (Named inputs are
-        # already sorted by the barplot wrapper's SortingPatcher before
-        # being recorded.)
+        # values and highlights with the drawn bars. (The barplot wrapper
+        # records the arguments as the author wrote them.)
         #
         # Horizontal bars swap the point roles: x carries the VALUE and
         # y the category label (the frontend reads values from x when

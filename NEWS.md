@@ -1081,6 +1081,19 @@
   shows the last of them; and drew a `split.screen()` page's last plot
   alone in the first screen's place, with R's warning "calling
   par(new=TRUE) with no plot" (#360).
+* `barplot()` draws its bars in the order the author gives them, as R
+  does, and they are read in that order. maidr sorted the categories, and
+  the rows of a matrix, alphabetically before drawing: a chart scripted
+  North, South, East, West was drawn and read East, North, South, West, and
+  `barplot(c(5, 7, 3, 9), names.arg = c("Jan", "Feb", "Mar", "Apr"))` Apr,
+  Feb, Jan, Mar. The rows of a stacked or dodged chart were sorted without
+  the `legend.text` and `col` that go with them, so each series was drawn
+  in another's colour under another's name, and read under that name: in a
+  stacked chart of Solar, Wind and Hydro, Hydro's numbers were drawn in
+  Solar's green, named "Solar" in the legend and read as Solar's. This
+  reverses what 0.5.0 said ("A named vector is still sorted alphabetically
+  before drawing"): to draw bars sorted, sort the data before `barplot()`,
+  as without maidr.
 
 ## Documentation
 

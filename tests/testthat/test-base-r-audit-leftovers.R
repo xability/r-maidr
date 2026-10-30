@@ -48,11 +48,6 @@ test_that("recorded_barplot_height reads the named slot before the first positio
   expect_identical(maidr:::recorded_barplot_height(list(beside = TRUE, height = 1:3)), 1:3)
   expect_identical(maidr:::recorded_barplot_height(list(1:3, beside = TRUE)), 1:3)
   expect_null(maidr:::recorded_barplot_height(list(beside = TRUE)))
-
-  args <- maidr:::set_recorded_barplot_height(list(beside = TRUE, height = 1:3), 3:1)
-  expect_identical(args$height, 3:1)
-  args <- maidr:::set_recorded_barplot_height(list(1:3, beside = TRUE), 3:1)
-  expect_identical(args[[1]], 3:1)
 })
 
 test_that("a word cloud given its words and counts by position reads them", {

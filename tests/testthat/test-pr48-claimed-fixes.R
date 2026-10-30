@@ -313,10 +313,11 @@ test_that("each faceted dodged bar panel reports its own values", {
 # ==============================================================================
 # Base R barplot: emitted order must match the drawn bars
 #
-# The wrapper sorts named bars alphabetically before drawing, so the SVG
-# rects come out in that order. Recording the UNSORTED arguments, or
-# re-sorting during extraction, leaves every announcement and highlight
-# attached to the wrong bar - silently, with no error anywhere.
+# The wrapper draws the bars in the order the author gives them and records
+# those arguments, so the SVG rects come out in that order. Recording other
+# arguments than it draws with, or re-sorting during extraction, leaves
+# every announcement and highlight attached to the wrong bar - silently,
+# with no error anywhere.
 #
 # gridSVG exports the plot under transform="translate(0, height) scale(1, -1)",
 # so a bar's rect height grows with its value: rank-matching the rect
@@ -351,13 +352,13 @@ test_that("named barplot bars are emitted in the order they are drawn", {
   html <- render_html()
   layer <- payload_layer(parse_maidr_data(html))
 
-  # the wrapper draws the bars alphabetically, so that is the order the
-  # data has to be announced in
+  # the wrapper draws the bars in the order written, as R does, so that is
+  # the order the data has to be announced in
   testthat::expect_equal(
     vapply(layer$data, function(point) point$x, character(1)),
-    c("alpha", "charlie", "delta")
+    c("delta", "alpha", "charlie")
   )
-  testthat::expect_equal(field_of(layer$data, "y"), c(3, 11, 7))
+  testthat::expect_equal(field_of(layer$data, "y"), c(7, 3, 11))
 
   rects <- selector_rects(html, unlist(layer$selectors)[1])
   testthat::expect_length(rects, length(layer$data))
@@ -436,7 +437,7 @@ test_that("show(as_widget = TRUE) renders a recorded Base R plot", {
 
   layer <- payload_layer(widget_maidr_data(widget))
   testthat::expect_equal(layer$type, "bar")
-  testthat::expect_equal(field_of(layer$data, "y"), c(3, 11, 7))
+  testthat::expect_equal(field_of(layer$data, "y"), c(7, 3, 11))
 
   reset_devices()
 })
@@ -473,7 +474,7 @@ test_that("render_maidr() hands a Base R plot's own values to the widget", {
     payload <- jsonlite::fromJSON(as.character(output$p), simplifyVector = FALSE)
     layer <- payload_layer(widget_maidr_data(list(x = payload$x)))
 
-    testthat::expect_equal(field_of(layer$data, "y"), c(3, 11, 7))
+    testthat::expect_equal(field_of(layer$data, "y"), c(7, 3, 11))
   })
 
   reset_devices()

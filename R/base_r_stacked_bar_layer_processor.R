@@ -1,8 +1,8 @@
 #' Base R Stacked Bar Layer Processor
 #'
 #' Processes Base R stacked bar plot layers intercepted via the patching
-#' system. Assumes sorting by x (columns) and then z (rows) has already been
-#' applied by the `SortingPatcher`.
+#' system, reading the columns and rows in the order the recorded call draws
+#' them.
 #'
 #' @keywords internal
 BaseRStackedBarLayerProcessor <- R6::R6Class(
@@ -87,7 +87,8 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      # Use current row/col names (SortingPatcher already ordered them)
+      # The row and column names in the recorded order, which is the drawn
+      # one: `legend.text` names the rows in that order too.
       type_names <- NULL
 
       # Check legend.text: use it only if it's a character vector, not TRUE/FALSE
