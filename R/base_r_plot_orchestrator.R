@@ -283,7 +283,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
     },
 
     # The title of a plot group's panel, as one line: its plot's, as its
-    # layer announces it, or else the one a `title()` drawn on it gave it.
+    # layer announces it, a `title()` written after the plot included
+    # (`base_r_plot_titles()`), or else, for a plot read as no layer, the
+    # one a `title()` drawn on it gave it.
     panel_title = function(group_index) {
       one_line <- function(title) {
         if (is.character(title) && length(title) == 1 && !is.na(title) && nzchar(title)) {
@@ -607,8 +609,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
       plot_numbers <- private$plot_numbers(panel_slots)
 
       # The titles written after each plot, with title() or mtext(), by the
-      # plot whose axis each one titles.
+      # plot whose axis each one titles, and the title a title() gave it.
       titles <- margin_titles(private$.plot_groups, private$.layout_calls)
+      plot_titles <- base_r_plot_titles(private$.plot_groups)
 
       layer_results <- vector("list", length(private$.layers))
       for (i in seq_along(private$.layers)) {
@@ -635,6 +638,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         layer_info <- private$.layers[[i]]
         layer_titles <- titles[[layer_info$group_index]]
+        # A title() titles the plot, as its `main` does, and not the lines
+        # or points drawn on it.
+        plot_title <- if (identical(layer_info$source, "HIGH")) {
+          plot_titles[[layer_info$group_index]]
+        }
         layer_info$group_index <- plot_numbers[[layer_info$group_index]]
         # Drawn over the group's plot on one of its own, after
         # `par(new = TRUE)`, a call's marks are that plot's
@@ -660,10 +668,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
         if (is.list(result) && isTRUE(result$multi_layer) && !is.null(result$layers)) {
           result$layers <- lapply(result$layers, function(sub) {
             sub$axes <- with_margin_titles(sub$axes, layer_titles)
+            if (!is.null(plot_title)) sub$title <- plot_title
             sub
           })
         } else if (is.list(result)) {
           result$axes <- with_margin_titles(result$axes, layer_titles)
+          if (!is.null(plot_title)) result$title <- plot_title
         }
         processor$set_last_result(result)
         layer_results[[i]] <- result
@@ -759,11 +769,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
         value <- get_label_arg(args, "ylab")
         if (!is.null(value)) y_label <- value
 
-        # Also check low-level title() calls which can set main/sub
+        # Also check low-level title() calls which can set main/sub. Its
+        # `main` is recorded unnamed when given first, as in `title("Sales")`.
         for (low_call in group$low_calls) {
           if (low_call$function_name == "title") {
             low_args <- low_call$args
-            value <- get_label_arg(low_args, "main")
+            value <- base_r_annotation_text(base_r_title_main(low_args))
             if (!is.null(value)) title <- value
             value <- get_label_arg(low_args, "sub")
             if (!is.null(value)) subtitle <- value
@@ -1309,7 +1320,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' `title(outer = TRUE)` or `mtext(outer = TRUE)` along the top; else,
     #' for one panel, by its title, and for several, by each panel R drew in
     #' turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
-    #' A panel's title is its plot's, or the one `title()` gave it; a plot
+    #' A panel's title is the one a `title()` written after its plot gave
+    #' it, or else its plot's own; a plot
     #' drawn over a panel's, after `par(new = TRUE)`, with `add = TRUE` or
     #' sent back to it with `par(mfg = )`, is in that panel, which is named
     #' by the first title drawn on it. The chart's own title is, for several
