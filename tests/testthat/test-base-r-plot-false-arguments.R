@@ -78,6 +78,17 @@ test_that("barplot() of a hist(plot = FALSE) is read on the plot it draws", {
   expect_named_on_plot_one(chart, "bar")
 })
 
+test_that("a plot of barplot(plot = FALSE)'s midpoints is read on the plot it draws", {
+  # barplot() has a wrapper of its own, with its own computation-only
+  # return.
+  skip_if_no_render()
+  heights <- c(3, 5, 2, 6)
+  chart <- plot_false_export(function() {
+    plot(barplot(heights, plot = FALSE), heights)
+  })
+  expect_named_on_plot_one(chart, "point")
+})
+
 test_that("the summaries computed first and drawn after are read the same way", {
   skip_if_no_render()
   nested <- plot_false_export(function() {
