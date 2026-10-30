@@ -100,6 +100,49 @@ test_that("a 2 x 2 facet_grid() gives each subplot its own panel's bars", {
   expect_own_bars(rendered(plot))
 })
 
+test_that("a facet_wrap() whose last row is short gives each its own bars", {
+  skip_if_not_installed("xml2")
+  plot <- ggplot2::ggplot(facet_bars(5), ggplot2::aes(category, value)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(~panel, ncol = 3)
+  html <- rendered(plot)
+
+  titles <- vapply(subplot_bars(html), function(s) s$title, "")
+  expect_equal(titles, paste("Panel", 1:5))
+  expect_own_bars(html)
+})
+
+test_that("a facet_wrap() filled down its columns gives each its own bars", {
+  skip_if_not_installed("xml2")
+  plot <- ggplot2::ggplot(facet_bars(4), ggplot2::aes(category, value)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(~panel, ncol = 2, dir = "v")
+  expect_own_bars(rendered(plot))
+})
+
+test_that("a facet_wrap() with free scales gives each its own bars", {
+  # Each panel draws axes of its own, which the gtable lays out between the
+  # panels, so the panels' rows and columns are not the gtable's.
+  skip_if_not_installed("xml2")
+  plot <- ggplot2::ggplot(facet_bars(6), ggplot2::aes(category, value)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(~panel, ncol = 3, scales = "free")
+  expect_own_bars(rendered(plot))
+})
+
+test_that("a facet_grid() with free scales and space gives each its own bars", {
+  skip_if_not_installed("xml2")
+  frame <- facet_bars(4)
+  frame$top <- rep(c("r1", "r1", "r2", "r2"), each = 3)
+  frame$side <- rep(c("c1", "c2", "c1", "c2"), each = 3)
+  # One column draws two bars, so the columns take widths of their own.
+  frame <- frame[!(frame$side == "c2" & frame$category == "c"), ]
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(category, value)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_grid(top ~ side, scales = "free", space = "free")
+  expect_own_bars(rendered(plot))
+})
+
 test_that("the panel is found by where it is drawn, whatever it is named", {
   # ggplot2 4.0 names a wrap's panels `panel-<col>-<row>`: the same grid,
   # drawn in the same places, under the transposed names.
