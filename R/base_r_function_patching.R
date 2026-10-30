@@ -1004,7 +1004,7 @@ create_function_wrapper <- function(function_name, original_function) {
       caller_env <- parent.frame()
 
       # Ensure a device is open to suppress default graphics window
-      ensure_maidr_device()
+      started_on <- ensure_maidr_device()
 
       # Fast path: forward the promises untouched, so each argument is
       # evaluated exactly once and lazily. `withVisible()` keeps the
@@ -1077,7 +1077,7 @@ create_function_wrapper <- function(function_name, original_function) {
       # image" because the device is blank (#216).
       if (identical(args_list[["plot"]], FALSE) ||
           identical(args_list[["plot.it"]], FALSE)) {
-        forget_base_r_call()
+        forget_base_r_call(started_on)
         return(as_drawn(result))
       }
 

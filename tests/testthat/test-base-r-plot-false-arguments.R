@@ -43,7 +43,10 @@ plot_false_export <- function(draw) {
 # selector after the id.
 named_ids <- function(layer) {
   flat <- unlist(layer$selectors, use.names = FALSE)
-  ids <- unlist(regmatches(flat, gregexpr("graphics-plot-[0-9]+-[a-z]+-[0-9.\\\\]+[0-9]", flat)))
+  ids <- unlist(regmatches(
+    flat,
+    gregexpr("graphics-plot-[0-9]+-[a-z]+-[0-9.\\\\]+[0-9]", flat)
+  ))
   unique(gsub("\\\\", "", ids))
 }
 
