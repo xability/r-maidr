@@ -312,6 +312,25 @@ BaseRPlotOrchestrator <- R6::R6Class(
       title
     },
 
+    # What the calls of `groups` drew over, or under, the whole page, as
+    # `read` reads it from each call (`base_r_outer_title()`,
+    # `base_r_outer_subtitle()`): the last such text, or NULL. Read from
+    # every call drawn on those plots, a recorded one or one no recorded
+    # call started, as a panel `plot.new()` took (`before_calls` and
+    # `after_calls`, see `group_device_calls()`).
+    outer_text = function(groups, read) {
+      text <- NULL
+      for (group in groups) {
+        calls <- c(
+          group$before_calls, list(group$high_call), group$low_calls, group$after_calls
+        )
+        for (call in calls) {
+          text <- read(call) %||% text
+        }
+      }
+      text
+    },
+
     # The one result that declares its own subplot grid, or NULL.
     #
     # `pairs()` is the case: it draws an `n x n` matrix of panels, sets its
@@ -756,6 +775,24 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
       }
 
+      # A page of several panels is titled only by what R draws over all of
+      # them -- `title(outer = TRUE)`, `mtext(outer = TRUE)` along the top or
+      # a plot's `main` given `outer = TRUE` -- and subtitled by the `sub`
+      # such a call draws under them. Each panel's own `main` and `sub` are
+      # its plot's, which its layer carries. Read in turn above, the last
+      # panel's named the whole figure: a `par(mfrow)` grid of three species
+      # was called "Species: virginica", and an outer title written with
+      # `title("Overall", outer = TRUE)` was lost to it. A title every panel
+      # carries is the figure's too, once the panels are read
+      # (`generate_maidr_data()`).
+      panel_config <- detect_panel_configuration(private$.device_id)
+      if (is_multipanel_config(panel_config)) {
+        slots <- compute_panel_slots(private$.plot_groups, panel_config)
+        shown <- private$.plot_groups[!is.na(slots)]
+        title <- private$outer_text(shown, base_r_outer_title) %||% ""
+        subtitle <- private$outer_text(shown, base_r_outer_subtitle)
+      }
+
       layout <- list(
         title = title,
         subtitle = subtitle,
@@ -1052,8 +1089,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
         subplots = private$.combined_data
       )
 
-      if (!is.null(private$.layout$title) && nzchar(private$.layout$title)) {
-        maidr_obj$title <- private$.layout$title
+      # A page of several panels with no title drawn over them takes the
+      # title all of its panels carry, when they carry one
+      # (`shared_subplot_title()`).
+      title <- private$.layout$title
+      cells <- unlist(private$.combined_data, recursive = FALSE)
+      if (!(is.character(title) && length(title) == 1L && nzchar(title)) && length(cells) > 1L) {
+        title <- shared_subplot_title(cells)
+      }
+      if (!is.null(title) && nzchar(title)) {
+        maidr_obj$title <- title
       }
       if (!is.null(private$.layout$subtitle) && nzchar(private$.layout$subtitle)) {
         maidr_obj$subtitle <- private$.layout$subtitle
@@ -1267,9 +1312,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' A panel's title is its plot's, or the one `title()` gave it; a plot
     #' drawn over a panel's, after `par(new = TRUE)`, with `add = TRUE` or
     #' sent back to it with `par(mfg = )`, is in that panel, which is named
-    #' by the first title drawn on it. The chart's own title is its last
-    #' titled panel's, from any page, which would name a picture of several
-    #' panels by one of them; and maidr's grid of cells counts a panel
+    #' by the first title drawn on it. The chart's own title is, for several
+    #' panels, only one drawn over them, which would leave a picture of
+    #' panels without one unnamed; and maidr's grid of cells counts a panel
     #' spanning two cells twice, and an empty cell as a panel.
     #' @return One string, or NULL when the chart has no title
     picture_title = function() {
@@ -1283,18 +1328,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
       shown <- which(!is.na(slots))
 
-      # Drawn over every panel, whichever plot it was drawn on: a recorded
-      # one, or one no recorded call started, as a panel `plot.new()` took
-      # (`before_calls` and `after_calls`, see `group_device_calls()`).
-      outer <- NULL
-      for (group in groups[shown]) {
-        calls <- c(
-          group$before_calls, list(group$high_call), group$low_calls, group$after_calls
-        )
-        for (call in calls) {
-          outer <- base_r_outer_title(call) %||% outer
-        }
-      }
+      # Drawn over every panel, whichever plot it was drawn on.
+      outer <- private$outer_text(groups[shown], base_r_outer_title)
       if (!is.null(outer)) {
         return(outer)
       }

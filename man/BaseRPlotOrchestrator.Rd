@@ -399,9 +399,9 @@ turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
 A panel's title is its plot's, or the one \code{title()} gave it; a plot
 drawn over a panel's, after \code{par(new = TRUE)}, with \code{add = TRUE} or
 sent back to it with \code{par(mfg = )}, is in that panel, which is named
-by the first title drawn on it. The chart's own title is its last
-titled panel's, from any page, which would name a picture of several
-panels by one of them; and maidr's grid of cells counts a panel
+by the first title drawn on it. The chart's own title is, for several
+panels, only one drawn over them, which would leave a picture of
+panels without one unnamed; and maidr's grid of cells counts a panel
 spanning two cells twice, and an empty cell as a panel.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}

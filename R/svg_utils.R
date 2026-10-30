@@ -1806,6 +1806,35 @@ layer_title_text <- function(title) {
   paste(text, collapse = " ")
 }
 
+#' The title every panel of a figure carries
+#'
+#' A figure of several panels that draws no title over them, with
+#' `title(outer = TRUE)` or `plot_annotation()`, is still titled when every
+#' one of its panels carries the same title: a `par(mfrow)` grid of four
+#' plots each given `main = "Weekly sales"` is a page of weekly sales. A
+#' panel's title is its first layer's, compared without the spaces around
+#' it, which are not seen: R keeps them, so `"Sales"` and `"Sales "` are
+#' one title on the page. A cell with no layers, where nothing was drawn,
+#' is passed over, and an untitled panel leaves the figure untitled.
+#'
+#' @param subplots The figure's subplots, its grid flattened to a list
+#' @return The title, or NULL when the panels' titles differ or one has none
+#' @keywords internal
+shared_subplot_title <- function(subplots) {
+  titles <- character(0)
+  for (cell in subplots) {
+    if (!is.list(cell) || length(cell$layers) == 0L) {
+      next
+    }
+    title <- trimws(layer_title_text(cell$layers[[1]]$title) %||% "")
+    if (!nzchar(title)) {
+      return(NULL)
+    }
+    titles <- c(titles, title)
+  }
+  if (length(titles) > 0L && all(titles == titles[1L])) titles[1L]
+}
+
 #' Every layer's `title` one string or absent
 #'
 #' See [layer_title_text()].
