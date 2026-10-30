@@ -19,17 +19,19 @@ A gTree
 }
 \description{
 What \code{\link[ggplotify:as.grob]{ggplotify::as.grob()}} makes of a drawing function -- the base
-graphics echoed as grid grobs by gridGraphics, drawn with the graphical
-parameters it sets (\code{xpd = NA}, a transparent background, axis titles two
+graphics echoed as grid grobs by gridGraphics, drawn with two of the
+graphical parameters it sets (a transparent background, axis titles two
 lines out) -- with the page the drawing is made on sized as the chart's
-canvas. \code{as.grob()} makes every drawing on a 7 x 7 in page of its own,
-whatever device is open, and the echo keeps what base graphics laid out
-on that page: margins, the lines of text around a plot and a legend's box
-are fixed in inches. Drawn on a canvas of another shape they no longer
-fit -- measured at 4 x 3 in, the title was cut off at the top of the SVG,
-the axis titles were lost and a legend's text ran out of its box, and
-even maidr's own 7 x 5 in squeezed a legend's lines together. Made on a
-page of the canvas's size, the drawing is the one R draws at that size.
+canvas. Not with the third, \code{xpd = NA}, which lets everything be drawn
+past the plot region; see \code{ggplotify_drawing()}. \code{as.grob()} makes every
+drawing on a 7 x 7 in page of its own, whatever device is open, and the
+echo keeps what base graphics laid out on that page: margins, the lines of
+text around a plot and a legend's box are fixed in inches. Drawn on a
+canvas of another shape they no longer fit -- measured at 4 x 3 in, the
+title was cut off at the top of the SVG, the axis titles were lost and a
+legend's text ran out of its box, and even maidr's own 7 x 5 in squeezed
+a legend's lines together. Made on a page of the canvas's size, the
+drawing is the one R draws at that size.
 }
 \details{
 The grob names, which every selector is written against, are those

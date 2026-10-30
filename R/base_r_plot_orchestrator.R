@@ -214,6 +214,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
               window <- replay_plot_window(call$window) %||% window
               at$window <- window
             }
+            set_recorded_xpd(call)
             replay_plot_call(
               call$function_name, call$args, call$call_env, call$arg_text, call$rng_state
             )
@@ -274,6 +275,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       if (!identical(call$window, at$window)) {
         at$window <- replay_plot_window(call$window) %||% at$window
       }
+      set_recorded_xpd(call)
       replay_plot_call(
         call$function_name, call$args, call$call_env, call$arg_text, call$rng_state
       )
@@ -1711,17 +1713,19 @@ start_replayed_plot <- function(stays, start = TRUE) {
 #' A Base R drawing as a grob, laid out on a page of the chart's size
 #'
 #' What [ggplotify::as.grob()] makes of a drawing function -- the base
-#' graphics echoed as grid grobs by gridGraphics, drawn with the graphical
-#' parameters it sets (`xpd = NA`, a transparent background, axis titles two
+#' graphics echoed as grid grobs by gridGraphics, drawn with two of the
+#' graphical parameters it sets (a transparent background, axis titles two
 #' lines out) -- with the page the drawing is made on sized as the chart's
-#' canvas. `as.grob()` makes every drawing on a 7 x 7 in page of its own,
-#' whatever device is open, and the echo keeps what base graphics laid out
-#' on that page: margins, the lines of text around a plot and a legend's box
-#' are fixed in inches. Drawn on a canvas of another shape they no longer
-#' fit -- measured at 4 x 3 in, the title was cut off at the top of the SVG,
-#' the axis titles were lost and a legend's text ran out of its box, and
-#' even maidr's own 7 x 5 in squeezed a legend's lines together. Made on a
-#' page of the canvas's size, the drawing is the one R draws at that size.
+#' canvas. Not with the third, `xpd = NA`, which lets everything be drawn
+#' past the plot region; see `ggplotify_drawing()`. `as.grob()` makes every
+#' drawing on a 7 x 7 in page of its own, whatever device is open, and the
+#' echo keeps what base graphics laid out on that page: margins, the lines of
+#' text around a plot and a legend's box are fixed in inches. Drawn on a
+#' canvas of another shape they no longer fit -- measured at 4 x 3 in, the
+#' title was cut off at the top of the SVG, the axis titles were lost and a
+#' legend's text ran out of its box, and even maidr's own 7 x 5 in squeezed
+#' a legend's lines together. Made on a page of the canvas's size, the
+#' drawing is the one R draws at that size.
 #'
 #' The grob names, which every selector is written against, are those
 #' `as.grob()` gives. The drawing is recorded and echoed with its titles,
@@ -1881,10 +1885,39 @@ base_r_cells_too_large <- function(reason) {
   isTRUE(reason %in% c(too_large, gettext(too_large, domain = "graphics")))
 }
 
+#' Draw a recorded call with the `xpd` R had as it started
+#'
+#' R clips what a call draws by `xpd` as it stands then: after
+#' `par(xpd = NA)` an `abline()` runs past the plot region to the edge of
+#' the page. That `par()` call is read for the page's layout and not drawn
+#' again, so the drawing sets `xpd` as R had it as each call started
+#' (`begin_base_r_call()`); a call that sets its own, as
+#' `legend(xpd = TRUE)` does, still sets it as it draws.
+#'
+#' @param call A recorded call, with the `pars` it started with
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+set_recorded_xpd <- function(call) {
+  xpd <- call$pars$xpd
+  if (is.logical(xpd) && length(xpd) == 1L) {
+    graphics::par(xpd = xpd)
+  }
+  invisible(NULL)
+}
+
 #' A Base R drawing with the graphical parameters ggplotify draws it with
 #'
-#' `xpd = NA`, a transparent background and axis titles two lines out, as
-#' [ggplotify::as.grob()] sets them before it draws.
+#' A transparent background and axis titles two lines out, as
+#' [ggplotify::as.grob()] sets them before it draws. `as.grob()` sets
+#' `xpd = NA` too, which draws everything past the plot region, where R
+#' clips what a plot draws to it unless the author says otherwise: the
+#' spikes of `plot(type = "h")` ran from zero through the x axis and its
+#' labels to the edge of the chart, an `abline()` or a density curve drawn
+#' with `lines()` ran across the axes, and the reader's highlight was drawn
+#' there too. Drawn with R's own `xpd`, the chart is clipped where R clips
+#' it, each recorded call with the `xpd` R had as it started
+#' (`set_recorded_xpd()`).
 #'
 #' @param draw A function of no arguments that draws the chart
 #' @return A function of no arguments
@@ -1892,7 +1925,7 @@ base_r_cells_too_large <- function(reason) {
 #' @noRd
 ggplotify_drawing <- function(draw) {
   function() {
-    graphics::par(xpd = NA, bg = "transparent", mgp = c(2, 1, 0))
+    graphics::par(bg = "transparent", mgp = c(2, 1, 0))
     draw()
   }
 }

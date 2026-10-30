@@ -1113,6 +1113,15 @@
   reverses what 0.5.0 said ("A named vector is still sorted alphabetically
   before drawing"): to draw bars sorted, sort the data before `barplot()`,
   as without maidr.
+* A Base R chart is clipped to its plot region where R clips it. maidr drew
+  it with every graphical parameter `ggplotify::as.grob()` sets, among them
+  `xpd = NA`, which draws past the plot region what R clips to it: the
+  spikes of `plot(type = "h")` ran from zero down through the x axis and
+  its labels to the edge of the chart, and an `abline()` or a density
+  curve drawn with `lines()` ran across the axes, with the reader's
+  highlight drawn along them. Each call is drawn with the `xpd` R had as
+  it started, so a line drawn after `par(xpd = NA)` still runs past the
+  plot region, as R draws it (#415).
 
 ## Documentation
 

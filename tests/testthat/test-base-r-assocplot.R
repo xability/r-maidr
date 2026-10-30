@@ -152,6 +152,8 @@ test_that("an association plot renders interactively rather than as a picture", 
   # warns falls back to a picture.
   expect_equal(warnings, character())
   expect_true(grepl('"type":"heat"', html, fixed = TRUE))
-  # One drawn rect per cell.
-  expect_equal(length(gregexpr("<rect", html)[[1]]), 16)
+  # One drawn rect per cell, besides the rect that clips the plot region.
+  rects <- gregexpr("<rect", html)[[1]]
+  clip_rects <- gregexpr("<clipPath[^>]*>\\s*<rect", html)[[1]]
+  expect_equal(length(rects) - sum(clip_rects > 0), 16)
 })
