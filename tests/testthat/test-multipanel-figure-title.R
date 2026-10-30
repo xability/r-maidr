@@ -14,33 +14,6 @@
 # title all of them carry, when they carry one, and is otherwise untitled.
 # Each panel keeps its own title as its layer's, as before.
 
-#' The MAIDR data of the Base R page `draw` draws
-base_r_figure <- function(draw) {
-  grDevices::pdf(NULL)
-  device_id <- grDevices::dev.cur()
-  on.exit(
-    {
-      clear_base_r_device(device_id)
-      grDevices::dev.off()
-    },
-    add = TRUE
-  )
-  clear_base_r_device(device_id)
-
-  draw()
-  maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
-}
-
-#' The title of each subplot's first layer, row by row
-layer_titles <- function(figure) {
-  unlist(lapply(figure$subplots, function(row) {
-    vapply(row, function(cell) {
-      title <- cell$layers[[1]]$title
-      if (is.null(title)) "" else title
-    }, character(1))
-  }))
-}
-
 three_species <- function() {
   par(mfrow = c(1, 3))
   for (species in levels(iris$Species)) {
@@ -57,7 +30,7 @@ test_that("a par(mfrow) grid is not titled after its last panel", {
   testthat::expect_null(figure$title)
   testthat::expect_null(figure$subtitle)
   testthat::expect_identical(
-    layer_titles(figure),
+    panel_titles(figure),
     c("Species: setosa", "Species: versicolor", "Species: virginica")
   )
 })
@@ -70,7 +43,7 @@ test_that("a layout() page is not titled after its last panel", {
   })
 
   testthat::expect_null(figure$title)
-  testthat::expect_identical(layer_titles(figure), c("Miles per gallon", "Horsepower"))
+  testthat::expect_identical(panel_titles(figure), c("Miles per gallon", "Horsepower"))
 })
 
 test_that("a title drawn over a grid's panels titles the figure", {
@@ -91,7 +64,7 @@ test_that("a title drawn over a grid's panels titles the figure", {
   })
   testthat::expect_identical(with_outer_mtext$title, "Cars")
   testthat::expect_identical(
-    layer_titles(with_outer_mtext),
+    panel_titles(with_outer_mtext),
     c("Miles per gallon", "Horsepower")
   )
 })
@@ -173,7 +146,7 @@ test_that("a patchwork composition is titled by plot_annotation(), or what all i
 
   untitled <- figure(patchwork::wrap_plots(line, bars))
   testthat::expect_null(untitled$title)
-  testthat::expect_identical(layer_titles(untitled), c("Line Plot", "Bar Plot"))
+  testthat::expect_identical(panel_titles(untitled), c("Line Plot", "Bar Plot"))
 
   titled <- figure(
     patchwork::wrap_plots(line, bars) +
@@ -184,7 +157,7 @@ test_that("a patchwork composition is titled by plot_annotation(), or what all i
   testthat::expect_identical(titled$title, "Two plots")
   testthat::expect_identical(titled$subtitle, "Side by side")
   testthat::expect_identical(titled$caption, "Made up data")
-  testthat::expect_identical(layer_titles(titled), c("Line Plot", "Bar Plot"))
+  testthat::expect_identical(panel_titles(titled), c("Line Plot", "Bar Plot"))
 
   # patchwork draws the annotation of the outermost composition only
   nested <- figure(

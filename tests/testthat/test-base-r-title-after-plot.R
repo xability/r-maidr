@@ -7,32 +7,6 @@
 # grid titled this way was read without a title, and `title("Sales")` was
 # not read at all.
 
-#' The MAIDR data of the Base R page `draw` draws
-base_r_figure <- function(draw) {
-  grDevices::pdf(NULL)
-  device_id <- grDevices::dev.cur()
-  on.exit(
-    {
-      clear_base_r_device(device_id)
-      grDevices::dev.off()
-    },
-    add = TRUE
-  )
-  clear_base_r_device(device_id)
-
-  draw()
-  maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
-}
-
-#' The titles of each subplot's layers, row by row
-layer_titles <- function(figure) {
-  lapply(unlist(figure$subplots, recursive = FALSE), function(cell) {
-    vapply(cell$layers, function(layer) {
-      if (is.character(layer$title)) layer$title else ""
-    }, character(1))
-  })
-}
-
 sales <- c(3, 1, 4, 1, 5, 9, 2, 6)
 
 test_that("a title() written after a plot titles it", {
