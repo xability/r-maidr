@@ -34,6 +34,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
     \item \href{#method-Ggplot2LineLayerProcessor-format_x_value}{\code{Ggplot2LineLayerProcessor$format_x_value()}}
     \item \href{#method-Ggplot2LineLayerProcessor-extract_multiline_data}{\code{Ggplot2LineLayerProcessor$extract_multiline_data()}}
     \item \href{#method-Ggplot2LineLayerProcessor-extract_single_line_data}{\code{Ggplot2LineLayerProcessor$extract_single_line_data()}}
+    \item \href{#method-Ggplot2LineLayerProcessor-named_x_values}{\code{Ggplot2LineLayerProcessor$named_x_values()}}
     \item \href{#method-Ggplot2LineLayerProcessor-recover_x_values}{\code{Ggplot2LineLayerProcessor$recover_x_values()}}
     \item \href{#method-Ggplot2LineLayerProcessor-get_group_column}{\code{Ggplot2LineLayerProcessor$get_group_column()}}
     \item \href{#method-Ggplot2LineLayerProcessor-generate_selectors}{\code{Ggplot2LineLayerProcessor$generate_selectors()}}
@@ -598,6 +599,40 @@ leaves the built value in place.}
   }
   \subsection{Returns}{
     List containing single series data
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-named_x_values"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-named_x_values}{}}}
+\subsection{\code{Ggplot2LineLayerProcessor$named_x_values()}}{
+  The names the author gave the x breaks every point sits on.
+
+A continuous x whose breaks the author named with text,
+\code{scale_x_continuous(breaks = 1:12, labels = month.abb)}, codes a
+category with a number: the axis shows "Feb" where the data holds 2.
+When every point sits on a named break, the points are read by the
+names, as a factor's levels are (\code{tick_names_at()}); otherwise by
+their numbers. Labels a function makes from the numbers,
+\code{scales::label_dollar()} and the like, format them rather than name
+them, and reach the reader through the axis's format
+(\code{extract_format_config()}).
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2LineLayerProcessor$named_x_values(layer_data, built, panel_index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_data}}{The built layer data, x as ggplot2 built it}
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_index}}{Index into \code{built$layout$panel_params}}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character vector aligned to \code{layer_data}'s rows, or NULL
   }
 }
 

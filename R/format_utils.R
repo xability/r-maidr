@@ -474,3 +474,40 @@ line_x_value <- function(x) {
   }
   as.character(x)
 }
+
+#' The names of the ticks a line's values sit on
+#'
+#' An axis whose ticks the author named with text codes a category with a
+#' number: `axis(2, at = 1:5, labels = c("N3", "N2", "N1", "REM", "Awake"))`
+#' in Base R, `scale_x_continuous(breaks = 1:12, labels = month.abb)` in
+#' ggplot2. A sighted reader reads a value that sits on a named tick by the
+#' name. When every value sits on one, each is named; when one falls
+#' between ticks, or on a tick named "", none is, since that value has no
+#' name of its own and naming only some would mix names and numbers on one
+#' axis. A missing value is left unnamed and does not count against the
+#' others.
+#'
+#' @param values The values, numbers
+#' @param at The ticks' positions, NA for a tick not drawn
+#' @param labels The ticks' names, as many as `at`
+#' @return A character vector as long as `values`, NA where a value is
+#'   missing, or NULL when a value sits on no named tick
+#' @keywords internal
+#' @noRd
+tick_names_at <- function(values, at, labels) {
+  values <- suppressWarnings(as.numeric(values))
+  at <- suppressWarnings(as.numeric(at))
+  labels <- as.character(labels)
+  if (length(at) != length(labels) || length(values) == 0 || all(is.na(values))) {
+    return(NULL)
+  }
+  named <- !is.na(at) & !is.na(labels) & nzchar(labels)
+  index <- vapply(values, function(value) {
+    hit <- which(named & abs(at - value) <= 1e-9 * pmax(1, abs(at)))
+    if (length(hit) > 0) hit[1] else NA_integer_
+  }, integer(1))
+  if (any(is.na(index) & !is.na(values))) {
+    return(NULL)
+  }
+  labels[index]
+}

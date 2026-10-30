@@ -16,6 +16,8 @@ Processes Base R line plot layers based on recorded plot calls
     \item \href{#method-BaseRLineLayerProcessor-process}{\code{BaseRLineLayerProcessor$process()}}
     \item \href{#method-BaseRLineLayerProcessor-needs_reordering}{\code{BaseRLineLayerProcessor$needs_reordering()}}
     \item \href{#method-BaseRLineLayerProcessor-extract_data}{\code{BaseRLineLayerProcessor$extract_data()}}
+    \item \href{#method-BaseRLineLayerProcessor-name_y_ticks}{\code{BaseRLineLayerProcessor$name_y_ticks()}}
+    \item \href{#method-BaseRLineLayerProcessor-get_axis_ticks}{\code{BaseRLineLayerProcessor$get_axis_ticks()}}
     \item \href{#method-BaseRLineLayerProcessor-get_axis_labels}{\code{BaseRLineLayerProcessor$get_axis_labels()}}
     \item \href{#method-BaseRLineLayerProcessor-extract_single_line_data}{\code{BaseRLineLayerProcessor$extract_single_line_data()}}
     \item \href{#method-BaseRLineLayerProcessor-extract_multiline_data}{\code{BaseRLineLayerProcessor$extract_multiline_data()}}
@@ -131,6 +133,63 @@ endpoints of \code{abline()}
   }
   \subsection{Returns}{
     List of series
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-name_y_ticks"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-name_y_ticks}{}}}
+\subsection{\code{BaseRLineLayerProcessor$name_y_ticks()}}{
+  Name each point after the tick of a y axis the author
+named that it sits on
+
+\code{axis(2, at = 1:5, labels = c("N3", "N2", "N1", "REM", "Awake"))}
+draws a y axis that codes an ordered category with a number, as a
+hypnogram's sleep stages. When every point sits on one of those ticks
+(\code{tick_names_at()}), each carries the tick's name as its \code{label}, which
+is announced in place of the number, as a factor's level is on a
+ggplot2 line; \code{y} stays the number, which places the tone and the
+braille.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRLineLayerProcessor$name_y_ticks(series, layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{series}}{List of series, as \code{extract_single_line_data()} and
+\code{extract_multiline_data()} return them}
+      \item{\code{layer_info}}{Layer information containing group data}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The series, every point named where every point can be
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_axis_ticks"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_axis_ticks}{}}}
+\subsection{\code{BaseRLineLayerProcessor$get_axis_ticks()}}{
+  The positions and names of the ticks an \code{axis()} call
+drawn on this plot named with text
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRLineLayerProcessor$get_axis_ticks(layer_info, axis_side = 2)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information containing group data}
+      \item{\code{axis_side}}{Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{list(at, labels)}, or NULL when no such call named its ticks
   }
 }
 

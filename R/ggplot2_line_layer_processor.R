@@ -151,15 +151,16 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       # mapping below rewrites it into axis labels, and the recovery needs
       # the scale-space value it started as.
       #
-      # Non-faceted only. The faceted branch recovers x by VALUE -- through
-      # sort(unique(...)) and the panel's break/label mapping -- so it never
-      # had the row-order defect, and it is what honours a caller's own
-      # `labels =` formatter. Overriding it here would announce the raw
-      # datum where the axis shows the formatted label.
-      recovered_x <- if (is.null(panel_id)) {
-        self$recover_x_values(layer_data, built, panel_id)
-      } else {
-        NULL
+      # An x on breaks the author named is read by those names, in a facet's
+      # panel as in a single plot (`named_x_values()`): the faceted branch
+      # below resolves a plain number to itself and skips the break/label
+      # mapping, so a faceted line announced the code too. Otherwise the
+      # recovery is for a single plot only. The faceted branch recovers x by
+      # VALUE -- through sort(unique(...)) and the panel's break/label
+      # mapping -- so it never had the row-order defect.
+      recovered_x <- self$named_x_values(layer_data, built, panel_index)
+      if (is.null(recovered_x) && is.null(panel_id)) {
+        recovered_x <- self$recover_x_values(layer_data, built, panel_id)
       }
 
       # Set when the faceted recovery below has already turned x into the
@@ -713,6 +714,40 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       list(points)
     },
 
+    #' @description The names the author gave the x breaks every point sits on.
+    #'
+    #' A continuous x whose breaks the author named with text,
+    #' `scale_x_continuous(breaks = 1:12, labels = month.abb)`, codes a
+    #' category with a number: the axis shows "Feb" where the data holds 2.
+    #' When every point sits on a named break, the points are read by the
+    #' names, as a factor's levels are (`tick_names_at()`); otherwise by
+    #' their numbers. Labels a function makes from the numbers,
+    #' `scales::label_dollar()` and the like, format them rather than name
+    #' them, and reach the reader through the axis's format
+    #' (`extract_format_config()`).
+    #'
+    #' @param layer_data The built layer data, x as ggplot2 built it
+    #' @param built Built plot data
+    #' @param panel_index Index into `built$layout$panel_params`
+    #' @return A character vector aligned to `layer_data`'s rows, or NULL
+    named_x_values = function(layer_data, built, panel_index) {
+      x <- layer_data$x
+      if (is.null(x) || !is.numeric(x) || inherits(x, "mapped_discrete")) {
+        return(NULL)
+      }
+      view <- built$layout$panel_params[[panel_index]][["x"]]
+      named <- tryCatch(is.character(view$scale$labels), error = function(e) FALSE)
+      if (!isTRUE(named)) {
+        return(NULL)
+      }
+      breaks <- tryCatch(view$get_breaks(), error = function(e) NULL)
+      labels <- self$panel_axis_labels(built, panel_index, "x")
+      if (is.null(breaks) || is.null(labels)) {
+        return(NULL)
+      }
+      tick_names_at(x, breaks, labels)
+    },
+
     #' @description The x values to announce, recovered from the BUILT column.
     #'
     #' `ggplot_build()` stores x in the scale's own space -- a level code for
@@ -774,6 +809,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       # rather than left NULL so the caller announces the datum instead of
       # the axis tick label the mapping downstream would substitute -- which
       # is what the old caller's-column path did, only without the row skew.
+      # Breaks the author named are read before this (`named_x_values()`).
       if (is.numeric(built_x)) {
         return(as.numeric(built_x))
       }
