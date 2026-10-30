@@ -171,6 +171,17 @@ test_that("each star is outlined through the polygon it is drawn as", {
 })
 
 
+test_that("a star plot with a key outlines the stars, not the key", {
+  # `stars()` draws the key as one polygon more, after the stars.
+  layer <- stars_layers(function() stars(READINGS, key.loc = c(1, 1)))[[1]]
+
+  testthat::expect_equal(
+    unlist(layer$selectors),
+    paste0("#graphics-plot-1-polygon-", 2 * seq_len(nrow(READINGS)), "\\.1 polygon")
+  )
+})
+
+
 test_that("each named polygon is drawn through its star's spoke tips", {
   testthat::skip_if_not_installed("xml2")
   skip_if_no_render()
