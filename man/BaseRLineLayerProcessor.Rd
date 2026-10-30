@@ -175,6 +175,11 @@ braille.
 \subsection{\code{BaseRLineLayerProcessor$get_axis_ticks()}}{
   The positions and names of the ticks an \code{axis()} call
 drawn on this plot named with text
+
+A factor, or any other classed value, given as \code{labels} is drawn as
+the text \code{as.character()} makes of it, as R makes it
+(\code{grDevices::as.graphicsAnnot()}): a factor's values by their levels'
+names, a date as it prints.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$get_axis_ticks(layer_info, axis_side = 2)}

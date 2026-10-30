@@ -185,6 +185,11 @@ BaseRLineLayerProcessor <- R6::R6Class(
     },
     #' @description The positions and names of the ticks an `axis()` call
     #'   drawn on this plot named with text
+    #'
+    #' A factor, or any other classed value, given as `labels` is drawn as
+    #' the text `as.character()` makes of it, as R makes it
+    #' (`grDevices::as.graphicsAnnot()`): a factor's values by their levels'
+    #' names, a date as it prints.
     #' @param layer_info Layer information containing group data
     #' @param axis_side Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
     #' @return `list(at, labels)`, or NULL when no such call named its ticks
@@ -194,6 +199,9 @@ BaseRLineLayerProcessor <- R6::R6Class(
           args <- call$args
           at <- args[["at"]]
           labels <- args[["labels"]]
+          if (is.object(labels)) {
+            labels <- as.character(labels)
+          }
           if (identical(as.numeric(args[[1]]), as.numeric(axis_side)) &&
             is.character(labels) && is.numeric(at) && length(labels) == length(at)) {
             return(list(at = at, labels = labels))
