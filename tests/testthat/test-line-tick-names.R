@@ -107,3 +107,28 @@ test_that("a Base R line keeps its numbers unless every point is on a named tick
   })[[1]]
   testthat::expect_null(labels_of(numbered))
 })
+
+test_that("the lines of one Base R layer are named only when all of them can be", {
+  # matplot() draws its columns as one layer of several lines, read as one:
+  # a point off the ticks in one line leaves every line its numbers.
+  labels_of <- function(layer) {
+    unlist(lapply(layer$data, function(series) lapply(series, function(point) point$label)))
+  }
+  levels_drawn <- function(b) {
+    function() {
+      matplot(1:3, cbind(a = c(1, 2, 3), b = b), type = "l", yaxt = "n")
+      axis(2, at = 1:3, labels = c("low", "mid", "high"))
+    }
+  }
+
+  on_ticks <- base_r_layers(levels_drawn(c(3, 2, 1)))[[1]]
+  testthat::expect_length(on_ticks$data, 2)
+  testthat::expect_identical(
+    labels_of(on_ticks),
+    c("low", "mid", "high", "high", "mid", "low")
+  )
+
+  one_off <- base_r_layers(levels_drawn(c(3, 2.5, 1)))[[1]]
+  testthat::expect_length(one_off$data, 2)
+  testthat::expect_null(labels_of(one_off))
+})
