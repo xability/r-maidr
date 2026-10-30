@@ -1126,6 +1126,12 @@
   “Low”. A factor’s tiles were read as its level codes, 1, 2 and 3,
   which its legend does not show, and a column of names as missing, with
   a coercion warning.
+- A scatter plot flipped with
+  [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+  names each point by its category. The names were read from the axis
+  drawn where the scale is not:
+  `aes(group, value) + geom_point() + coord_flip()` read the values 1, 2
+  and 3 as “a”, “b” and “c”, and the groups by their positions.
 
 #### Base R
 
