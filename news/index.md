@@ -963,11 +963,13 @@
   panel’s values with another’s marks lit, and the subplots were out of
   order, as maidr.js places each where its first mark is: the 2 x 2 wrap
   of Regions A to D opened on Region C. A panel is now found where
-  ggplot2 draws it.
+  ggplot2 draws it
+  ([\#405](https://github.com/xability/r-maidr/issues/405)).
 - A facet subplot is named as its strips name it, through the facet’s
   labeller: `labeller(vs = c("0" = "V-engine", "1" = "Straight"))` names
   it “V-engine” where it was “0”, and `label_both` “cyl: 4”. A
-  `label_parsed` label is read as written, “alpha^2”.
+  `label_parsed` label is read as written, “alpha^2”
+  ([\#405](https://github.com/xability/r-maidr/issues/405)).
 - A line whose x breaks the author named, as
   `scale_x_continuous(breaks = 1:12, labels = month.abb)` names them, is
   read by those names when every point sits on one: “Month is Feb” where
