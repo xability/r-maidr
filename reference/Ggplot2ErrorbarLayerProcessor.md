@@ -486,9 +486,7 @@ here is one element per sample, in the order the data was emitted – not
 one per bound, and not the container.
 
 The five geoms do not draw alike, and the differences are not cosmetic.
-Verified against real
-[`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
-output on ggplot2 3.4.4:
+Verified against real `gridSVG::grid.export()` output on ggplot2 3.4.4:
 
 - [`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
   – a `segments` grob named after the geom; one `<polyline>` per sample.

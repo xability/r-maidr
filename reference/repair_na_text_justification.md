@@ -6,8 +6,7 @@ translates some base graphics text into grid text grobs that leave
 `just` field instead. gridSVG 1.7.7 passes the raw value to
 `gridSVG:::justTovjust()`, which branches on it directly and fails with
 "missing value where TRUE/FALSE needed", aborting
-[`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
-from `devGrob.text`.
+`gridSVG::grid.export()` from `devGrob.text`.
 [`graphics::pie()`](https://rdrr.io/r/graphics/pie.html) is the case
 that bites: it labels every wedge, so before this repair no base R pie
 chart could be exported at all – `pie(..., labels = NA)`, which draws no

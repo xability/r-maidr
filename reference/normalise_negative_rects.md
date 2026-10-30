@@ -1,9 +1,8 @@
 # Restate a rect grob's negative heights and widths as positive ones
 
-[`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
-warns "number of items to replace is not a multiple of replacement
-length" on any rect grob drawn with a negative height or width, and the
-warning reaches
+`gridSVG::grid.export()` warns "number of items to replace is not a
+multiple of replacement length" on any rect grob drawn with a negative
+height or width, and the warning reaches
 [`save_html()`](https://r.maidr.ai/reference/save_html.md), where a plot
 that warns falls back to a picture.
 

@@ -115,7 +115,7 @@ unaffected because their text grobs already carry a numeric justification.">
 text grobs that leave <code>vjust</code> (and, in principle, <code>hjust</code>) as NA and defer
 to the grob's <code>just</code> field instead. gridSVG 1.7.7 passes the raw value to
 <code>gridSVG:::justTovjust()</code>, which branches on it directly and fails with
-"missing value where TRUE/FALSE needed", aborting <code><a href="https://rdrr.io/pkg/gridSVG/man/grid.export.html" class="external-link">gridSVG::grid.export()</a></code>
+"missing value where TRUE/FALSE needed", aborting <code>gridSVG::grid.export()</code>
 from <code>devGrob.text</code>. <code><a href="https://rdrr.io/r/graphics/pie.html" class="external-link">graphics::pie()</a></code> is the case that bites: it labels
 every wedge, so before this repair no base R pie chart could be exported at
 all – <code>pie(..., labels = NA)</code>, which draws no text, exported fine, which is

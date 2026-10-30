@@ -586,7 +586,7 @@ other length is discarded and the layer highlights nothing (#145). So
 the job here is one element per sample, in the order the data was
 emitted – not one per bound, and not the container.</p>
 <p>The five geoms do not draw alike, and the differences are not
-cosmetic. Verified against real <code><a href="https://rdrr.io/pkg/gridSVG/man/grid.export.html" class="external-link">gridSVG::grid.export()</a></code> output on
+cosmetic. Verified against real <code>gridSVG::grid.export()</code> output on
 ggplot2 3.4.4:</p>
 <ul><li><p><code><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_linerange()</a></code> – a <code>segments</code> grob named after the geom;
 one <code>&lt;polyline&gt;</code> per sample.</p></li>

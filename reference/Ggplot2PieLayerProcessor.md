@@ -575,8 +575,7 @@ Whether this grob is itself a wedge container
 
 ggplot2 does not draw a polar bar layer the same way across versions,
 and the difference is not cosmetic. Verified against real
-[`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
-output:
+`gridSVG::grid.export()` output:
 
 - One `geom_rect.polygon.<N>` grob holding every wedge, grouped by id.
   This is what the lookup was written for.

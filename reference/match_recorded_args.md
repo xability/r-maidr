@@ -49,9 +49,7 @@ Two properties are preserved deliberately:
   reorders arguments into formal order; the recorded list keeps the
   user's order and only gains names. Replay does
   [`do.call()`](https://rdrr.io/r/base/do.call.html), which honours
-  names regardless of position, while
-  [`apply_barplot_sorting()`](https://r.maidr.ai/reference/apply_barplot_sorting.md)
-  and friends still find the height in slot 1.
+  names regardless of position.
 
 - **The dispatch argument stays exactly as written.** S3 dispatch
   happens on the first argument of the *generic*, and methods are free

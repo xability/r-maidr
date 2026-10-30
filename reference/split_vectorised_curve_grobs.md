@@ -6,9 +6,8 @@ draws every row of its layer as a single `curve` grob whose positions
 layer arrives as `GRID.curve.1` with `x1`, `y1`, `x2`, `y2` and
 `gp$col`, `gp$fill`, `gp$lwd`, `gp$lty` all of length 4. `gridSVG`'s
 `svgStyleAttributes()` rejects that outright – "All SVG style attribute
-values must have length 1" – so
-[`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
-aborts on the whole plot and no curve chart could be read at all (#195).
+values must have length 1" – so `gridSVG::grid.export()` aborts on the
+whole plot and no curve chart could be read at all (#195).
 
 ## Usage
 

@@ -1,8 +1,8 @@
 # Base R Stacked Bar Layer Processor
 
 Processes Base R stacked bar plot layers intercepted via the patching
-system. Assumes sorting by x (columns) and then z (rows) has already
-been applied by the `SortingPatcher`.
+system, reading the columns and rows in the order the recorded call
+draws them.
 
 ## Super class
 
