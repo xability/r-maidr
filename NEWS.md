@@ -767,6 +767,12 @@
   mode, where braille, text and the arrows were refused until they pressed
   Escape. A layer title is now written as one string or left out, and a
   layer without one is read under the chart's title.
+* A heat map's values are named by its legend's title, as the groups of a
+  stacked or dodged bar chart are. With `labs(fill = "Correlation")` the
+  legend said Correlation while a cell was announced as "value is 0.8",
+  after the column the fill was mapped to, and the description's Z axis
+  said "value". Without `labs(fill = )` the value is still named after
+  that column, or "count" for `geom_bin_2d()`.
 * A layer that maps x or y in its own `aes()` is read under the axis title,
   `labs()` included, as the chart shows it. The layer's own mapping replaced
   the title outright, so `geom_histogram(aes(y = after_stat(density))) +

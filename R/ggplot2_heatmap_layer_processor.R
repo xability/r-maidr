@@ -50,11 +50,17 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       # name were both discarded, and nothing a caller could write reached
       # the reader. The base R adapter had always read real labels; only
       # this side did not (#156).
+      #
+      # The values are named by the legend's title, as the stacked and
+      # dodged bars' groups are: `labs(fill = "Correlation")` titled the
+      # legend while the reader heard "value is 0.8", the name of the column
+      # the cells were read from. That name, or the count a binned grid
+      # holds, remains the fallback.
       layer_index <- self$get_layer_index()
       axes <- build_axes(
         x = positional_axis_label(plot, built, "x", layer_index),
         y = positional_axis_label(plot, built, "y", layer_index),
-        z = fill_label
+        z = resolve_legend_label(plot, built, "fill", layer_index) %||% fill_label
       )
 
       list(
