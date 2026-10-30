@@ -103,6 +103,14 @@ test_that("a title every panel carries titles the figure", {
   })
   testthat::expect_identical(same$title, "Weekly sales")
 
+  # The spaces around a title are not seen, and do not set panels apart.
+  spaced <- base_r_figure(function() {
+    par(mfrow = c(1, 2))
+    plot(1:10, main = "Weekly sales")
+    plot(1:10, main = "Weekly sales ")
+  })
+  testthat::expect_identical(spaced$title, "Weekly sales")
+
   # A page of two panels with one drawn: its one plot's title is the page's.
   one_drawn <- base_r_figure(function() {
     par(mfrow = c(1, 2))
