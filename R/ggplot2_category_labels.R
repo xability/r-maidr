@@ -137,3 +137,66 @@ category_at <- function(position, labels) {
   }
   unname(labels[nearest])
 }
+
+#' The names the author gave the breaks a continuous axis's positions sit on
+#'
+#' A continuous axis whose breaks the author named with text,
+#' `scale_x_continuous(breaks = 1:12, labels = month.abb)`, codes a category
+#' with a number: the axis shows "Feb" where the data holds 2. When every
+#' position sits on a named break, each is read by the name, as a discrete
+#' axis's positions are; when one falls between breaks, none is
+#' (`tick_names_at()`). Labels a function makes from the numbers,
+#' `scales::label_dollar()` and the like, format them rather than name them,
+#' and reach the reader through the axis's format (`extract_format_config()`).
+#'
+#' @param values The positions, as ggplot2 built them: in the scale's own
+#'   space, where its breaks are
+#' @param built The built ggplot2 object
+#' @param panel_index Index into `built$layout$panel_params`
+#' @param axis `"x"` or `"y"`
+#' @return A character vector as long as `values`, NA where a value is
+#'   missing, or NULL
+#' @keywords internal
+named_break_labels <- function(values, built, panel_index, axis = "x") {
+  if (is.null(values) || !is.numeric(values) || inherits(values, "mapped_discrete")) {
+    return(NULL)
+  }
+  params <- tryCatch(built$layout$panel_params[[panel_index]], error = function(e) NULL)
+  view <- panel_scale_view(params, axis)
+  if (is.null(view)) {
+    return(NULL)
+  }
+  named <- tryCatch(is.character(view$scale$labels), error = function(e) FALSE)
+  if (!isTRUE(named)) {
+    return(NULL)
+  }
+  breaks <- tryCatch(view$get_breaks(), error = function(e) NULL)
+  labels <- tryCatch(as.character(view$get_labels()), error = function(e) NULL)
+  if (is.null(breaks) || length(labels) == 0L || anyNA(labels)) {
+    return(NULL)
+  }
+  tick_names_at(values, breaks, labels)
+}
+
+#' The view of the scale that maps an aesthetic, in one panel
+#'
+#' A panel's `x` and `y` slots hold its horizontal and vertical axes, and
+#' those are not always the `x` and `y` scales: `coord_flip()` draws the x
+#' scale up the side, in the `y` slot. Read by slot, a flipped scatter
+#' plot's month names went to its values, "value is Mar" for 3, and its
+#' months were read as numbers.
+#'
+#' @param params One panel's `panel_params`
+#' @param aesthetic `"x"` or `"y"`
+#' @return The view scale, or NULL where no slot's scale maps `aesthetic`
+#' @keywords internal
+panel_scale_view <- function(params, aesthetic) {
+  for (slot in c("x", "y")) {
+    view <- tryCatch(params[[slot]], error = function(e) NULL)
+    aesthetics <- tryCatch(view$scale$aesthetics, error = function(e) NULL)
+    if (aesthetic %in% aesthetics) {
+      return(view)
+    }
+  }
+  NULL
+}

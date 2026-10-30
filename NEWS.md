@@ -853,6 +853,15 @@
   the legend says "Correlation"), or under a `labs()` title that the scale's
   name replaces on the chart. An area chart with no fill mapped is no
   longer given a fill title by a scale or `labs()` set for one.
+* A scatter plot's points on breaks the author named, as
+  `scale_x_continuous(breaks = 1:12, labels = month.abb)` names them, are
+  read by those names on either axis, as a line's points already are
+  (#414). A point at 2 was read "month is 2" where the axis shows "Feb". The
+  number stays the point's position, and the name is announced in its
+  place, as a discrete axis's is. Points that do not all sit on named
+  breaks, or under labels a function makes, are still read by their
+  numbers. A chart flipped with `coord_flip()` is read by each axis's own
+  names too: a flipped line's points were read by their numbers.
 
 ### Base R
 

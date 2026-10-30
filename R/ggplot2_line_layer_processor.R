@@ -731,21 +731,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param panel_index Index into `built$layout$panel_params`
     #' @return A character vector aligned to `layer_data`'s rows, or NULL
     named_x_values = function(layer_data, built, panel_index) {
-      x <- layer_data$x
-      if (is.null(x) || !is.numeric(x) || inherits(x, "mapped_discrete")) {
-        return(NULL)
-      }
-      view <- built$layout$panel_params[[panel_index]][["x"]]
-      named <- tryCatch(is.character(view$scale$labels), error = function(e) FALSE)
-      if (!isTRUE(named)) {
-        return(NULL)
-      }
-      breaks <- tryCatch(view$get_breaks(), error = function(e) NULL)
-      labels <- self$panel_axis_labels(built, panel_index, "x")
-      if (is.null(breaks) || is.null(labels)) {
-        return(NULL)
-      }
-      tick_names_at(x, breaks, labels)
+      named_break_labels(layer_data$x, built, panel_index, "x")
     },
 
     #' @description The x values to announce, recovered from the BUILT column.
