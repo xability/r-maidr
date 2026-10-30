@@ -253,7 +253,11 @@ braille.</p><div class="section">
 <p></p><hr><a id="method-BaseRLineLayerProcessor-get_axis_ticks"></a><div class="section">
 <h3 id="baserlinelayerprocessor-get-axis-ticks-"><code>BaseRLineLayerProcessor$get_axis_ticks()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-get-axis-ticks-"></a></h3>
 <p>The positions and names of the ticks an <code><a href="base-r-wrappers.html">axis()</a></code> call
-drawn on this plot named with text</p><div class="section">
+drawn on this plot named with text</p>
+<p>A factor, or any other classed value, given as <code>labels</code> is drawn as
+the text <code><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character()</a></code> makes of it, as R makes it
+(<code><a href="https://rdrr.io/r/grDevices/as.graphicsAnnot.html" class="external-link">grDevices::as.graphicsAnnot()</a></code>): a factor's values by their levels'
+names, a date as it prints.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">get_axis_ticks</span><span class="op">(</span><span class="va">layer_info</span>, axis_side <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

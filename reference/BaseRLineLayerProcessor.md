@@ -208,6 +208,12 @@ The positions and names of the ticks an
 [`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) call drawn
 on this plot named with text
 
+A factor, or any other classed value, given as `labels` is drawn as the
+text [`as.character()`](https://rdrr.io/r/base/character.html) makes of
+it, as R makes it
+([`grDevices::as.graphicsAnnot()`](https://rdrr.io/r/grDevices/as.graphicsAnnot.html)):
+a factor's values by their levels' names, a date as it prints.
+
 #### Usage
 
     BaseRLineLayerProcessor$get_axis_ticks(layer_info, axis_side = 2)
