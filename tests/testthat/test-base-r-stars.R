@@ -157,16 +157,70 @@ test_that("two observations are read, which is the smallest star plot there is",
 })
 
 
-test_that("a star plot is read without an outline, for now", {
-  # The marks are there and the pairing is known -- measured by colour, an
-  # observation owns two polygons and a segments grob. What is not known is
-  # the selector they export to, and that cannot be measured until the chart
-  # stops falling back to a picture, which is what this reading is for.
+test_that("each star is outlined through the polygon it is drawn as", {
+  # Measured by colour, a star owns two polygons and a segments grob, and
+  # the export writes each polygon with the spoke tips as its vertices. The
+  # second of the two, drawn with the star's border, is each series' mark.
+  layer <- stars_layers(function() stars(READINGS))[[1]]
+
+  testthat::expect_length(layer$selectors, nrow(READINGS))
+  testthat::expect_equal(
+    unlist(layer$selectors),
+    paste0("#graphics-plot-1-polygon-", 2 * seq_len(nrow(READINGS)), "\\.1 polygon")
+  )
+})
+
+
+test_that("a star plot with a key outlines the stars, not the key", {
+  # `stars()` draws the key as one polygon more, after the stars.
+  layer <- stars_layers(function() stars(READINGS, key.loc = c(1, 1)))[[1]]
+
+  testthat::expect_equal(
+    unlist(layer$selectors),
+    paste0("#graphics-plot-1-polygon-", 2 * seq_len(nrow(READINGS)), "\\.1 polygon")
+  )
+})
+
+
+test_that("each named polygon is drawn through its star's spoke tips", {
+  testthat::skip_if_not_installed("xml2")
+  skip_if_no_render()
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  file <- tempfile(fileext = ".html")
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      if (device_id %in% grDevices::dev.list()) grDevices::dev.off(device_id)
+      unlink(file)
+    },
+    add = TRUE
+  )
+  stars(READINGS)
+  suppressWarnings(suppressMessages(save_html(file = file)))
+  layer <- layers_from(paste(readLines(file, warn = FALSE), collapse = "\n"))[[1]]
+  doc <- xml2::read_html(file)
+
+  testthat::expect_length(layer$selectors, nrow(READINGS))
+  for (selector in layer$selectors) {
+    id <- sub(" polygon$", "", sub("^#", "", gsub("\\", "", selector, fixed = TRUE)))
+    polygon <- xml2::xml_find_first(doc, sprintf("//*[@id='%s']/*[local-name()='polygon']", id))
+    testthat::expect_false(inherits(polygon, "xml_missing"), label = id)
+    points <- strsplit(trimws(xml2::xml_attr(polygon, "points")), " +")[[1]]
+    testthat::expect_length(points, ncol(READINGS))
+  }
+})
+
+
+test_that("a star plot of sectors is read without an outline", {
+  # `draw.segments = TRUE` draws a sector per variable rather than the star's
+  # polygon, so there is no one mark per series to name.
   #
   # `NULL` rather than an empty list: the orchestrator drops a NULL field,
   # while `list()` would serialise as an empty `selectors` array and claim
   # the chart has marks that resolve to nothing.
-  layer <- stars_layers(function() stars(READINGS))[[1]]
+  layer <- stars_layers(function() stars(READINGS, draw.segments = TRUE))[[1]]
 
   testthat::expect_null(layer$selectors)
 })

@@ -18,23 +18,23 @@
 #' has the smallest value of. The recorded matrix carries what the caller
 #' measured, and that is what a reader is told.
 #'
-#' **It is read without an outline, deliberately.** The marks are there and
-#' the pairing is known -- measured by giving each observation its own
-#' `col.stars` and reading every polygon's fill, observation `k` owns
-#' polygons `2k - 1` and `2k`, both filled its colour, plus a `segments-k`
-#' carrying one segment per variable:
+#' **Each star is outlined through the polygon it is drawn as.** Measured by
+#' giving each observation its own `col.stars` and reading every polygon's
+#' fill, observation `k` owns polygons `2k - 1` and `2k`, both filled its
+#' colour, plus a `segments-k` carrying one segment per variable:
 #'
 #'     polygon-1  #111199   polygon-2  #111199   segments-1   observation 1
 #'     polygon-3  #229922   polygon-4  #229922   segments-2   observation 2
 #'     ...
 #'
-#' What is *not* established is the selector those grobs export to. A
-#' selector is only worth emitting once it has been resolved against a real
-#' export, and a real export cannot be had until the chart stops falling back
-#' to a picture -- which is what this reading is for. So the outline is left
-#' for a follow-up that can measure it, rather than guessed from the grob
-#' names. Reading without one is what `gauge` already does upstream when the
-#' marks and the cursor cannot be paired with confidence.
+#' `stars()` draws each star twice, the second time with its `col.lines`
+#' border, and the export writes each as a `<polygon>` whose vertices are
+#' the spoke tips in the order of the variables, which is how a radar series
+#' is paired with its marks; each star's selector names the second. The
+#' reading had no outline at all until a real export could be measured. A
+#' call drawn with `draw.segments = TRUE` draws sectors instead, and one
+#' whose polygons are not two per star, and a key's, is not paired: those
+#' are still read without an outline.
 #'
 #' @keywords internal
 BaseRStarsLayerProcessor <- R6::R6Class(
@@ -45,7 +45,7 @@ BaseRStarsLayerProcessor <- R6::R6Class(
     #' @param plot Unused; present for the processor interface.
     #' @param layout Unused; present for the processor interface.
     #' @param built Unused; present for the processor interface.
-    #' @param gt Unused; this reading emits no selectors.
+    #' @param gt The grob tree, for the selectors.
     #' @param grob_id Unused; present for the processor interface.
     #' @param panel_id Unused; present for the processor interface.
     #' @param panel_ctx Unused; present for the processor interface.
@@ -71,8 +71,10 @@ BaseRStarsLayerProcessor <- R6::R6Class(
           t(readings),
           colnames(readings)
         ),
-        # Not `list()`: see the note at the head of this file.
-        selectors = NULL,
+        # NULL, not `list()`, where the stars cannot be paired with their
+        # polygons: the orchestrator drops a NULL field, while `list()`
+        # would claim marks that resolve to nothing.
+        selectors = self$star_selectors(info, gt, nrow(readings)),
         type = "radar",
         title = self$extract_main_title(info),
         axes = build_axes(
@@ -80,6 +82,28 @@ BaseRStarsLayerProcessor <- R6::R6Class(
           y = private$label(info, "ylab")
         )
       )
+    },
+
+    #' @description One selector per star: the polygon it is drawn as
+    #' @param layer_info Layer information with the recorded call.
+    #' @param gt The grob tree the chart was drawn to.
+    #' @param count How many stars, one per row of the matrix.
+    #' @return A list of selectors, or NULL when the polygons cannot be
+    #'   paired with the stars
+    star_selectors = function(layer_info, gt, count) {
+      if (is.null(gt) || count < 1L ||
+            recorded_flag(layer_info$plot_call$args, "draw.segments")) {
+        return(NULL)
+      }
+      group_index <- layer_info$group_index %||% layer_info$index
+      polygons <- find_graphics_plot_grobs(gt, "polygon", group_index)
+      # Two per star, and one more where a key is drawn after them.
+      if (!length(polygons) %in% c(2L * count, 2L * count + 1L)) {
+        return(NULL)
+      }
+      drawn <- as.integer(sub("^.*-polygon-([0-9]+)$", "\\1", polygons))
+      polygons <- polygons[order(drawn)]
+      lapply(seq_len(count), function(k) polygon_cell_selector(polygons[[2L * k]]))
     }
   ),
   private = list(
