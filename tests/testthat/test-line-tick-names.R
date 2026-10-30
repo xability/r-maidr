@@ -115,6 +115,40 @@ test_that("a Base R line on ticks named by a factor is read by the names R draws
   )
 })
 
+test_that("a Base R line on x ticks the author named is read by the name at each tick", {
+  # Each label names the tick at its `at`. They were handed to the points
+  # in turn, the first label to the first point: a line from July on was
+  # read from "Jan", and one drawn right to left had its names reversed.
+  x_of <- function(layer) {
+    vapply(layer$data[[1]], function(point) as.character(point$x), character(1))
+  }
+  late <- base_r_layers(function() {
+    plot(7:12, c(3, 5, 4, 6, 8, 7), type = "l", xaxt = "n")
+    axis(1, at = 1:12, labels = month.abb)
+  })[[1]]
+  testthat::expect_identical(x_of(late), month.abb[7:12])
+
+  unsorted <- base_r_layers(function() {
+    plot(c(3, 1, 2), c(1, 2, 3), type = "l", xaxt = "n")
+    axis(1, at = 1:3, labels = c("one", "two", "three"))
+  })[[1]]
+  testthat::expect_identical(x_of(unsorted), c("three", "one", "two"))
+
+  # A point between named ticks leaves the line its numbers.
+  between <- base_r_layers(function() {
+    plot(1:5, c(3, 5, 4, 6, 8), type = "l", xaxt = "n")
+    axis(1, at = c(1, 3, 5), labels = c("a", "c", "e"))
+  })[[1]]
+  testthat::expect_identical(x_of(between), as.character(1:5))
+
+  # Ticks named by a factor are named as R draws them.
+  by_factor <- base_r_layers(function() {
+    plot(2:4, c(3, 5, 4), type = "l", xaxt = "n")
+    axis(1, at = 1:6, labels = factor(month.abb[1:6], levels = month.abb))
+  })[[1]]
+  testthat::expect_identical(x_of(by_factor), month.abb[2:4])
+})
+
 test_that("a Base R line keeps its numbers unless every point is on a named tick", {
   labels_of <- function(layer) {
     unlist(lapply(layer$data[[1]], function(point) point$label))

@@ -1202,6 +1202,12 @@
   line's points as text labels do. R draws such labels as the text
   `as.character()` makes of them, but maidr read only character labels, so
   the points were read by their numbers.
+* A line's x axis labels set with `axis(1, at = , labels = )` name the
+  points at their ticks. They were handed to the points in turn, the first
+  label to the first point. So a line from July on, under
+  `axis(1, at = 1:12, labels = month.abb)`, was read from "Jan", and a line
+  drawn right to left was read with its names reversed. The points are now
+  named only when every one sits on a named tick, as on the y axis.
 * A `stars()` chart highlights the star being read. Its reading emitted no
   selectors, so no move outlined anything; each star is now outlined
   through the polygon it is drawn as, whose corners are the spoke tips the

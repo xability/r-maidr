@@ -78,7 +78,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         return(self$extract_single_line_data(
           curve_data$x,
           curve_data$y,
-          self$get_axis_labels(layer_info, axis_side = 1)
+          self$name_x_ticks(curve_data$x, layer_info)
         ))
       }
 
@@ -131,8 +131,8 @@ BaseRLineLayerProcessor <- R6::R6Class(
         y <- coords$y
       }
 
-      # Check for custom axis labels from axis() calls
-      x_labels <- self$get_axis_labels(layer_info, axis_side = 1)
+      # The names the author gave the x ticks the points sit on.
+      x_labels <- self$name_x_ticks(x, layer_info)
 
       series <- if (is_multiline) {
         self$extract_multiline_data(x, y, x_labels)
@@ -210,40 +210,34 @@ BaseRLineLayerProcessor <- R6::R6Class(
       }
       NULL
     },
-    #' @description Get custom axis labels from axis() LOW-level calls
+    #' @description The names of the x ticks an `axis()` call drawn on this
+    #'   plot named, for the points that sit on them
+    #'
+    #' Each label names the tick at its `at`, as R draws it: under
+    #' `axis(1, at = 1:12, labels = month.abb)` the point at 7 is July,
+    #' whichever point it is. The labels were handed to the points in turn,
+    #' the first label to the first point, so a line from July on was read
+    #' from "Jan". The points are named only when every one of them sits on
+    #' a named tick (`tick_names_at()`), as on the y axis
+    #' (`name_y_ticks()`). Labels given without `at` name the ticks R puts
+    #' where it chooses, which the recording does not keep, so they name no
+    #' point.
+    #' @param x The points' x positions
     #' @param layer_info Layer information containing group data
-    #' @param axis_side Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
-    #' @return Character vector of labels or NULL if not found
-    get_axis_labels = function(layer_info, axis_side = 1) {
-      if (is.null(layer_info$group)) {
+    #' @return A character vector as long as `x`, NA where a value is
+    #'   missing, or NULL
+    name_x_ticks = function(x, layer_info) {
+      ticks <- self$get_axis_ticks(layer_info, axis_side = 1)
+      if (is.null(ticks)) {
         return(NULL)
       }
-
-      low_calls <- layer_info$group$low_calls
-      if (is.null(low_calls) || length(low_calls) == 0) {
-        return(NULL)
-      }
-
-      # Search for axis() call with matching side and labels, but for one
-      # drawn over the plot in coordinates of its own, as
-      # `drawn_over_group_plot()` finds them
-      for (call in low_calls) {
-        if (call$function_name == "axis" && !isTRUE(call$overlay)) {
-          call_args <- call$args
-          # First argument is the side (1=bottom, 2=left, etc.)
-          side <- call_args[[1]]
-          if (!is.null(side) && side == axis_side && !is.null(call_args$labels)) {
-            return(as.character(call_args$labels))
-          }
-        }
-      }
-
-      NULL
+      tick_names_at(x, ticks$at, ticks$labels)
     },
     #' @description The points of one line, pairing each x with its y
     #' @param x x positions
     #' @param y y values
-    #' @param x_labels Category labels to announce in place of the x positions (optional)
+    #' @param x_labels The names to announce in place of the x positions,
+    #'   one per position (`name_x_ticks()`), or NULL
     #' @return List holding one series
     extract_single_line_data = function(x, y, x_labels = NULL) {
       data_points <- list()
@@ -255,7 +249,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
       for (i in seq_len(n)) {
-        x_value <- if (use_labels) x_labels[i] else line_x_value(x[i])
+        x_value <- if (use_labels && !is.na(x_labels[i])) x_labels[i] else line_x_value(x[i])
         data_points[[i]] <- list(
           x = x_value,
           y = as.numeric(y[i])
@@ -267,7 +261,8 @@ BaseRLineLayerProcessor <- R6::R6Class(
     #' @description One series per column of `y_matrix`, named after the columns
     #' @param x x positions
     #' @param y_matrix One column of y values per series
-    #' @param x_labels Category labels to announce in place of the x positions (optional)
+    #' @param x_labels The names to announce in place of the x positions,
+    #'   one per position (`name_x_ticks()`), or NULL
     #' @return List of series
     extract_multiline_data = function(x, y_matrix, x_labels = NULL) {
       series_names <- colnames(y_matrix)
@@ -291,7 +286,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
         for (i in seq_len(n)) {
-          x_value <- if (use_labels) x_labels[i] else line_x_value(x[i])
+          x_value <- if (use_labels && !is.na(x_labels[i])) x_labels[i] else line_x_value(x[i])
           series_points[[i]] <- list(
             x = x_value,
             y = as.numeric(series_y[i]),
