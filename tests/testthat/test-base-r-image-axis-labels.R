@@ -39,6 +39,16 @@ test_that("the cells are named by the axis() labels at their centres", {
   expect_equal(rows[[length(rows)]][[2]], visitors[2, 1])
 })
 
+test_that("several axis() calls on one side name the cells together", {
+  layer <- base_r_layers(function() {
+    image(visitors, axes = FALSE)
+    axis(1, at = c(0, 0.25), labels = days[1:2])
+    axis(side = 1, at = c(0.5, 0.75, 1), labels = days[3:5])
+  })[[1]]
+
+  expect_equal(unlist(layer$data$x), days)
+})
+
 test_that("an axis() that does not name every cell names none", {
   layer <- base_r_layers(function() {
     image(visitors, axes = FALSE)

@@ -115,14 +115,20 @@ the recorded call
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-image_axis_names"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-image_axis_names}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$image_axis_names()}}{
-  The names an \code{axis()} call drawn on an \code{image()} gives its cells
+  The names the \code{axis()} calls drawn on an \code{image()} give its cells
 
 \code{image(z)} centres its cells on \code{seq(0, 1, length.out = n)} along each
-axis and writes no names there. An \code{axis()} drawn on the same plot
-whose \code{labels} name a tick at the centre of every cell names the
-cells: the reader is told "Day is Tue, Hour is 9am" where they heard
-"Day is 2, Hour is 1". A call naming some cells and not others names
-none of them, as a value between ticks has no name of its own.
+axis and writes no names there. The \code{axis()} calls drawn on that side
+of the same plot name the cells when their \code{labels} put a name at the
+centre of every cell: the reader is told "Day is Tue, Hour is 9am"
+where they heard "Day is 2, Hour is 1". Several calls on one side are
+read together, a later name at a centre written over an earlier one,
+as R draws it. Calls that name some cells and not others name none of
+them, as a value between ticks has no name of its own.
+
+Only \code{image(z)}'s own centres are read. An \code{image(x, y, z)} given its
+coordinates is not read as a heat map here at all (\code{extract_data()}
+finds no matrix in \code{x}), so it has no cells to name.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$image_axis_names(layer_info, side, cells)}
