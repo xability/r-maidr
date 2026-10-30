@@ -124,6 +124,37 @@ with_margin_titles <- function(axes, titles) {
   axes
 }
 
+#' A chart's axes, titled as those of the plot it is drawn onto
+#'
+#' A chart drawn onto a plot with `add = TRUE` (`shared_plots()`) draws
+#' against that plot's axes and writes no axis title of its own, so R shows
+#' the plot's: `hist(x, xlab = "Weight"); hist(y, add = TRUE)` titles the
+#' second histogram's x axis "Weight", not "y", the title `hist(y)` draws
+#' on a plot of its own, nor an `xlab` it was given.
+#'
+#' @param axes The chart's canonical axes, or NULL
+#' @param plot_axes The canonical axes the plot it is drawn onto was read
+#'   with, the titles written after it included ([with_margin_titles()]),
+#'   or NULL where that plot was not read
+#' @return `axes`, its x and y axes titled as the plot's are, or untitled
+#'   where the plot's is; `axes` as given where the plot was not read
+#' @keywords internal
+with_plot_axis_titles <- function(axes, plot_axes) {
+  if (is.null(plot_axes)) {
+    return(axes)
+  }
+  for (axis in c("x", "y")) {
+    config <- axes[[axis]]
+    rest <- config[setdiff(names(config), "label")]
+    label <- plot_axes[[axis]]$label
+    # First, where `build_axis_config()` puts it.
+    titled <- if (is.null(label)) rest else c(list(label = label), rest)
+    axes <- axes %||% build_axes()
+    axes[[axis]] <- if (length(titled) > 0L) titled
+  }
+  axes
+}
+
 #' The titles written in the margins of each plot, by the axis they title
 #'
 #' A title written after a plot, with `title()` or `mtext()`, is drawn in a

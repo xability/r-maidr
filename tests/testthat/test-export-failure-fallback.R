@@ -321,6 +321,14 @@ test_that("the picture of a chart that could not be made interactive says so, an
     boxplot(len ~ supp, data = ToothGrowth, add = TRUE, col = NA)
     plot(1:5, main = "B")
   }), "2 panels: A, B")
+  # A chart drawn onto a plot with `add = TRUE` draws no title of its own,
+  # its function's or the `main` it is given.
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2))
+    hist(c(1, 2, 2, 3), main = "")
+    hist(c(2, 3, 3), add = TRUE, main = "Over")
+    plot(1:5, main = "B")
+  }), "2 panels: untitled, B")
   expect_identical(named(function() {
     par(mfrow = c(1, 2))
     plot(1:3, main = "A")

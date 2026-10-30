@@ -304,7 +304,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
       }
       group <- private$.plot_groups[[group_index]]
-      title <- one_line(base_r_annotation_text(group$high_call$args[["main"]]))
+      # One drawn onto a plot with `add = TRUE` draws no `main` it is given.
+      drawn_onto <- shared_plots(private$.plot_groups)[[group_index]] != group_index
+      title <- if (!drawn_onto) {
+        one_line(base_r_annotation_text(group$high_call$args[["main"]]))
+      }
       for (call in group$low_calls) {
         outer <- base_r_scalar_arg(call$args[["outer"]], flag = TRUE, missing = FALSE)
         if (identical(call$function_name, "title") && !isTRUE(outer)) {
@@ -612,6 +616,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # plot whose axis each one titles, and the title a title() gave it.
       titles <- margin_titles(private$.plot_groups, private$.layout_calls)
       plot_titles <- base_r_plot_titles(private$.plot_groups)
+      # The plot each chart is drawn on, and the axes each plot is read with,
+      # filled in as its layer is read, before any chart drawn onto it.
+      plots <- shared_plots(private$.plot_groups)
+      plot_axes <- vector("list", length(private$.plot_groups))
 
       layer_results <- vector("list", length(private$.layers))
       for (i in seq_along(private$.layers)) {
@@ -639,9 +647,20 @@ BaseRPlotOrchestrator <- R6::R6Class(
         layer_info <- private$.layers[[i]]
         layer_titles <- titles[[layer_info$group_index]]
         # A title() titles the plot, as its `main` does, and not the lines
-        # or points drawn on it.
+        # or points drawn on it. A chart drawn onto a plot with `add = TRUE`
+        # is not a plot of its own, and R draws no title for it: neither the
+        # `main` it was given nor the one its function gives a plot, as
+        # "Histogram of y" for `hist(y)`.
+        group_index <- layer_info$group_index
         plot_title <- if (identical(layer_info$source, "HIGH")) {
-          plot_titles[[layer_info$group_index]]
+          if (plots[[group_index]] != group_index) "" else plot_titles[[group_index]]
+        }
+        # Nor does a low-level call such as `lines()` draw one: R ignores a
+        # `main` given to it, with a warning, so its processor is not shown
+        # it. `abline()` is read under its plot's title, which R draws.
+        if (identical(layer_info$source, "LOW")) {
+          if (is.list(layer_info$args)) layer_info$args[["main"]] <- NULL
+          if (is.list(layer_info$plot_call$args)) layer_info$plot_call$args[["main"]] <- NULL
         }
         layer_info$group_index <- plot_numbers[[layer_info$group_index]]
         # Drawn over the group's plot on one of its own, after
@@ -664,16 +683,31 @@ BaseRPlotOrchestrator <- R6::R6Class(
           gt = layer_grob
         )
         # Titles the author wrote after the plot, with title() or mtext(), on
-        # the layer, or on each layer a result of several holds.
+        # the layer, or on each layer a result of several holds. A chart
+        # drawn onto a plot with `add = TRUE` is read under that plot's axis
+        # titles, which are the ones R shows (`with_plot_axis_titles()`).
+        high <- identical(layer_info$source, "HIGH")
+        onto <- if (high && plots[[group_index]] != group_index) {
+          plot_axes[[plots[[group_index]]]]
+        }
+        retitle <- function(layer) {
+          layer$axes <- with_margin_titles(layer$axes, layer_titles)
+          if (!is.null(onto)) layer$axes <- with_plot_axis_titles(layer$axes, onto)
+          if (!is.null(plot_title)) layer$title <- plot_title
+          layer
+        }
         if (is.list(result) && isTRUE(result$multi_layer) && !is.null(result$layers)) {
-          result$layers <- lapply(result$layers, function(sub) {
-            sub$axes <- with_margin_titles(sub$axes, layer_titles)
-            if (!is.null(plot_title)) sub$title <- plot_title
-            sub
-          })
+          result$layers <- lapply(result$layers, retitle)
         } else if (is.list(result)) {
-          result$axes <- with_margin_titles(result$axes, layer_titles)
-          if (!is.null(plot_title)) result$title <- plot_title
+          result <- retitle(result)
+        }
+        if (high && plots[[group_index]] == group_index && is.list(result)) {
+          axes <- if (isTRUE(result$multi_layer) && length(result$layers) > 0L) {
+            result$layers[[1L]]$axes
+          } else {
+            result$axes
+          }
+          plot_axes[group_index] <- list(axes)
         }
         processor$set_last_result(result)
         layer_results[[i]] <- result
@@ -756,9 +790,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
         base_r_annotation_text(args[[name]])
       }
 
-      for (group in private$.plot_groups) {
+      # A chart drawn onto a plot with `add = TRUE` draws none of the titles
+      # it is given; the plot's own are those R shows.
+      plots <- shared_plots(private$.plot_groups)
+      for (g in seq_along(private$.plot_groups)) {
+        group <- private$.plot_groups[[g]]
         high_call <- group$high_call
-        args <- high_call$args
+        args <- if (plots[[g]] == g) high_call$args
 
         value <- get_label_arg(args, "main")
         if (!is.null(value)) title <- value

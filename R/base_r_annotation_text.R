@@ -521,8 +521,11 @@ base_r_title_main <- function(args) {
 #' one written is the one on top, as with `title(xlab = )`
 #' (`with_margin_titles()`). It titles the plot R draws it on, which
 #' `par(mfg = )` can send back to an earlier panel of a grid
-#' (`plot_drawn_on()`). A `title()` in the outer margin (`outer = TRUE`)
-#' titles the page rather than a plot (`base_r_outer_title()`).
+#' (`plot_drawn_on()`); written after a chart drawn onto a plot with
+#' `add = TRUE`, which is not a plot of its own, it titles that plot
+#' (`shared_plots()`). A `title()` in the outer
+#' margin (`outer = TRUE`) titles the page rather than a plot
+#' (`base_r_outer_title()`).
 #'
 #' @param groups The plot groups, from [group_device_calls()]
 #' @return One string or NULL per group: the title the last such `title()`
@@ -531,6 +534,7 @@ base_r_title_main <- function(args) {
 #' @noRd
 base_r_plot_titles <- function(groups) {
   titles <- vector("list", length(groups))
+  plots <- shared_plots(groups)
   for (g in seq_along(groups)) {
     for (call in groups[[g]]$low_calls) {
       if (!identical(call$function_name, "title") || recorded_flag(call$args, "outer")) {
@@ -538,7 +542,7 @@ base_r_plot_titles <- function(groups) {
       }
       title <- base_r_annotation_text(base_r_title_main(call$args))
       if (!is.null(title)) {
-        titles[[plot_drawn_on(call, groups, g)]] <- title
+        titles[[plots[[plot_drawn_on(call, groups, g)]]]] <- title
       }
     }
   }
