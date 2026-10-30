@@ -838,8 +838,9 @@
   segments matched more rects than there are bars and highlighted nothing
   (#404).
 * A 'patchwork' composition is titled, subtitled and captioned by
-  `plot_annotation()`, as patchwork draws it, and has no title of its own
-  without one. It was titled after the plot added last: a 2 x 2 grid of
+  `plot_annotation()`, as patchwork draws it, or else titled by the title
+  all of its plots carry, and has no title of its own when they are titled
+  apart. It was titled after the plot added last: a 2 x 2 grid of
   titled plots was called "Line Plot 2", the title of its fourth plot, in
   its accessible name and its description, and a title set with
   `plot_annotation()` was not read. Each plot is still read under its own
@@ -973,12 +974,13 @@
   the chart as one panel of a grid whose other panel was empty (#352).
 * A `par(mfrow)` or `layout()` page of several plots is titled by what R
   draws over all of them, with `title(outer = TRUE)` or `mtext(outer =
-  TRUE)`, and has no title of its own when nothing is. It was titled, and
-  subtitled, after its last plot's `main` and `sub`: a grid of three
-  species plots was called "Species: virginica" in its accessible name and
-  its description while the reader stood on setosa, and a title drawn over
-  the plots with `title("Overall", outer = TRUE)` was lost to the last
-  plot's. Each plot is still read under its own title.
+  TRUE)`, or else by the title all of its plots carry, and has no title of
+  its own when they are titled apart. It was titled, and subtitled, after
+  its last plot's `main` and `sub`: a grid of three species plots was
+  called "Species: virginica" in its accessible name and its description
+  while the reader stood on setosa, and a title drawn over the plots with
+  `title("Overall", outer = TRUE)` was lost to the last plot's. Each plot
+  is still read under its own title.
 * A Base R chart is titled the way R titles it. `hist(mtcars$mpg)` writes
   "mtcars$mpg" under its x axis and "Histogram of mtcars$mpg" above it, and
   the chart maidr drew, in `show()`, `save_html()`, a knitted document and

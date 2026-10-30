@@ -782,7 +782,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # its plot's, which its layer carries. Read in turn above, the last
       # panel's named the whole figure: a `par(mfrow)` grid of three species
       # was called "Species: virginica", and an outer title written with
-      # `title("Overall", outer = TRUE)` was lost to it.
+      # `title("Overall", outer = TRUE)` was lost to it. A title every panel
+      # carries is the figure's too, once the panels are read
+      # (`generate_maidr_data()`).
       panel_config <- detect_panel_configuration(private$.device_id)
       if (is_multipanel_config(panel_config)) {
         slots <- compute_panel_slots(private$.plot_groups, panel_config)
@@ -1087,8 +1089,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
         subplots = private$.combined_data
       )
 
-      if (!is.null(private$.layout$title) && nzchar(private$.layout$title)) {
-        maidr_obj$title <- private$.layout$title
+      # A page of several panels with no title drawn over them takes the
+      # title all of its panels carry, when they carry one
+      # (`shared_subplot_title()`).
+      title <- private$.layout$title
+      cells <- unlist(private$.combined_data, recursive = FALSE)
+      if (!(is.character(title) && length(title) == 1L && nzchar(title)) && length(cells) > 1L) {
+        title <- shared_subplot_title(cells)
+      }
+      if (!is.null(title) && nzchar(title)) {
+        maidr_obj$title <- title
       }
       if (!is.null(private$.layout$subtitle) && nzchar(private$.layout$subtitle)) {
         maidr_obj$subtitle <- private$.layout$subtitle

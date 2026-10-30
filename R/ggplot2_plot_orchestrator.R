@@ -494,8 +494,15 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         subplots = private$.combined_data
       )
 
-      if (!is.null(private$.layout$title) && nzchar(private$.layout$title)) {
-        maidr_obj$title <- private$.layout$title
+      # A composition without `plot_annotation()` takes the title all of its
+      # plots carry, when they carry one (`shared_subplot_title()`).
+      title <- private$.layout$title
+      untitled <- !(is.character(title) && length(title) == 1L && nzchar(title))
+      if (self$is_patchwork_plot() && untitled) {
+        title <- shared_subplot_title(unlist(private$.combined_data, recursive = FALSE))
+      }
+      if (!is.null(title) && nzchar(title)) {
+        maidr_obj$title <- title
       }
       if (!is.null(private$.layout$subtitle) && nzchar(private$.layout$subtitle)) {
         maidr_obj$subtitle <- private$.layout$subtitle
@@ -618,7 +625,8 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       # The composition's own title, subtitle and caption, which
       # `plot_annotation()` sets (`patchwork_annotation_text()`). Its
       # `labels` are those of the plot added last, so a grid of titled plots
-      # was named after its last plot.
+      # was named after its last plot. A title every plot carries is the
+      # composition's too, once the plots are read (`generate_maidr_data()`).
       annotation <- patchwork_annotation_text(private$.plot)
       private$.layout <- list(
         title = annotation$title %||% "",

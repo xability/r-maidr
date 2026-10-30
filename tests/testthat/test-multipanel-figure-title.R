@@ -10,6 +10,8 @@
 # composition carries, and `plot_annotation()`, which titles a composition,
 # was not read at all.
 #
+# A page or composition with nothing drawn over its panels is titled by the
+# title all of them carry, when they carry one, and is otherwise untitled.
 # Each panel keeps its own title as its layer's, as before.
 
 #' The MAIDR data of the Base R page `draw` draws
@@ -94,6 +96,28 @@ test_that("a title drawn over a grid's panels titles the figure", {
   )
 })
 
+test_that("a title every panel carries titles the figure", {
+  same <- base_r_figure(function() {
+    par(mfrow = c(2, 2))
+    for (i in 1:4) plot(1:10, (1:10) * i, main = "Weekly sales")
+  })
+  testthat::expect_identical(same$title, "Weekly sales")
+
+  # A page of two panels with one drawn: its one plot's title is the page's.
+  one_drawn <- base_r_figure(function() {
+    par(mfrow = c(1, 2))
+    barplot(1:3, main = "Only plot")
+  })
+  testthat::expect_identical(one_drawn$title, "Only plot")
+
+  untitled_panel <- base_r_figure(function() {
+    par(mfrow = c(1, 2))
+    plot(1:10, main = "Weekly sales")
+    plot(1:10)
+  })
+  testthat::expect_null(untitled_panel$title)
+})
+
 test_that("a chart of one panel, or one that draws its own grid, keeps its title", {
   single <- base_r_figure(function() plot(1:10, main = "Single", sub = "One panel"))
   testthat::expect_identical(single$title, "Single")
@@ -103,7 +127,7 @@ test_that("a chart of one panel, or one that draws its own grid, keeps its title
   testthat::expect_identical(pairs_figure$title, "Iris measurements")
 })
 
-test_that("a patchwork composition is titled by plot_annotation() alone", {
+test_that("a patchwork composition is titled by plot_annotation(), or what all its plots share", {
   testthat::skip_if_not_installed("patchwork")
   line <- ggplot2::ggplot(data.frame(x = 1:4, y = c(2, 4, 1, 5)), ggplot2::aes(x, y)) +
     ggplot2::geom_line() +
@@ -134,4 +158,7 @@ test_that("a patchwork composition is titled by plot_annotation() alone", {
       line
   )
   testthat::expect_null(nested$title)
+
+  # A title every plot carries is the composition's.
+  testthat::expect_identical(figure(patchwork::wrap_plots(line, line))$title, "Line Plot")
 })
