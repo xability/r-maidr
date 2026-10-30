@@ -612,6 +612,32 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   )
 }
 
+#' Stop following a recorded call that drew nothing
+#'
+#' A call that only computes -- `hist(x, plot = FALSE)`, `boxplot(x, plot =
+#' FALSE)` -- returns without being recorded. Followed on until the next call
+#' started, it took the plot of the call it was made from the arguments of,
+#' as in `bxp(boxplot(x, plot = FALSE))`, and that call was read as drawn on
+#' a plot after the last. Called by the recording wrapper as it returns.
+#'
+#' @param device_id The device the call was made on
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+forget_base_r_call <- function(device_id = grDevices::dev.cur()) {
+  # The wrapper's frame, as `ensure_maidr_device()` gave it to
+  # `begin_base_r_call()`.
+  depth <- sys.parent()
+  key <- as.character(device_id)
+  drawing <- .maidr_base_r_pages$calls[[key]]
+  depths <- vapply(drawing, function(call) call$depth, integer(1))
+  this <- match(depth, depths)
+  if (!is.na(this)) {
+    .maidr_base_r_pages$calls[[key]] <- drawing[seq_len(this - 1L)]
+  }
+  invisible(NULL)
+}
+
 #' The coordinates the plot R is drawing on has
 #'
 #' A low-level call drawn on a plot no recorded call started -- a panel

@@ -1222,6 +1222,12 @@
   highlight drawn along them. Each call is drawn with the `xpd` R had as
   it started, so a line drawn after `par(xpd = NA)` still runs past the
   plot region, as R draws it (#415).
+* `bxp(boxplot(x, plot = FALSE))`, `barplot(hist(x, plot = FALSE)$counts)`
+  and `plot(barplot(h, plot = FALSE), h)` highlight the chart being read.
+  Every selector named a plot after the last, `graphics-plot-2-...` on a
+  page whose only plot is `graphics-plot-1`, so no move highlighted
+  anything: the computing call, made from the drawing call's arguments,
+  took the plot the drawing call started (#408).
 
 ## Documentation
 

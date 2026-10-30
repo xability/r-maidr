@@ -1004,7 +1004,7 @@ create_function_wrapper <- function(function_name, original_function) {
       caller_env <- parent.frame()
 
       # Ensure a device is open to suppress default graphics window
-      ensure_maidr_device()
+      started_on <- ensure_maidr_device()
 
       # Fast path: forward the promises untouched, so each argument is
       # evaluated exactly once and lazily. `withVisible()` keeps the
@@ -1077,6 +1077,7 @@ create_function_wrapper <- function(function_name, original_function) {
       # image" because the device is blank (#216).
       if (identical(args_list[["plot"]], FALSE) ||
           identical(args_list[["plot.it"]], FALSE)) {
+        forget_base_r_call(started_on)
         return(as_drawn(result))
       }
 
@@ -1442,7 +1443,7 @@ create_barplot_wrapper <- function(original_function) {
     caller_env <- parent.frame()
 
     # Ensure a device is open to suppress default graphics window
-    ensure_maidr_device()
+    started_on <- ensure_maidr_device()
 
     # Force args defensively: barplot(y ~ x, subset = ...) style NSE
     # arguments cannot be forced outside the original call.
@@ -1471,9 +1472,11 @@ create_barplot_wrapper <- function(original_function) {
 
       # Computation-only calls (barplot(x, plot = FALSE) returns the bar
       # midpoints without drawing) must not be recorded, or they inject a
-      # phantom bar layer into the next render. The generic wrapper applies
-      # the same rule; barplot has its own path and needs it too.
+      # phantom bar layer into the next render, and are no longer followed
+      # (`forget_base_r_call()`). The generic wrapper applies the same rule;
+      # barplot has its own path and needs it too.
       if (identical(args[["plot"]], FALSE)) {
+        forget_base_r_call(started_on)
         return(invisible(result))
       }
 
