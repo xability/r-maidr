@@ -772,6 +772,27 @@ lattice_group_type <- function(args, group) {
 #' @return A string, or `NULL`.
 #' @keywords internal
 lattice_group_title <- function(plot) {
+  title <- lattice_key_title(plot)
+  if (!is.null(title)) {
+    return(title)
+  }
+  groups <- plot$call$groups
+  if (is.symbol(groups) || is.call(groups)) {
+    paste(deparse(groups, width.cutoff = 500L), collapse = " ")
+  } else {
+    NULL
+  }
+}
+
+#' The title the chart's key draws, when it draws one
+#'
+#' `auto.key = list(title = "Cylinders")` and `key = list(title = ...)` give
+#' the key a title, written above its entries; `auto.key = TRUE` draws none.
+#'
+#' @param plot A trellis object
+#' @return A string, or `NULL`.
+#' @keywords internal
+lattice_key_title <- function(plot) {
   for (legend in plot$legend) {
     title <- legend$args$title
     if (is.null(title)) {
@@ -782,12 +803,7 @@ lattice_group_title <- function(plot) {
       return(text)
     }
   }
-  groups <- plot$call$groups
-  if (is.symbol(groups) || is.call(groups)) {
-    paste(deparse(groups, width.cutoff = 500L), collapse = " ")
-  } else {
-    NULL
-  }
+  NULL
 }
 
 #' Undo a lattice log scale

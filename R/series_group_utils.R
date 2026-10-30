@@ -137,3 +137,26 @@ attach_series_group_axis <- function(axes, plot, built, data, layer_index = NULL
   }
   axes
 }
+
+#' Name a layer after the group it holds
+#'
+#' A chart that draws one group per colour says in its legend which group is
+#' which: a title, and an entry per group. A layer holding one group is named
+#' with both, `"Cylinders 6"`, so a reader moving between layers is told
+#' what they are on; the entry alone, `"6"`, says nothing about what the
+#' number counts. An entry that already begins with the title, as `"Group B"`
+#' does under the title "Group", is the name on its own.
+#'
+#' @param level The group's legend entry
+#' @param title The legend's title, or NULL when it has none
+#' @return The layer's name
+#' @keywords internal
+group_layer_name <- function(level, title = NULL) {
+  level <- as.character(level)
+  title <- if (is.null(title)) "" else trimws(as.character(title)[1])
+  if (is.na(title) || !nzchar(title) ||
+        startsWith(tolower(level), tolower(title))) {
+    return(level)
+  }
+  paste(title, level)
+}

@@ -128,9 +128,11 @@ test_that("position_jitterdodge is undone on the axis it displaces", {
   df <- likert_df()
   plot <- ggplot2::ggplot(df, ggplot2::aes(g, score, colour = h)) +
     ggplot2::geom_point(position = ggplot2::position_jitterdodge())
+  # Read as a layer per colour, each holding its rows in their order.
+  rows <- df[order(df$h), ]
 
-  testthat::expect_equal(xs_of(plot), rep(c(1, 2, 3), each = 20))
-  testthat::expect_equal(ys_of(plot), as.numeric(df$score))
+  testthat::expect_equal(xs_of(plot), as.numeric(factor(rows$g)))
+  testthat::expect_equal(ys_of(plot), as.numeric(rows$score))
 })
 
 test_that("a jitterdodge keeps the grouping its dodge was drawing", {
@@ -138,17 +140,18 @@ test_that("a jitterdodge keeps the grouping its dodge was drawing", {
 
   # What licenses removing the dodge along with the jitter. The dodge offset
   # separates the hue levels visually, so collapsing it would lose the split
-  # -- except that the level travels as an aesthetic of its own, and that is
-  # where a reader hears it. If it did not, this fix would be trading one
+  # -- except that each level is a layer of its own, named for it, and that
+  # is where a reader hears it. If it were not, this fix would be trading one
   # missing fact for another.
   df <- likert_df()
-  points <- emitted_points(
-    ggplot2::ggplot(df, ggplot2::aes(g, score, colour = h)) +
-      ggplot2::geom_point(position = ggplot2::position_jitterdodge())
-  )
-  hues <- vapply(points, function(p) as.character(p$color %||% ""), character(1))
+  plot <- ggplot2::ggplot(df, ggplot2::aes(g, score, colour = h)) +
+    ggplot2::geom_point(position = ggplot2::position_jitterdodge())
+  layers <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()$subplots[[1]][[1]]$layers
 
-  testthat::expect_length(unique(hues), 2)
+  testthat::expect_equal(
+    vapply(layers, function(layer) layer$name, character(1)),
+    c("h p", "h q")
+  )
 })
 
 test_that("an explicit jitterdodge height is undone too", {
@@ -159,7 +162,8 @@ test_that("an explicit jitterdodge height is undone too", {
   plot <- ggplot2::ggplot(df, ggplot2::aes(g, score, colour = h)) +
     ggplot2::geom_point(position = ggplot2::position_jitterdodge(jitter.height = 0.4))
 
-  testthat::expect_equal(ys_of(plot), as.numeric(df$score))
+  # A layer per colour, each holding its rows in their order.
+  testthat::expect_equal(ys_of(plot), as.numeric(df$score[order(df$h)]))
 })
 
 test_that("every point lands on its category rather than beside it", {

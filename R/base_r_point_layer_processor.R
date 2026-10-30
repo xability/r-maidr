@@ -31,6 +31,11 @@ BaseRPointLayerProcessor <- R6::R6Class(
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
+      grouped <- self$legend_group_layers(layer_info, data, selectors, axes, title)
+      if (!is.null(grouped)) {
+        return(grouped)
+      }
+
       list(
         data = data,
         selectors = selectors,
@@ -38,6 +43,114 @@ BaseRPointLayerProcessor <- R6::R6Class(
         title = title,
         axes = axes
       )
+    },
+
+    #' @description One point layer per colour the plot's legend names
+    #'
+    #' `plot(x, y, col = colours[group])` with a `legend()` naming the colours
+    #' is how Base R draws groups of points. The layer was read as one cloud,
+    #' each point carrying its colour's name in a `color` field maidr.js does
+    #' not read, so a reader never heard which group a point was in and could
+    #' not walk one group at a time. When the legend drawn on the same plot
+    #' names every colour the points are drawn in, each colour is now a layer
+    #' of its own, in the legend's order, named for its entry and the
+    #' legend's title (`group_layer_name()`), as a grouped lattice `xyplot()`
+    #' is read. Points of a colour the legend does not name, or a plot with
+    #' no legend, are read as before: a colour alone names no group.
+    #'
+    #' R draws the points in one grob, in the order given, and the export
+    #' numbers each `<use>` by its place in it, so a group's points are named
+    #' by those numbers.
+    #'
+    #' @param layer_info Layer information with the recorded call and its plot
+    #'   group
+    #' @param points The layer's points, from `extract_data()`
+    #' @param selectors The layer's selectors, from `generate_selectors()`
+    #' @param axes The layer's axes
+    #' @param title The chart's title
+    #' @return A multi-layer result, or NULL when no legend groups the points
+    #'   into two groups or more
+    legend_group_layers = function(layer_info, points, selectors, axes, title) {
+      legend <- self$plot_legend(layer_info)
+      if (is.null(legend) || length(points) < 2L) {
+        return(NULL)
+      }
+      colours <- vapply(
+        points,
+        function(point) if (is.null(point$color)) NA_character_ else as.character(point$color),
+        character(1)
+      )
+      paint <- function(col) {
+        rgba <- tryCatch(grDevices::col2rgb(col, alpha = TRUE), error = function(e) NULL)
+        if (is.null(rgba)) NULL else apply(rgba, 2L, paste, collapse = ",")
+      }
+      drawn <- if (anyNA(colours)) NULL else paint(colours)
+      named <- paint(rep_len(legend$col, length(legend$text)))
+      if (is.null(drawn) || is.null(named)) {
+        return(NULL)
+      }
+      entry <- match(drawn, named)
+      if (anyNA(entry) || length(unique(entry)) < 2L) {
+        return(NULL)
+      }
+
+      # The container's id, as `generate_selectors()` wrote it: `g#<id> > use`.
+      container <- NULL
+      if (length(selectors) == 1L && grepl("^g#.* > use$", selectors[[1]])) {
+        container <- sub("^g#(.*) > use$", "\\1", selectors[[1]])
+      }
+
+      layers <- lapply(sort(unique(entry)), function(k) {
+        at <- which(entry == k)
+        list(
+          data = lapply(points[at], function(point) {
+            point$color <- NULL
+            point
+          }),
+          selectors = if (is.null(container)) {
+            list()
+          } else {
+            list(paste0("#", container, "\\.", at, collapse = ", "))
+          },
+          type = "point",
+          title = title,
+          axes = axes,
+          name = group_layer_name(legend$text[k], legend$title)
+        )
+      })
+      list(multi_layer = TRUE, layers = layers)
+    },
+
+    #' @description The legend drawn on the plot a layer is drawn on
+    #' @param layer_info Layer information with its plot group
+    #' @return NULL, or a list: `text`, the legend's entries, `col`, the
+    #'   colours of their points, and `title`
+    plot_legend = function(layer_info) {
+      for (call in layer_info$group$low_calls) {
+        if (!identical(call$function_name, "legend") || isTRUE(call$overlay)) {
+          next
+        }
+        args <- call$args
+        # `legend("topright", c("a", "b"))` hands the text as `y`, which
+        # legend() takes it for when `legend` is missing.
+        text <- args[["legend"]]
+        if (is.null(text) && is.character(args[["y"]])) {
+          text <- args[["y"]]
+        }
+        if (!is.character(text) && !is.factor(text)) {
+          return(NULL)
+        }
+        if (is.null(args[["col"]]) || length(text) == 0L) {
+          return(NULL)
+        }
+        title <- args[["title"]]
+        return(list(
+          text = as.character(text),
+          col = args[["col"]],
+          title = if (is.character(title) && length(title) == 1L) title else NULL
+        ))
+      }
+      NULL
     },
     #' @description Whether the plot data must be reordered before drawing; a Base R layer is read
     #'   from the recorded call and never is

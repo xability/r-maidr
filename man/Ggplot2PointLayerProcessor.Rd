@@ -15,6 +15,7 @@ for individual points in the SVG structure.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2PointLayerProcessor-process}{\code{Ggplot2PointLayerProcessor$process()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-colour_group_layers}{\code{Ggplot2PointLayerProcessor$colour_group_layers()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_axes_labels}{\code{Ggplot2PointLayerProcessor$extract_axes_labels()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_data}{\code{Ggplot2PointLayerProcessor$extract_data()}}
@@ -82,6 +83,59 @@ for individual points in the SVG structure.
   }
   \subsection{Returns}{
     List with data and selectors
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-colour_group_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-colour_group_layers}{}}}
+\subsection{\code{Ggplot2PointLayerProcessor$colour_group_layers()}}{
+  One point layer per colour group, named as the legend names it
+
+\code{aes(colour = group)} draws each group of points in its own colour and
+names the colours in a legend. The layer was read as one cloud, each
+point carrying the group in a \code{color} field maidr.js does not read, so
+a reader never heard which group a point was in and could not walk one
+group at a time. The groups are now layers of their own, as a grouped
+lattice \code{xyplot()} and py-maidr's hue scatters are read: in the order
+the legend lists them, each named for its entry and the legend's title
+(\code{group_layer_name()}), and highlighted through its own points.
+
+ggplot2 draws every point of the layer in one grob, in row order, and
+the export numbers each \verb{<use>} by its place in it. A group's points are
+named by those numbers: a selector list matches in document order,
+which is the order the group's points are emitted in.
+
+A colour mapped to a continuous scale is a value, not a group, and is
+left as it was; so is a layer in which any point has no group. Only a
+plain \code{geom_point()} layer is split: a volcano or Manhattan layer,
+read through this processor too, is one reading with its threshold,
+and its colour groups are announced as each point's region.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$colour_group_layers(
+  plot,
+  built,
+  points,
+  selectors,
+  axes
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data}
+      \item{\code{points}}{The layer's points, from \code{extract_data()}}
+      \item{\code{selectors}}{The layer's selectors, from \code{generate_selectors()}}
+      \item{\code{axes}}{The layer's axes}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A multi-layer result, or NULL when the layer is not grouped by
+colour into two groups or more
   }
 }
 

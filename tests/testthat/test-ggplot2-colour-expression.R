@@ -15,9 +15,15 @@ colours_announced <- function(p) {
 test_that("a scatter coloured by an expression announces the level names", {
   testthat::skip_if_not_installed("ggplot2")
 
+  # Unfaceted, each level is a layer of its own, named under the legend's
+  # title, which is the expression as written.
   p <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, colour = factor(cyl))) +
     ggplot2::geom_point()
-  expect_setequal(unique(colours_announced(p)), c("4", "6", "8"))
+  layers <- maidr:::Ggplot2PlotOrchestrator$new(p)$generate_maidr_data()$subplots[[1]][[1]]$layers
+  expect_equal(
+    vapply(layers, function(layer) layer$name, character(1)),
+    c("factor(cyl) 4", "factor(cyl) 6", "factor(cyl) 8")
+  )
 
   faceted <- colours_announced(p + ggplot2::facet_wrap(~am))
   expect_length(faceted, nrow(mtcars))

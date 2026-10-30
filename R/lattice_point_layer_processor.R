@@ -64,9 +64,12 @@ LatticePointLayerProcessor <- R6::R6Class(
         title = panel_ctx$title,
         axes = self$point_axes(plot, layout, panel_ctx)
       )
+      # Named as the key names the group: its entry, after the key's title
+      # when it draws one, so `auto.key = list(title = "Cylinders")` reads
+      # "Cylinders 6" where "6" alone said nothing of what was counted.
       name <- self$group_label(panel_ctx, entry)
       if (!is.null(name)) {
-        result$name <- name
+        result$name <- group_layer_name(name, lattice_key_title(plot))
       }
       result
     },
