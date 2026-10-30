@@ -309,6 +309,14 @@
   else. Any other line keeps its reading. Needs maidr.js 4.14.0 or
   later, which this release bundles.
 
+- A grouped point layer is named as the key names its group: the entry,
+  after the key’s title when the key draws one.
+  `xyplot(mpg ~ wt, groups = factor(cyl), auto.key = list(title = "Cylinders"))`
+  reads “Cylinders 6” where “6” said nothing of what was counted; a key
+  with no title, as `auto.key = TRUE` draws, names a layer by its entry
+  alone, as before
+  ([\#413](https://github.com/xability/r-maidr/issues/413)).
+
 #### pheatmap
 
 - The clustered heat map
@@ -960,6 +968,15 @@
   labeller: `labeller(vs = c("0" = "V-engine", "1" = "Straight"))` names
   it “V-engine” where it was “0”, and `label_both` “cyl: 4”. A
   `label_parsed` label is read as written, “alpha^2”.
+- A line whose x breaks the author named, as
+  `scale_x_continuous(breaks = 1:12, labels = month.abb)` names them, is
+  read by those names when every point sits on one: “Month is Feb” where
+  it said “Month is 2”, and “Month range: Jan to Dec” in the
+  description, in a facet’s panels as in a single plot. Labels a
+  function makes from the numbers, such as
+  [`scales::label_dollar()`](https://scales.r-lib.org/reference/dollar_format.html),
+  still leave the numbers to the axis’s format, and a line with a point
+  between named breaks keeps its numbers.
 - The `d` key opens the chart description, and `L` then `T` says the
   title, on a box plot, violin plot, heat map, scatter plot, smooth,
   volcano plot and gantt chart. Their layers carried an empty object,
@@ -976,6 +993,18 @@
   axis said “value”. Without `labs(fill = )` the value is still named
   after that column, or “count” for
   [`geom_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html).
+- A scatter plot coloured by group, `aes(colour = group)`, is read as
+  one layer per group, as a grouped lattice
+  [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) is. It was
+  read as one cloud, each point carrying its group in a `color` field
+  maidr.js does not read, so a reader never heard which group a point
+  was in, PageUp said “No additional layer”, and the description named
+  no groups. Each group is a layer in the legend’s order, named as the
+  legend names it, “Cylinders 4” for the entry “4” under the title
+  “Cylinders” (“Group A” on its own under the title “Group”), and
+  highlighted through its own points. A colour mapped to a continuous
+  value is not a group, and a faceted scatter is still read whole
+  ([\#413](https://github.com/xability/r-maidr/issues/413)).
 - A layer that maps x or y in its own
   [`aes()`](https://ggplot2.tidyverse.org/reference/aes.html) is read
   under the axis title,
@@ -1220,6 +1249,51 @@
   was drawn with. An argument written longer than R lets a name be
   (10,000 bytes), or written as `..1`, is still titled with its values
   ([\#353](https://github.com/xability/r-maidr/issues/353)).
+- [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)’s
+  `xlab` names the series, not the years. It names the axis the month
+  labels are written along, and was put on the cycles, so
+  `monthplot(nottem, xlab = "Month")` was read “Month is 1921,
+  Temperature
+  6.  is 44.2, Group is Jan” and described with a “Month range: 1920 to
+      1939”. It is now the name each month is read under, and the cycles
+      are “Year” for a monthly or quarterly time series, “Cycle”
+      otherwise: “Year is 1921, Temperature (F) is 44.2, Month is Jan”
+      ([\#406](https://github.com/xability/r-maidr/issues/406)).
+- A [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+  read under the axis titles of the plot it is drawn on, “Theoretical
+  Quantiles is -2.33, Sample Quantiles is -2.2” on a
+  [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md), where
+  it was “X is -2.33, Y is -2.2”: a line drawn on a plot took the plot’s
+  titles only when drawn with
+  [`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) or
+  [`points()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  ([\#406](https://github.com/xability/r-maidr/issues/406)).
+- A correlogram’s value axis is named as `plot.acf()` names it: “ACF”
+  for a [`ccf()`](https://r.maidr.ai/reference/base-r-wrappers.md) as
+  for an [`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  where the reading said “CCF” while the chart said “ACF”, and “ACF
+  (cov)” for a covariance, where it said “Autocovariance”. An `xlab` or
+  `ylab` the call gives is read too
+  ([\#406](https://github.com/xability/r-maidr/issues/406)).
+- The cells of an
+  [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) heat map
+  are named by the
+  [`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) labels
+  drawn at their centres. `image(m, axes = FALSE)` with
+  `axis(1, at = seq(0, 1, length.out = 5), labels = c("Mon", ...))` and
+  `axis(2, ...)` was read by index, “Day is 2, Hour is 1” for the cell
+  the chart shows as Tue at 9am, and “Highest cell: 3, 4”; it now reads
+  “Day is Tue, Hour is 9am”. Several
+  [`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) calls on
+  one side are read together; calls that name some cells and not others
+  name none ([\#406](https://github.com/xability/r-maidr/issues/406)).
+- The two halves of a
+  [`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) are
+  titled “Observations” and “Variables”, under the chart’s own title.
+  Both carried the chart’s title and plot the same two components, so
+  nothing in the lobby or the description said which half was which
+  ([\#406](https://github.com/xability/r-maidr/issues/406)).
 - The data a screen reader reads names a Base R chart’s axes, and a
   histogram’s title, as the chart draws them. `hist(mtcars$mpg)` was
   read as a histogram over “Bin” with no title, and `plot(x, y)` and
@@ -1230,6 +1304,23 @@
   density curves drawn over either chart name the same axes. A title the
   call gives, or blanks with `main = NULL`, still wins
   ([\#353](https://github.com/xability/r-maidr/issues/353)).
+- A Base R scatter plot whose colours a
+  [`legend()`](https://r.maidr.ai/reference/base-r-wrappers.md) names is
+  read as one layer per legend entry. `plot(x, y, col = colours[group])`
+  followed by
+  `legend(legend = c("4 cyl", "6 cyl", "8 cyl"), col = colours)` was
+  read as one cloud, each point carrying its colour’s name, “coral”, in
+  a field maidr.js does not read. Each colour the legend names is now a
+  layer in the legend’s order, named for its entry, after the legend’s
+  `title` when it has one, and highlighted through its own points.
+  Points in a colour no legend names are read as before
+  ([\#413](https://github.com/xability/r-maidr/issues/413)).
+- Each group of a
+  [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) is a
+  layer named after it, so the layers read “A” to “F” in the description
+  and on PageUp, where each was “Scatter Plot”. The name was written to
+  a `fill` field maidr.js does not read for a layer
+  ([\#413](https://github.com/xability/r-maidr/issues/413)).
 - A Base R chart titled with a plotmath call,
   `main = bquote(mu == .(n))` or `xlab = quote(x[i])`, keeps its drawing
   and its data. maidr handed the recorded call on to be evaluated, so
@@ -1340,6 +1431,13 @@
   axes, drawn with `par(new = TRUE)` and `axis(4)`, each series is
   titled by what is written beside its own axis
   ([\#359](https://github.com/xability/r-maidr/issues/359)).
+- A line or step chart whose y axis the author named tick by tick, as a
+  hypnogram’s
+  `axis(2, at = 1:5, labels = c("N3", "N2", "N1", "REM", "Awake"))`, is
+  read by those names: “Sleep stage is N1” where it said “Sleep stage is
+  3”, and the y value still sets the tone and the braille, as on a
+  ggplot2 line over a factor. A point is named only when every point of
+  its layer sits on a named tick.
 - A Base R chart is the page R’s device shows: the last one. After
   `hist(mtcars$mpg); hist(mtcars$hp)` R shows the second histogram
   alone, on a page of its own, but
@@ -1488,6 +1586,19 @@
   sort the data before
   [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md), as
   without maidr.
+- A Base R chart is clipped to its plot region where R clips it. maidr
+  drew it with every graphical parameter
+  [`ggplotify::as.grob()`](https://rdrr.io/pkg/ggplotify/man/as-grob.html)
+  sets, among them `xpd = NA`, which draws past the plot region what R
+  clips to it: the spikes of `plot(type = "h")` ran from zero down
+  through the x axis and its labels to the edge of the chart, and an
+  [`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md) or a
+  density curve drawn with
+  [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) ran
+  across the axes, with the reader’s highlight drawn along them. Each
+  call is drawn with the `xpd` R had as it started, so a line drawn
+  after `par(xpd = NA)` still runs past the plot region, as R draws it
+  ([\#415](https://github.com/xability/r-maidr/issues/415)).
 
 ### Documentation
 

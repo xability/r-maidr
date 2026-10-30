@@ -96,7 +96,7 @@ Emitted with type = &quot;roc&quot;, which the core has read since maidr 4.9.0."
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-18">
+<meta name="DC.date" content="2026-10-30">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -183,6 +183,7 @@ of its curve, which is where the core reads it.</p></li>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2RocLayerProcessor-process"><code>Ggplot2RocLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-Ggplot2RocLayerProcessor-named_x_values"><code>Ggplot2RocLayerProcessor$named_x_values()</code></a></p></li>
 <li><p><a href="#method-Ggplot2RocLayerProcessor-as_rates"><code>Ggplot2RocLayerProcessor$as_rates()</code></a></p></li>
 <li><p><a href="#method-Ggplot2RocLayerProcessor-attach_thresholds"><code>Ggplot2RocLayerProcessor$attach_thresholds()</code></a></p></li>
 <li><p><a href="#method-Ggplot2RocLayerProcessor-attach_areas"><code>Ggplot2RocLayerProcessor$attach_areas()</code></a></p></li>
@@ -279,16 +280,42 @@ of its curve, which is where the core reads it.</p></li>
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2RocLayerProcessor-named_x_values"></a><div class="section">
+<h3 id="ggplot-roclayerprocessor-named-x-values-"><code>Ggplot2RocLayerProcessor$named_x_values()</code><a class="anchor" aria-label="anchor" href="#ggplot-roclayerprocessor-named-x-values-"></a></h3>
+<p>A rate is read as the number it is, whatever the axis's
+breaks are named: <code>as_rates()</code> reads <code>x</code> back as a number</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RocLayerProcessor</span><span class="op">$</span><span class="fu">named_x_values</span><span class="op">(</span><span class="va">layer_data</span>, <span class="va">built</span>, <span class="va">panel_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_data</code></dt>
+<dd><p>The built layer data</p></dd>
+
+      <dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+      <dt><code>panel_index</code></dt>
+<dd><p>Index into <code>built$layout$panel_params</code></p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>NULL</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2RocLayerProcessor-as_rates"></a><div class="section">
 <h3 id="ggplot-roclayerprocessor-as-rates-"><code>Ggplot2RocLayerProcessor$as_rates()</code><a class="anchor" aria-label="anchor" href="#ggplot-roclayerprocessor-as-rates-"></a></h3>
 <p>Hand the rates back as numbers, inverting <code>x</code> when asked</p>
 <p>The line processor stringifies <code>x</code> on the way out, because a line's x
 may be a date or a category. A rate is neither, and the core does
 arithmetic on it.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RocLayerProcessor</span><span class="op">$</span><span class="fu">as_rates</span><span class="op">(</span><span class="va">data</span>, inverted <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>data</code></dt>
 <dd><p>The series list the line processor emitted</p></dd>
 
@@ -298,7 +325,7 @@ arithmetic on it.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>The series list with numeric rates</p>
 </div>
 
@@ -315,10 +342,10 @@ order, so the same filter and split here put the thresholds back
 beside the points they were scored at. A series whose count disagrees
 – a row the line processor dropped for a reason other than <code>NA</code> y –
 gets no thresholds rather than the wrong ones.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RocLayerProcessor</span><span class="op">$</span><span class="fu">attach_thresholds</span><span class="op">(</span><span class="va">data</span>, <span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>data</code></dt>
 <dd><p>The series list</p></dd>
 
@@ -331,7 +358,7 @@ gets no thresholds rather than the wrong ones.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>The series list, with <code>threshold</code> on each point that has one</p>
 </div>
 
@@ -345,10 +372,10 @@ matched to the series by their names; an unnamed one is taken in
 series order when it has one entry per series. Anything else is left
 out rather than guessed, and the core measures the area from the
 points instead.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RocLayerProcessor</span><span class="op">$</span><span class="fu">attach_areas</span><span class="op">(</span><span class="va">data</span>, <span class="va">layer</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>data</code></dt>
 <dd><p>The series list</p></dd>
 
@@ -358,7 +385,7 @@ points instead.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>The series list, with <code>auc</code> on each curve's first point</p>
 </div>
 
@@ -369,10 +396,10 @@ points instead.</p><div class="section">
 <p>The built rows the line processor emitted points for</p>
 <p>The same panel filter and <code>NA</code>-y filter <code>extract_data()</code> applies, so
 that a column read off these rows lines up with the emitted points.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RocLayerProcessor</span><span class="op">$</span><span class="fu">rows_read</span><span class="op">(</span><span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -382,7 +409,7 @@ that a column read off these rows lines up with the emitted points.</p><div clas
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>The rows, or NULL when the layer built none</p>
 </div>
 
@@ -391,10 +418,10 @@ that a column read off these rows lines up with the emitted points.</p><div clas
 <p></p><hr><a id="method-Ggplot2RocLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-roclayerprocessor-clone-"><code>Ggplot2RocLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-roclayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RocLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

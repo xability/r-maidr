@@ -13,6 +13,10 @@ Processes Base R scatter plot layers based on recorded plot calls
 
 - [`BaseRPointLayerProcessor$process()`](#method-BaseRPointLayerProcessor-process)
 
+- [`BaseRPointLayerProcessor$legend_group_layers()`](#method-BaseRPointLayerProcessor-legend_group_layers)
+
+- [`BaseRPointLayerProcessor$plot_legend()`](#method-BaseRPointLayerProcessor-plot_legend)
+
 - [`BaseRPointLayerProcessor$needs_reordering()`](#method-BaseRPointLayerProcessor-needs_reordering)
 
 - [`BaseRPointLayerProcessor$extract_data()`](#method-BaseRPointLayerProcessor-extract_data)
@@ -111,6 +115,89 @@ from the recorded call
 #### Returns
 
 List describing the layer for the MAIDR payload
+
+------------------------------------------------------------------------
+
+### `BaseRPointLayerProcessor$legend_group_layers()`
+
+One point layer per colour the plot's legend names
+
+`plot(x, y, col = colours[group])` with a
+[`legend()`](https://r.maidr.ai/reference/base-r-wrappers.md) naming the
+colours is how Base R draws groups of points. The layer was read as one
+cloud, each point carrying its colour's name in a `color` field maidr.js
+does not read, so a reader never heard which group a point was in and
+could not walk one group at a time. When the legend drawn on the same
+plot names every colour the points are drawn in, each colour is now a
+layer of its own, in the legend's order, named for its entry and the
+legend's title
+([`group_layer_name()`](https://r.maidr.ai/reference/group_layer_name.md)),
+as a grouped lattice
+[`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) is read.
+Points of a colour the legend does not name, or a plot with no legend,
+are read as before: a colour alone names no group.
+
+R draws the points in one grob, in the order given, and the export
+numbers each `<use>` by its place in it, so a group's points are named
+by those numbers.
+
+#### Usage
+
+    BaseRPointLayerProcessor$legend_group_layers(
+      layer_info,
+      points,
+      selectors,
+      axes,
+      title
+    )
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call and its plot group
+
+- `points`:
+
+  The layer's points, from `extract_data()`
+
+- `selectors`:
+
+  The layer's selectors, from `generate_selectors()`
+
+- `axes`:
+
+  The layer's axes
+
+- `title`:
+
+  The chart's title
+
+#### Returns
+
+A multi-layer result, or NULL when no legend groups the points into two
+groups or more
+
+------------------------------------------------------------------------
+
+### `BaseRPointLayerProcessor$plot_legend()`
+
+The legend drawn on the plot a layer is drawn on
+
+#### Usage
+
+    BaseRPointLayerProcessor$plot_legend(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with its plot group
+
+#### Returns
+
+NULL, or a list: `text`, the legend's entries, `col`, the colours of
+their points, and `title`
 
 ------------------------------------------------------------------------
 

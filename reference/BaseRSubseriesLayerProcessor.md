@@ -109,8 +109,10 @@ Inherited methods
 - [`BaseRLineLayerProcessor$find_lines_grobs()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-find_lines_grobs)
 - [`BaseRLineLayerProcessor$generate_selectors_from_grob()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-generate_selectors_from_grob)
 - [`BaseRLineLayerProcessor$get_axis_labels()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_axis_labels)
+- [`BaseRLineLayerProcessor$get_axis_ticks()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_axis_ticks)
 - [`BaseRLineLayerProcessor$get_x_range_from_group()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_x_range_from_group)
 - [`BaseRLineLayerProcessor$get_y_range_from_group()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_y_range_from_group)
+- [`BaseRLineLayerProcessor$name_y_ticks()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-name_y_ticks)
 - [`BaseRLineLayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-needs_reordering)
 - [`BaseRLineLayerProcessor$process()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-process)
 
@@ -154,9 +156,18 @@ values, by which point
 expression comes off the recorded call text instead, the way the
 correlograms recover their series names (#276).
 
-There is no default for `xlab`: `monthplot` blanks it unless the caller
-passes one, because the axis it writes carries the cycle labels and not
-a quantity. An unset label is left unset rather than invented.
+`xlab` names the axis `monthplot` writes the cycle labels along, J F M
+... D, so it names what the series are: it is the `z` label, the word
+each series' name is announced under. It used to be put on `x`, which
+holds the cycles, so `monthplot(nottem, xlab = "Month")` was read "Month
+is 1921, ..., Group is Jan". There is no default for it: `monthplot`
+blanks it unless the caller passes one, and an unset label is left unset
+rather than invented.
+
+The cycles are what the times count, which the chart does not write on
+any axis. A monthly or quarterly `ts` counts them in years, the unit its
+[`time()`](https://rdrr.io/r/stats/time.html) is in; anything else in
+cycles.
 
 #### Usage
 

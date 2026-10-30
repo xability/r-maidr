@@ -14,6 +14,8 @@ generate selectors for individual points in the SVG structure.
 
 - [`Ggplot2PointLayerProcessor$process()`](#method-Ggplot2PointLayerProcessor-process)
 
+- [`Ggplot2PointLayerProcessor$colour_group_layers()`](#method-Ggplot2PointLayerProcessor-colour_group_layers)
+
 - [`Ggplot2PointLayerProcessor$extract_axes_labels()`](#method-Ggplot2PointLayerProcessor-extract_axes_labels)
 
 - [`Ggplot2PointLayerProcessor$extract_axis_grid_info()`](#method-Ggplot2PointLayerProcessor-extract_axis_grid_info)
@@ -103,6 +105,73 @@ Process the point layer
 #### Returns
 
 List with data and selectors
+
+------------------------------------------------------------------------
+
+### `Ggplot2PointLayerProcessor$colour_group_layers()`
+
+One point layer per colour group, named as the legend names it
+
+`aes(colour = group)` draws each group of points in its own colour and
+names the colours in a legend. The layer was read as one cloud, each
+point carrying the group in a `color` field maidr.js does not read, so a
+reader never heard which group a point was in and could not walk one
+group at a time. The groups are now layers of their own, as a grouped
+lattice [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) and
+py-maidr's hue scatters are read: in the order the legend lists them,
+each named for its entry and the legend's title
+([`group_layer_name()`](https://r.maidr.ai/reference/group_layer_name.md)),
+and highlighted through its own points.
+
+ggplot2 draws every point of the layer in one grob, in row order, and
+the export numbers each `<use>` by its place in it. A group's points are
+named by those numbers: a selector list matches in document order, which
+is the order the group's points are emitted in.
+
+A colour mapped to a continuous scale is a value, not a group, and is
+left as it was; so is a layer in which any point has no group. Only a
+plain
+[`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+layer is split: a volcano or Manhattan layer, read through this
+processor too, is one reading with its threshold, and its colour groups
+are announced as each point's region.
+
+#### Usage
+
+    Ggplot2PointLayerProcessor$colour_group_layers(
+      plot,
+      built,
+      points,
+      selectors,
+      axes
+    )
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data
+
+- `points`:
+
+  The layer's points, from `extract_data()`
+
+- `selectors`:
+
+  The layer's selectors, from `generate_selectors()`
+
+- `axes`:
+
+  The layer's axes
+
+#### Returns
+
+A multi-layer result, or NULL when the layer is not grouped by colour
+into two groups or more
 
 ------------------------------------------------------------------------
 

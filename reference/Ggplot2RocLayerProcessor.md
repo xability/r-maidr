@@ -42,6 +42,8 @@ Emitted with `type = "roc"`, which the core has read since maidr 4.9.0.
 
 - [`Ggplot2RocLayerProcessor$process()`](#method-Ggplot2RocLayerProcessor-process)
 
+- [`Ggplot2RocLayerProcessor$named_x_values()`](#method-Ggplot2RocLayerProcessor-named_x_values)
+
 - [`Ggplot2RocLayerProcessor$as_rates()`](#method-Ggplot2RocLayerProcessor-as_rates)
 
 - [`Ggplot2RocLayerProcessor$attach_thresholds()`](#method-Ggplot2RocLayerProcessor-attach_thresholds)
@@ -152,6 +154,35 @@ Process the ROC layer
 #### Returns
 
 List with data, selectors, title, axes and type
+
+------------------------------------------------------------------------
+
+### `Ggplot2RocLayerProcessor$named_x_values()`
+
+A rate is read as the number it is, whatever the axis's breaks are
+named: `as_rates()` reads `x` back as a number
+
+#### Usage
+
+    Ggplot2RocLayerProcessor$named_x_values(layer_data, built, panel_index)
+
+#### Arguments
+
+- `layer_data`:
+
+  The built layer data
+
+- `built`:
+
+  Built plot data
+
+- `panel_index`:
+
+  Index into `built$layout$panel_params`
+
+#### Returns
+
+NULL
 
 ------------------------------------------------------------------------
 

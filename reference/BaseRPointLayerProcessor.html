@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-04">
+<meta name="DC.date" content="2026-10-30">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -98,6 +98,8 @@
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-BaseRPointLayerProcessor-process"><code>BaseRPointLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-BaseRPointLayerProcessor-legend_group_layers"><code>BaseRPointLayerProcessor$legend_group_layers()</code></a></p></li>
+<li><p><a href="#method-BaseRPointLayerProcessor-plot_legend"><code>BaseRPointLayerProcessor$plot_legend()</code></a></p></li>
 <li><p><a href="#method-BaseRPointLayerProcessor-needs_reordering"><code>BaseRPointLayerProcessor$needs_reordering()</code></a></p></li>
 <li><p><a href="#method-BaseRPointLayerProcessor-extract_data"><code>BaseRPointLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-BaseRPointLayerProcessor-resolve_coordinates"><code>BaseRPointLayerProcessor$resolve_coordinates()</code></a></p></li>
@@ -177,14 +179,86 @@ the recorded call</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-BaseRPointLayerProcessor-legend_group_layers"></a><div class="section">
+<h3 id="baserpointlayerprocessor-legend-group-layers-"><code>BaseRPointLayerProcessor$legend_group_layers()</code><a class="anchor" aria-label="anchor" href="#baserpointlayerprocessor-legend-group-layers-"></a></h3>
+<p>One point layer per colour the plot's legend names</p>
+<p><code>plot(x, y, col = colours[group])</code> with a <code><a href="base-r-wrappers.html">legend()</a></code> naming the colours
+is how Base R draws groups of points. The layer was read as one cloud,
+each point carrying its colour's name in a <code>color</code> field maidr.js does
+not read, so a reader never heard which group a point was in and could
+not walk one group at a time. When the legend drawn on the same plot
+names every colour the points are drawn in, each colour is now a layer
+of its own, in the legend's order, named for its entry and the
+legend's title (<code><a href="group_layer_name.html">group_layer_name()</a></code>), as a grouped lattice <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot()</a></code>
+is read. Points of a colour the legend does not name, or a plot with
+no legend, are read as before: a colour alone names no group.</p>
+<p>R draws the points in one grob, in the order given, and the export
+numbers each <code>&lt;use&gt;</code> by its place in it, so a group's points are named
+by those numbers.</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">legend_group_layers</span><span class="op">(</span></span>
+<span>  <span class="va">layer_info</span>,</span>
+<span>  <span class="va">points</span>,</span>
+<span>  <span class="va">selectors</span>,</span>
+<span>  <span class="va">axes</span>,</span>
+<span>  <span class="va">title</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call and its plot
+group</p></dd>
+
+      <dt><code>points</code></dt>
+<dd><p>The layer's points, from <code>extract_data()</code></p></dd>
+
+      <dt><code>selectors</code></dt>
+<dd><p>The layer's selectors, from <code>generate_selectors()</code></p></dd>
+
+      <dt><code>axes</code></dt>
+<dd><p>The layer's axes</p></dd>
+
+      <dt><code>title</code></dt>
+<dd><p>The chart's title</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>A multi-layer result, or NULL when no legend groups the points
+into two groups or more</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRPointLayerProcessor-plot_legend"></a><div class="section">
+<h3 id="baserpointlayerprocessor-plot-legend-"><code>BaseRPointLayerProcessor$plot_legend()</code><a class="anchor" aria-label="anchor" href="#baserpointlayerprocessor-plot-legend-"></a></h3>
+<p>The legend drawn on the plot a layer is drawn on</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">plot_legend</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with its plot group</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>NULL, or a list: <code>text</code>, the legend's entries, <code>col</code>, the
+colours of their points, and <code>title</code></p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BaseRPointLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="baserpointlayerprocessor-needs-reordering-"><code>BaseRPointLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#baserpointlayerprocessor-needs-reordering-"></a></h3>
 <p>Whether the plot data must be reordered before drawing; a Base R layer is read
 from the recorded call and never is</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>FALSE</p>
 </div>
 
@@ -194,17 +268,17 @@ from the recorded call and never is</p><div class="section">
 <h3 id="baserpointlayerprocessor-extract-data-"><code>BaseRPointLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#baserpointlayerprocessor-extract-data-"></a></h3>
 <p>One point per observation, from the recorded x and y or from the formula's
 model frame</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>List of points</p>
 </div>
 
@@ -218,17 +292,17 @@ its coordinates are the two columns of the model frame the recording
 kept (#254). Read from <code><a href="resolve_xy_args.html">resolve_xy_args()</a></code> alone, the formula is a
 language object and the layer came out with no points at all – an
 interactive chart with nothing in it.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">resolve_coordinates</span><span class="op">(</span><span class="va">plot_call</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_call</code></dt>
 <dd><p>The recorded call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>A list with <code>x</code> and <code>y</code>, either of which may be NULL</p>
 </div>
 
@@ -240,17 +314,17 @@ interactive chart with nothing in it.</p><div class="section">
 <p>Only a numeric pair is a scatter: <code>plot(y ~ f)</code> on a factor draws a
 box plot through <code>plot.factor()</code>, and a frame with more than one
 predictor draws something else again. Both are left as they were.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">formula_variables</span><span class="op">(</span><span class="va">plot_call</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_call</code></dt>
 <dd><p>The recorded call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>A list with <code>x</code>, <code>y</code>, <code>x_name</code>, <code>y_name</code>, or NULL</p>
 </div>
 
@@ -264,17 +338,17 @@ navigation fields (min, max, tickStep). Grid fields are derived from
 xlim/ylim args or data range, and tick intervals via pretty(). Every
 field is included only when extraction succeeds, and an axis that ends
 up with none of them is left out of the payload entirely.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information with recorded plot call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>Canonical axes list</p>
 </div>
 
@@ -285,10 +359,10 @@ up with none of them is left out of the payload entirely.</p><div class="section
 <p>Extract grid navigation info for a Base R axis</p>
 <p>Computes min, max from xlim/ylim or data range, and tickStep from
 pretty() tick positions. Returns NULL if extraction fails.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">extract_base_r_axis_grid_info</span><span class="op">(</span><span class="va">data</span>, lim <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>data</code></dt>
 <dd><p>Numeric vector of data values</p></dd>
 
@@ -298,7 +372,7 @@ pretty() tick positions. Returns NULL if extraction fails.</p><div class="sectio
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>List with min, max, tickStep or NULL</p>
 </div>
 
@@ -307,17 +381,17 @@ pretty() tick positions. Returns NULL if extraction fails.</p><div class="sectio
 <p></p><hr><a id="method-BaseRPointLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="baserpointlayerprocessor-extract-main-title-"><code>BaseRPointLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserpointlayerprocessor-extract-main-title-"></a></h3>
 <p>The main title of the recorded call, or an empty string</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>Character string</p>
 </div>
 
@@ -326,10 +400,10 @@ pretty() tick positions. Returns NULL if extraction fails.</p><div class="sectio
 <p></p><hr><a id="method-BaseRPointLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserpointlayerprocessor-generate-selectors-"><code>BaseRPointLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserpointlayerprocessor-generate-selectors-"></a></h3>
 <p>The selector for the points, scoped to this layer's plot group</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span>, gt <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information with the recorded call</p></dd>
 
@@ -339,7 +413,7 @@ pretty() tick positions. Returns NULL if extraction fails.</p><div class="sectio
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>List of selectors</p>
 </div>
 
@@ -348,10 +422,10 @@ pretty() tick positions. Returns NULL if extraction fails.</p><div class="sectio
 <p></p><hr><a id="method-BaseRPointLayerProcessor-clone"></a><div class="section">
 <h3 id="baserpointlayerprocessor-clone-"><code>BaseRPointLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#baserpointlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPointLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

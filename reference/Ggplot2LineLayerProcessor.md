@@ -52,6 +52,8 @@ discovered:
 
 - [`Ggplot2LineLayerProcessor$extract_single_line_data()`](#method-Ggplot2LineLayerProcessor-extract_single_line_data)
 
+- [`Ggplot2LineLayerProcessor$named_x_values()`](#method-Ggplot2LineLayerProcessor-named_x_values)
+
 - [`Ggplot2LineLayerProcessor$recover_x_values()`](#method-Ggplot2LineLayerProcessor-recover_x_values)
 
 - [`Ggplot2LineLayerProcessor$get_group_column()`](#method-Ggplot2LineLayerProcessor-get_group_column)
@@ -679,6 +681,45 @@ Extract data for single line (backward compatibility)
 #### Returns
 
 List containing single series data
+
+------------------------------------------------------------------------
+
+### `Ggplot2LineLayerProcessor$named_x_values()`
+
+The names the author gave the x breaks every point sits on.
+
+A continuous x whose breaks the author named with text,
+`scale_x_continuous(breaks = 1:12, labels = month.abb)`, codes a
+category with a number: the axis shows "Feb" where the data holds 2.
+When every point sits on a named break, the points are read by the
+names, as a factor's levels are (`tick_names_at()`); otherwise by their
+numbers. Labels a function makes from the numbers,
+[`scales::label_dollar()`](https://scales.r-lib.org/reference/dollar_format.html)
+and the like, format them rather than name them, and reach the reader
+through the axis's format
+([`extract_format_config()`](https://r.maidr.ai/reference/extract_format_config.md)).
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$named_x_values(layer_data, built, panel_index)
+
+#### Arguments
+
+- `layer_data`:
+
+  The built layer data, x as ggplot2 built it
+
+- `built`:
+
+  Built plot data
+
+- `panel_index`:
+
+  Index into `built$layout$panel_params`
+
+#### Returns
+
+A character vector aligned to `layer_data`'s rows, or NULL
 
 ------------------------------------------------------------------------
 

@@ -75,6 +75,8 @@ it unchanged.
 
 - [`BaseRQqlineLayerProcessor$selector_grob_type()`](#method-BaseRQqlineLayerProcessor-selector_grob_type)
 
+- [`BaseRQqlineLayerProcessor$extract_axis_titles()`](#method-BaseRQqlineLayerProcessor-extract_axis_titles)
+
 - [`BaseRQqlineLayerProcessor$named_or_first()`](#method-BaseRQqlineLayerProcessor-named_or_first)
 
 - [`BaseRQqlineLayerProcessor$clone()`](#method-BaseRQqlineLayerProcessor-clone)
@@ -103,7 +105,6 @@ Inherited methods
 - [`LayerProcessor$unflip_panel_params()`](https://r.maidr.ai/reference/LayerProcessor.html#method-unflip_panel_params)
 - [`BaseRLineLayerProcessor$axis_extent()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-axis_extent)
 - [`BaseRLineLayerProcessor$extract_abline_data()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-extract_abline_data)
-- [`BaseRLineLayerProcessor$extract_axis_titles()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-extract_axis_titles)
 - [`BaseRLineLayerProcessor$extract_main_title()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-extract_main_title)
 - [`BaseRLineLayerProcessor$extract_multiline_data()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-extract_multiline_data)
 - [`BaseRLineLayerProcessor$extract_single_line_data()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-extract_single_line_data)
@@ -111,8 +112,10 @@ Inherited methods
 - [`BaseRLineLayerProcessor$generate_selectors()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-generate_selectors)
 - [`BaseRLineLayerProcessor$generate_selectors_from_grob()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-generate_selectors_from_grob)
 - [`BaseRLineLayerProcessor$get_axis_labels()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_axis_labels)
+- [`BaseRLineLayerProcessor$get_axis_ticks()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_axis_ticks)
 - [`BaseRLineLayerProcessor$get_x_range_from_group()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_x_range_from_group)
 - [`BaseRLineLayerProcessor$get_y_range_from_group()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-get_y_range_from_group)
+- [`BaseRLineLayerProcessor$name_y_ticks()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-name_y_ticks)
 - [`BaseRLineLayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-needs_reordering)
 - [`BaseRLineLayerProcessor$process()`](https://r.maidr.ai/reference/BaseRLineLayerProcessor.html#method-process)
 
@@ -220,6 +223,42 @@ shape of defect \#145 was about.
 #### Returns
 
 The grob family name
+
+------------------------------------------------------------------------
+
+### `BaseRQqlineLayerProcessor$extract_axis_titles()`
+
+The axis titles of the plot the line is drawn on
+
+[`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) writes no
+axis of its own: it is drawn on the plot before it, whose axes say what
+its two numbers are. The inherited reading takes those only for
+[`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+[`points()`](https://r.maidr.ai/reference/base-r-wrappers.md), so the
+line fell through to its own call, which names nothing, and was read "X
+is -2.33, Y is -2.2" on a
+[`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md) whose axes
+read Theoretical Quantiles and Sample Quantiles. The titles are now the
+plot's: on a
+[`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md) or
+[`qqplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) those the
+Q-Q reading gives it (`BaseRQqLayerProcessor`), defaults included; on
+another plot those it was written with.
+
+#### Usage
+
+    BaseRQqlineLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 

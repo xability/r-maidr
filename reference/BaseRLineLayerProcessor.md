@@ -17,6 +17,10 @@ Processes Base R line plot layers based on recorded plot calls
 
 - [`BaseRLineLayerProcessor$extract_data()`](#method-BaseRLineLayerProcessor-extract_data)
 
+- [`BaseRLineLayerProcessor$name_y_ticks()`](#method-BaseRLineLayerProcessor-name_y_ticks)
+
+- [`BaseRLineLayerProcessor$get_axis_ticks()`](#method-BaseRLineLayerProcessor-get_axis_ticks)
+
 - [`BaseRLineLayerProcessor$get_axis_labels()`](#method-BaseRLineLayerProcessor-get_axis_labels)
 
 - [`BaseRLineLayerProcessor$extract_single_line_data()`](#method-BaseRLineLayerProcessor-extract_single_line_data)
@@ -162,6 +166,65 @@ or the endpoints of
 #### Returns
 
 List of series
+
+------------------------------------------------------------------------
+
+### `BaseRLineLayerProcessor$name_y_ticks()`
+
+Name each point after the tick of a y axis the author named that it sits
+on
+
+`axis(2, at = 1:5, labels = c("N3", "N2", "N1", "REM", "Awake"))` draws
+a y axis that codes an ordered category with a number, as a hypnogram's
+sleep stages. When every point sits on one of those ticks
+(`tick_names_at()`), each carries the tick's name as its `label`, which
+is announced in place of the number, as a factor's level is on a ggplot2
+line; `y` stays the number, which places the tone and the braille.
+
+#### Usage
+
+    BaseRLineLayerProcessor$name_y_ticks(series, layer_info)
+
+#### Arguments
+
+- `series`:
+
+  List of series, as `extract_single_line_data()` and
+  `extract_multiline_data()` return them
+
+- `layer_info`:
+
+  Layer information containing group data
+
+#### Returns
+
+The series, every point named where every point can be
+
+------------------------------------------------------------------------
+
+### `BaseRLineLayerProcessor$get_axis_ticks()`
+
+The positions and names of the ticks an
+[`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) call drawn
+on this plot named with text
+
+#### Usage
+
+    BaseRLineLayerProcessor$get_axis_ticks(layer_info, axis_side = 2)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information containing group data
+
+- `axis_side`:
+
+  Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
+
+#### Returns
+
+`list(at, labels)`, or NULL when no such call named its ticks
 
 ------------------------------------------------------------------------
 

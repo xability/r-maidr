@@ -88,6 +88,7 @@ Inherited methods
 - [`Ggplot2RocLayerProcessor$as_rates()`](https://r.maidr.ai/reference/Ggplot2RocLayerProcessor.html#method-as_rates)
 - [`Ggplot2RocLayerProcessor$attach_areas()`](https://r.maidr.ai/reference/Ggplot2RocLayerProcessor.html#method-attach_areas)
 - [`Ggplot2RocLayerProcessor$attach_thresholds()`](https://r.maidr.ai/reference/Ggplot2RocLayerProcessor.html#method-attach_thresholds)
+- [`Ggplot2RocLayerProcessor$named_x_values()`](https://r.maidr.ai/reference/Ggplot2RocLayerProcessor.html#method-named_x_values)
 - [`Ggplot2RocLayerProcessor$rows_read()`](https://r.maidr.ai/reference/Ggplot2RocLayerProcessor.html#method-rows_read)
 
 ------------------------------------------------------------------------

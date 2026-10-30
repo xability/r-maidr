@@ -15,6 +15,8 @@ Processes Base R heatmap layers using the heatmap() function
 
 - [`BaseRHeatmapLayerProcessor$extract_data()`](#method-BaseRHeatmapLayerProcessor-extract_data)
 
+- [`BaseRHeatmapLayerProcessor$image_axis_names()`](#method-BaseRHeatmapLayerProcessor-image_axis_names)
+
 - [`BaseRHeatmapLayerProcessor$compute_heatmap_ordering()`](#method-BaseRHeatmapLayerProcessor-compute_heatmap_ordering)
 
 - [`BaseRHeatmapLayerProcessor$generate_selectors()`](#method-BaseRHeatmapLayerProcessor-generate_selectors)
@@ -130,6 +132,51 @@ One row per cell of the recorded matrix, in drawn order
 #### Returns
 
 List of rows
+
+------------------------------------------------------------------------
+
+### `BaseRHeatmapLayerProcessor$image_axis_names()`
+
+The names the
+[`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) calls drawn
+on an [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) give
+its cells
+
+`image(z)` centres its cells on `seq(0, 1, length.out = n)` along each
+axis and writes no names there. The
+[`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) calls drawn
+on that side of the same plot name the cells when their `labels` put a
+name at the centre of every cell: the reader is told "Day is Tue, Hour
+is 9am" where they heard "Day is 2, Hour is 1". Several calls on one
+side are read together, a later name at a centre written over an earlier
+one, as R draws it. Calls that name some cells and not others name none
+of them, as a value between ticks has no name of its own.
+
+Only `image(z)`'s own centres are read. An `image(x, y, z)` given its
+coordinates is not read as a heat map here at all (`extract_data()`
+finds no matrix in `x`), so it has no cells to name.
+
+#### Usage
+
+    BaseRHeatmapLayerProcessor$image_axis_names(layer_info, side, cells)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call and its plot group
+
+- `side`:
+
+  The axis: 1 for x, 2 for y
+
+- `cells`:
+
+  How many cells run along it
+
+#### Returns
+
+One name per cell, from the low end of the axis, or NULL
 
 ------------------------------------------------------------------------
 
