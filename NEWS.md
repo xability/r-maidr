@@ -871,6 +871,10 @@
   own, stopped `show()` and `save_html()` with "attempt to set an attribute
   on NULL". The layer's values are now evaluated as ggplot2 evaluates them,
   in the layer's data and under its mapping.
+* A heatmap whose fill is not mapped, as `geom_tile(fill = "steelblue")` or a
+  bare `geom_raster()`, is read with no values. Its tiles are all drawn in
+  one colour, but the data's third column was read as their values, and
+  announced under that column's name.
 
 ### Base R
 

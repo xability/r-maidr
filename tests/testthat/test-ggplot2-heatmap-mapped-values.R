@@ -95,3 +95,22 @@ test_that("a pronoun, a constant and a value the stat computes are read as ggplo
     ggplot2::geom_tile()
   testthat::expect_true(all(is.na(unlist(heat_cells(computed)))))
 })
+
+test_that("an unmapped fill is read as missing, whatever columns the data has", {
+  # A fill given as a parameter, or none at all, draws every tile in one
+  # colour, so no column of the data is a value the chart shows. The data's
+  # third column was read as the fill instead, and announced under its name;
+  # on data of only x and y, the x just added to the frame, as level codes.
+  plain <- scores[c("x", "y")]
+  for (data in list(plain, scores)) {
+    tiles <- ggplot2::ggplot(data, ggplot2::aes(x, y)) + ggplot2::geom_tile(fill = "steelblue")
+    testthat::expect_true(all(is.na(unlist(heat_cells(tiles)))))
+    raster <- ggplot2::ggplot(data, ggplot2::aes(x, y)) + ggplot2::geom_raster()
+    testthat::expect_true(all(is.na(unlist(heat_cells(raster)))))
+  }
+
+  layer <- maidr:::Ggplot2PlotOrchestrator$new(
+    ggplot2::ggplot(scores, ggplot2::aes(x, y)) + ggplot2::geom_tile(fill = "steelblue")
+  )$generate_maidr_data()$subplots[[1]][[1]]$layers[[1]]
+  testthat::expect_null(layer$axes$z)
+})

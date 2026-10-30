@@ -14,7 +14,8 @@ heat_source_frame(plot, layer_index)
 \value{
 A list: \code{data}, the layer's data with each tile's x, y and fill in
 the columns \code{.maidr_heat_x}, \code{.maidr_heat_y} and \code{.maidr_heat_fill};
-and \code{fill_label}, the fill's name as ggplot2 labels it ("score * 2")
+and \code{fill_label}, the fill's name as ggplot2 labels it ("score * 2"),
+or \code{NULL} when the fill is not mapped
 }
 \description{
 ggplot2 evaluates each aesthetic in the data the layer draws, its own
@@ -27,10 +28,13 @@ names none, so every cell was read missing, and an expression for \code{x} or
 of its own, stopped the reading.
 }
 \details{
-An aesthetic the layer does not map is read from the data's first,
-second and third column, for \code{x}, \code{y} and \code{fill}, as it was before. One
-that cannot be evaluated against the layer's data is read as missing: an
-\code{after_stat()} of a variable the stat computes, as \code{after_stat(group)},
-names no column of it.
+An \code{x} or \code{y} the layer does not map is read from the data's first or
+second column, as it was before, and as missing where the data has no
+such column. A fill the layer does not map is read as missing: its tiles
+are all drawn in one colour, so no column of the data is what they show.
+It was read from the data's third column, whatever that held. An
+aesthetic that cannot be evaluated against the layer's data is read as
+missing too: an \code{after_stat()} of a variable the stat computes, as
+\code{after_stat(group)}, names no column of it.
 }
 \keyword{internal}

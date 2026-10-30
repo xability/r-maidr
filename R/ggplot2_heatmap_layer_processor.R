@@ -442,17 +442,21 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 #' `y`, as `factor(month, levels = month.abb)`, or a layer drawn from data
 #' of its own, stopped the reading.
 #'
-#' An aesthetic the layer does not map is read from the data's first,
-#' second and third column, for `x`, `y` and `fill`, as it was before. One
-#' that cannot be evaluated against the layer's data is read as missing: an
-#' `after_stat()` of a variable the stat computes, as `after_stat(group)`,
-#' names no column of it.
+#' An `x` or `y` the layer does not map is read from the data's first or
+#' second column, as it was before, and as missing where the data has no
+#' such column. A fill the layer does not map is read as missing: its tiles
+#' are all drawn in one colour, so no column of the data is what they show.
+#' It was read from the data's third column, whatever that held. An
+#' aesthetic that cannot be evaluated against the layer's data is read as
+#' missing too: an `after_stat()` of a variable the stat computes, as
+#' `after_stat(group)`, names no column of it.
 #'
 #' @param plot The ggplot2 object
 #' @param layer_index The layer's index in `plot$layers`
 #' @return A list: `data`, the layer's data with each tile's x, y and fill in
 #'   the columns `.maidr_heat_x`, `.maidr_heat_y` and `.maidr_heat_fill`;
-#'   and `fill_label`, the fill's name as ggplot2 labels it ("score * 2")
+#'   and `fill_label`, the fill's name as ggplot2 labels it ("score * 2"),
+#'   or `NULL` when the fill is not mapped
 #' @keywords internal
 heat_source_frame <- function(plot, layer_index) {
   layer <- plot$layers[[layer_index]]
@@ -467,11 +471,18 @@ heat_source_frame <- function(plot, layer_index) {
     mapping <- c(mapping, inherited[setdiff(names(inherited), names(mapping))])
   }
 
+  # An unmapped aesthetic with a `position` is read from that column of the
+  # layer's own data, counted before any column is added below; one without
+  # is read as missing.
   rows <- nrow(data)
-  read <- function(aesthetic, position) {
+  columns <- names(data)
+  read <- function(aesthetic, position = NULL) {
     quo <- mapping[[aesthetic]]
     if (is.null(quo)) {
-      return(if (ncol(data) >= position) data[[position]])
+      if (is.null(position) || position > length(columns)) {
+        return(rep(NA, rows))
+      }
+      return(data[[columns[position]]])
     }
     value <- tryCatch(rlang::eval_tidy(quo, data), error = function(e) NULL)
     if (length(value) == 1L && rows != 1L) {
@@ -480,16 +491,15 @@ heat_source_frame <- function(plot, layer_index) {
     if (length(value) == rows) value else rep(NA, rows)
   }
 
-  fill <- mapping[["fill"]]
-  fill_label <- if (!is.null(fill)) {
-    rlang::as_label(fill)
-  } else if (ncol(data) >= 3L) {
-    names(data)[3]
-  }
+  fill_mapping <- mapping[["fill"]]
+  fill_label <- if (!is.null(fill_mapping)) rlang::as_label(fill_mapping)
 
-  data[[".maidr_heat_x"]] <- read("x", 1L)
-  data[[".maidr_heat_y"]] <- read("y", 2L)
-  data[[".maidr_heat_fill"]] <- read("fill", 3L)
+  x <- read("x", 1L)
+  y <- read("y", 2L)
+  fill <- read("fill")
+  data[[".maidr_heat_x"]] <- x
+  data[[".maidr_heat_y"]] <- y
+  data[[".maidr_heat_fill"]] <- fill
   list(data = data, fill_label = fill_label)
 }
 
