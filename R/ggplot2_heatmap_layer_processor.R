@@ -451,7 +451,10 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 #' vector there, is read as missing too. An `after_stat()` of a variable
 #' the stat computes names no column of it, as `after_stat(group)` does, or
 #' names a function: `after_stat(density)` is `stats::density()` there,
-#' which stopped the reading.
+#' which stopped the reading. A fill of categories is read by the numbers
+#' its legend shows, as `factor(score * 10)` shows 10, 20 and 30, and as
+#' missing where the names are not numbers, as `fill = grade` and the
+#' colours `after_scale()` gives: a factor was read as its level codes.
 #'
 #' @param plot The ggplot2 object
 #' @param layer_index The layer's index in `plot$layers`
@@ -502,6 +505,16 @@ heat_source_frame <- function(plot, layer_index) {
   x <- read("x", 1L)
   y <- read("y", 2L)
   fill <- read("fill")
+  # Each cell holds a number. A category's is the one its legend shows,
+  # where its name is a number, as `factor(score * 10)` shows 10, 20 and
+  # 30; categories named otherwise, and colours as `after_scale()` gives,
+  # have none. Read as numbers, a factor gave its level codes, and the rest
+  # came out missing with a coercion warning.
+  if (is.factor(fill) || is.character(fill)) {
+    shown <- as.character(fill)
+    numbers <- suppressWarnings(as.numeric(shown))
+    fill <- if (identical(is.na(numbers), is.na(shown))) numbers else rep(NA, rows)
+  }
   data[[".maidr_heat_x"]] <- x
   data[[".maidr_heat_y"]] <- y
   data[[".maidr_heat_fill"]] <- fill

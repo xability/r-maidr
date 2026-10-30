@@ -875,6 +875,11 @@
   bare `geom_raster()`, is read with no values. Its tiles are all drawn in
   one colour, but the data's third column was read as their values, and
   announced under that column's name.
+* A heatmap filled by categories is read by the numbers its legend shows,
+  as `factor(score * 10)` shows 10, 20 and 30, and as missing where its
+  legend shows names, as `fill = grade` shows "High" and "Low". A factor's
+  tiles were read as its level codes, 1, 2 and 3, which its legend does
+  not show, and a column of names as missing, with a coercion warning.
 
 ### Base R
 

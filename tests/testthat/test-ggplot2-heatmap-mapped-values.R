@@ -129,3 +129,24 @@ test_that("a fill the stat computes under a function's name is read as missing",
     )
   testthat::expect_true(all(is.na(unlist(heat_cells(raster)))))
 })
+
+test_that("a fill of categories is read by the numbers its legend shows, or as missing", {
+  # A factor fill was read as its level codes, 1 to 6 where the legend of
+  # `factor(score * 10)` shows 10 to 60. Categories named otherwise, and a
+  # colour as `after_scale()` makes one, have no number: they were read as
+  # missing with a coercion warning, and are read as missing quietly.
+  numbered <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = factor(score * 10))) +
+    ggplot2::geom_tile()
+  testthat::expect_no_warning(cells <- heat_cells(numbered))
+  testthat::expect_equal(cells, list(expected_cells(function(s) s * 10)))
+
+  scores$grade <- c("low", "low", "mid", "mid", "high", "high")
+  graded <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = grade)) + ggplot2::geom_tile()
+  coloured <- ggplot2::ggplot(
+    scores, ggplot2::aes(x, y, fill = ggplot2::after_scale(scales::alpha("steelblue", 0.5)))
+  ) + ggplot2::geom_tile()
+  for (plot in list(graded, coloured)) {
+    testthat::expect_no_warning(cells <- heat_cells(plot))
+    testthat::expect_true(all(is.na(unlist(cells))))
+  }
+})
