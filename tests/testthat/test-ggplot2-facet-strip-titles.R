@@ -58,3 +58,38 @@ test_that("a parsed label is written out as text", {
 
   expect_equal(unlist(subplot_titles(plot)), c("alpha^2", "beta"))
 })
+
+test_that("a wrap of two variables is named by every line of its strip", {
+  plot <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) +
+    ggplot2::geom_point() +
+    ggplot2::facet_wrap(~ vs + am, labeller = ggplot2::label_both)
+
+  expect_equal(
+    unlist(subplot_titles(plot)),
+    c("vs: 0 & am: 0", "vs: 0 & am: 1", "vs: 1 & am: 0", "vs: 1 & am: 1")
+  )
+})
+
+test_that("a strip written on one line is that line", {
+  plot <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) +
+    ggplot2::geom_point() +
+    ggplot2::facet_wrap(
+      ~ vs + am,
+      labeller = ggplot2::labeller(.default = ggplot2::label_both, .multi_line = FALSE)
+    )
+
+  expect_equal(
+    unlist(subplot_titles(plot)),
+    c("vs: 0, am: 0", "vs: 0, am: 1", "vs: 1, am: 0", "vs: 1, am: 1")
+  )
+})
+
+test_that("a line with no text for the panel gives none", {
+  # Any of these sends the title back to the facet values.
+  expect_equal(maidr:::strip_label_text(c("a", "b"), 2), "b")
+  expect_true(is.na(maidr:::strip_label_text(c("a", ""), 2)))
+  expect_true(is.na(maidr:::strip_label_text(c("a", NA), 2)))
+  expect_true(is.na(maidr:::strip_label_text("a", 2)))
+  expect_equal(maidr:::strip_label_text(list(quote(alpha^2)), 1), "alpha^2")
+  expect_equal(maidr:::strip_label_text(list(expression(beta)), 1), "beta")
+})
