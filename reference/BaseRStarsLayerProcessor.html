@@ -14,22 +14,22 @@ each column's range rather than the readings themselves. Announcing those
 would tell a reader that observation 1 scores 0 on a variable it merely
 has the smallest value of. The recorded matrix carries what the caller
 measured, and that is what a reader is told.
-It is read without an outline, deliberately. The marks are there and
-the pairing is known – measured by giving each observation its own
-col.stars and reading every polygon's fill, observation k owns
-polygons 2k - 1 and 2k, both filled its colour, plus a segments-k
-carrying one segment per variable:
+Each star is outlined through the polygon it is drawn as. Measured by
+giving each observation its own col.stars and reading every polygon's
+fill, observation k owns polygons 2k - 1 and 2k, both filled its
+colour, plus a segments-k carrying one segment per variable:
 polygon-1  #111199   polygon-2  #111199   segments-1   observation 1
 polygon-3  #229922   polygon-4  #229922   segments-2   observation 2
 ...
 
-What is not established is the selector those grobs export to. A
-selector is only worth emitting once it has been resolved against a real
-export, and a real export cannot be had until the chart stops falling back
-to a picture – which is what this reading is for. So the outline is left
-for a follow-up that can measure it, rather than guessed from the grob
-names. Reading without one is what gauge already does upstream when the
-marks and the cursor cannot be paired with confidence."><meta property="og:description" content="Reads stars() as the radar it draws: one closed outline per observation,
+stars() draws each star twice, the second time with its col.lines
+border, and the export writes each as a &amp;lt;polygon&amp;gt; whose vertices are
+the spoke tips in the order of the variables, which is how a radar series
+is paired with its marks; each star's selector names the second. The
+reading had no outline at all until a real export could be measured. A
+call drawn with draw.segments = TRUE draws sectors instead, and one
+whose polygons are not two per star, and a key's, is not paired: those
+are still read without an outline."><meta property="og:description" content="Reads stars() as the radar it draws: one closed outline per observation,
 with a spoke for each variable.
 It is a multi-line layer. MAIDR's radar trace is navigated as one –
 &quot;each spoke a column and each series a row&quot; – so the whole reading is
@@ -44,22 +44,22 @@ each column's range rather than the readings themselves. Announcing those
 would tell a reader that observation 1 scores 0 on a variable it merely
 has the smallest value of. The recorded matrix carries what the caller
 measured, and that is what a reader is told.
-It is read without an outline, deliberately. The marks are there and
-the pairing is known – measured by giving each observation its own
-col.stars and reading every polygon's fill, observation k owns
-polygons 2k - 1 and 2k, both filled its colour, plus a segments-k
-carrying one segment per variable:
+Each star is outlined through the polygon it is drawn as. Measured by
+giving each observation its own col.stars and reading every polygon's
+fill, observation k owns polygons 2k - 1 and 2k, both filled its
+colour, plus a segments-k carrying one segment per variable:
 polygon-1  #111199   polygon-2  #111199   segments-1   observation 1
 polygon-3  #229922   polygon-4  #229922   segments-2   observation 2
 ...
 
-What is not established is the selector those grobs export to. A
-selector is only worth emitting once it has been resolved against a real
-export, and a real export cannot be had until the chart stops falling back
-to a picture – which is what this reading is for. So the outline is left
-for a follow-up that can measure it, rather than guessed from the grob
-names. Reading without one is what gauge already does upstream when the
-marks and the cursor cannot be paired with confidence."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+stars() draws each star twice, the second time with its col.lines
+border, and the export writes each as a &amp;lt;polygon&amp;gt; whose vertices are
+the spoke tips in the order of the variables, which is how a radar series
+is paired with its marks; each star's selector names the second. The
+reading had no outline at all until a real export could be measured. A
+call drawn with draw.segments = TRUE draws sectors instead, and one
+whose polygons are not two per star, and a key's, is not paired: those
+are still read without an outline."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -99,22 +99,22 @@ each column&#x27;s range rather than the readings themselves. Announcing those
 would tell a reader that observation 1 scores 0 on a variable it merely
 has the smallest value of. The recorded matrix carries what the caller
 measured, and that is what a reader is told.
-It is read without an outline, deliberately. The marks are there and
-the pairing is known – measured by giving each observation its own
-col.stars and reading every polygon&#x27;s fill, observation k owns
-polygons 2k - 1 and 2k, both filled its colour, plus a segments-k
-carrying one segment per variable:
+Each star is outlined through the polygon it is drawn as. Measured by
+giving each observation its own col.stars and reading every polygon&#x27;s
+fill, observation k owns polygons 2k - 1 and 2k, both filled its
+colour, plus a segments-k carrying one segment per variable:
 polygon-1  #111199   polygon-2  #111199   segments-1   observation 1
 polygon-3  #229922   polygon-4  #229922   segments-2   observation 2
 ...
 
-What is not established is the selector those grobs export to. A
-selector is only worth emitting once it has been resolved against a real
-export, and a real export cannot be had until the chart stops falling back
-to a picture – which is what this reading is for. So the outline is left
-for a follow-up that can measure it, rather than guessed from the grob
-names. Reading without one is what gauge already does upstream when the
-marks and the cursor cannot be paired with confidence.">
+stars() draws each star twice, the second time with its col.lines
+border, and the export writes each as a &amp;lt;polygon&amp;gt; whose vertices are
+the spoke tips in the order of the variables, which is how a radar series
+is paired with its marks; each star&#x27;s selector names the second. The
+reading had no outline at all until a real export could be measured. A
+call drawn with draw.segments = TRUE draws sectors instead, and one
+whose polygons are not two per star, and a key&#x27;s, is not paired: those
+are still read without an outline.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRStarsLayerProcessor.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
@@ -189,21 +189,21 @@ each column's range rather than the readings themselves. Announcing those
 would tell a reader that observation 1 scores 0 on a variable it merely
 has the smallest value of. The recorded matrix carries what the caller
 measured, and that is what a reader is told.</p>
-<p><strong>It is read without an outline, deliberately.</strong> The marks are there and
-the pairing is known – measured by giving each observation its own
-<code>col.stars</code> and reading every polygon's fill, observation <code>k</code> owns
-polygons <code>2k - 1</code> and <code>2k</code>, both filled its colour, plus a <code>segments-k</code>
-carrying one segment per variable:</p>
+<p><strong>Each star is outlined through the polygon it is drawn as.</strong> Measured by
+giving each observation its own <code>col.stars</code> and reading every polygon's
+fill, observation <code>k</code> owns polygons <code>2k - 1</code> and <code>2k</code>, both filled its
+colour, plus a <code>segments-k</code> carrying one segment per variable:</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>polygon<span class="dv">-1</span>  <span class="co">#111199   polygon-2  #111199   segments-1   observation 1</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>polygon<span class="dv">-3</span>  <span class="co">#229922   polygon-4  #229922   segments-2   observation 2</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>...</span></code></pre><p></p></div>
-<p>What is <em>not</em> established is the selector those grobs export to. A
-selector is only worth emitting once it has been resolved against a real
-export, and a real export cannot be had until the chart stops falling back
-to a picture – which is what this reading is for. So the outline is left
-for a follow-up that can measure it, rather than guessed from the grob
-names. Reading without one is what <code>gauge</code> already does upstream when the
-marks and the cursor cannot be paired with confidence.</p>
+<p><code><a href="base-r-wrappers.html">stars()</a></code> draws each star twice, the second time with its <code>col.lines</code>
+border, and the export writes each as a <code>&lt;polygon&gt;</code> whose vertices are
+the spoke tips in the order of the variables, which is how a radar series
+is paired with its marks; each star's selector names the second. The
+reading had no outline at all until a real export could be measured. A
+call drawn with <code>draw.segments = TRUE</code> draws sectors instead, and one
+whose polygons are not two per star, and a key's, is not paired: those
+are still read without an outline.</p>
     </div>
 
 
@@ -217,6 +217,7 @@ marks and the cursor cannot be paired with confidence.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-BaseRStarsLayerProcessor-process"><code>BaseRStarsLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-BaseRStarsLayerProcessor-star_selectors"><code>BaseRStarsLayerProcessor$star_selectors()</code></a></p></li>
 <li><p><a href="#method-BaseRStarsLayerProcessor-clone"><code>BaseRStarsLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href="LayerProcessor.html#method-extract_layer_axes"><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
@@ -281,7 +282,7 @@ marks and the cursor cannot be paired with confidence.</p>
 <dd><p>Unused; present for the processor interface.</p></dd>
 
       <dt><code>gt</code></dt>
-<dd><p>Unused; this reading emits no selectors.</p></dd>
+<dd><p>The grob tree, for the selectors.</p></dd>
 
       <dt><code>grob_id</code></dt>
 <dd><p>Unused; present for the processor interface.</p></dd>
@@ -304,13 +305,39 @@ marks and the cursor cannot be paired with confidence.</p>
 
 </div>
 
+<p></p><hr><a id="method-BaseRStarsLayerProcessor-star_selectors"></a><div class="section">
+<h3 id="baserstarslayerprocessor-star-selectors-"><code>BaseRStarsLayerProcessor$star_selectors()</code><a class="anchor" aria-label="anchor" href="#baserstarslayerprocessor-star-selectors-"></a></h3>
+<p>One selector per star: the polygon it is drawn as</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStarsLayerProcessor</span><span class="op">$</span><span class="fu">star_selectors</span><span class="op">(</span><span class="va">layer_info</span>, <span class="va">gt</span>, <span class="va">count</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call.</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>The grob tree the chart was drawn to.</p></dd>
+
+      <dt><code>count</code></dt>
+<dd><p>How many stars, one per row of the matrix.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>A list of selectors, or NULL when the polygons cannot be
+paired with the stars</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BaseRStarsLayerProcessor-clone"></a><div class="section">
 <h3 id="baserstarslayerprocessor-clone-"><code>BaseRStarsLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#baserstarslayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStarsLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

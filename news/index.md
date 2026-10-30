@@ -1453,6 +1453,12 @@
   3”, and the y value still sets the tone and the braille, as on a
   ggplot2 line over a factor. A point is named only when every point of
   its layer sits on a named tick.
+- A [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) chart
+  highlights the star being read. Its reading emitted no selectors, so
+  no move outlined anything; each star is now outlined through the
+  polygon it is drawn as, whose corners are the spoke tips the reader
+  moves along. A chart drawn with `draw.segments = TRUE` still has no
+  outline ([\#410](https://github.com/xability/r-maidr/issues/410)).
 - A Base R chart is the page R’s device shows: the last one. After
   `hist(mtcars$mpg); hist(mtcars$hp)` R shows the second histogram
   alone, on a page of its own, but

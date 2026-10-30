@@ -22,23 +22,25 @@ Announcing those would tell a reader that observation 1 scores 0 on a
 variable it merely has the smallest value of. The recorded matrix
 carries what the caller measured, and that is what a reader is told.
 
-**It is read without an outline, deliberately.** The marks are there and
-the pairing is known – measured by giving each observation its own
-`col.stars` and reading every polygon's fill, observation `k` owns
-polygons `2k - 1` and `2k`, both filled its colour, plus a `segments-k`
-carrying one segment per variable:
+**Each star is outlined through the polygon it is drawn as.** Measured
+by giving each observation its own `col.stars` and reading every
+polygon's fill, observation `k` owns polygons `2k - 1` and `2k`, both
+filled its colour, plus a `segments-k` carrying one segment per
+variable:
 
     polygon-1  #111199   polygon-2  #111199   segments-1   observation 1
     polygon-3  #229922   polygon-4  #229922   segments-2   observation 2
     ...
 
-What is *not* established is the selector those grobs export to. A
-selector is only worth emitting once it has been resolved against a real
-export, and a real export cannot be had until the chart stops falling
-back to a picture – which is what this reading is for. So the outline is
-left for a follow-up that can measure it, rather than guessed from the
-grob names. Reading without one is what `gauge` already does upstream
-when the marks and the cursor cannot be paired with confidence.
+[`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws each
+star twice, the second time with its `col.lines` border, and the export
+writes each as a `<polygon>` whose vertices are the spoke tips in the
+order of the variables, which is how a radar series is paired with its
+marks; each star's selector names the second. The reading had no outline
+at all until a real export could be measured. A call drawn with
+`draw.segments = TRUE` draws sectors instead, and one whose polygons are
+not two per star, and a key's, is not paired: those are still read
+without an outline.
 
 ## Super classes
 
@@ -51,6 +53,8 @@ when the marks and the cursor cannot be paired with confidence.
 ### Public methods
 
 - [`BaseRStarsLayerProcessor$process()`](#method-BaseRStarsLayerProcessor-process)
+
+- [`BaseRStarsLayerProcessor$star_selectors()`](#method-BaseRStarsLayerProcessor-star_selectors)
 
 - [`BaseRStarsLayerProcessor$clone()`](#method-BaseRStarsLayerProcessor-clone)
 
@@ -129,7 +133,7 @@ Emit one radar series per observation
 
 - `gt`:
 
-  Unused; this reading emits no selectors.
+  The grob tree, for the selectors.
 
 - `grob_id`:
 
@@ -150,6 +154,35 @@ Emit one radar series per observation
 #### Returns
 
 A radar layer, or NULL when nothing was read
+
+------------------------------------------------------------------------
+
+### `BaseRStarsLayerProcessor$star_selectors()`
+
+One selector per star: the polygon it is drawn as
+
+#### Usage
+
+    BaseRStarsLayerProcessor$star_selectors(layer_info, gt, count)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call.
+
+- `gt`:
+
+  The grob tree the chart was drawn to.
+
+- `count`:
+
+  How many stars, one per row of the matrix.
+
+#### Returns
+
+A list of selectors, or NULL when the polygons cannot be paired with the
+stars
 
 ------------------------------------------------------------------------
 
