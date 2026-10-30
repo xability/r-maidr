@@ -25,9 +25,7 @@ process_faceted_plot_data <- function(plot, layout, built, gtable, format_config
 
     facet_groups <- get_facet_groups(panel_info, built)
 
-    # Map based on visual position (ROW/COL) with DOM order correction
-    # The DOM elements are generated in column-major order, but our data is in row-major order
-    # We need to map the visual position to the correct DOM panel
+    # The gtable panel drawn at this panel's place in the grid
     gtable_panel_name <- map_visual_to_dom_panel(panel_info, gtable)
 
     subplot_data <- process_facet_panel(
@@ -76,6 +74,94 @@ get_facet_groups <- function(panel_info, built) {
   facet_groups
 }
 
+#' The text of a facet panel's strips
+#'
+#' A panel is named for its strips, which ggplot2 writes through the facet's
+#' labeller: `facet_grid(vs ~ am, labeller = labeller(vs = c("0" =
+#' "V-engine", "1" = "Straight")))` writes "V-engine" where `vs` is 0, and
+#' `label_both` writes "cyl: 4". The panels were named by the raw values
+#' instead, "0 & 1", which said neither what the strips say nor which
+#' variable each number was.
+#'
+#' The labeller is called as ggplot2 calls it, on the facet's own layout,
+#' a grid's rows and columns apart, and the panel's line is taken from what
+#' it returns. A facet with no labeller, a labeller that fails, or one that
+#' gives no text for the panel names it by its values, as before.
+#'
+#' @param panel_info Panel information from layout
+#' @param built Built plot data
+#' @param facet_groups The panel's facet values, from `get_facet_groups()`
+#' @return Character vector of the panel's strip labels, or its values
+#' @keywords internal
+facet_strip_labels <- function(panel_info, built, facet_groups) {
+  values <- vapply(facet_groups, function(value) {
+    if (length(value) == 1L && !is.na(value)) as.character(value) else "NA"
+  }, character(1))
+  params <- built$layout$facet$params
+  layout <- built$layout$layout
+  labeller <- params$labeller
+  row <- match(as.character(panel_info$PANEL), as.character(layout$PANEL))
+  if (!is.function(labeller) || is.na(row) || length(values) == 0L) {
+    return(values)
+  }
+
+  sets <- if (length(params$facets) > 0L) {
+    list(list(vars = names(params$facets), type = "cols", facet = "wrap"))
+  } else {
+    list(
+      list(vars = names(params$rows), type = "rows", facet = "grid"),
+      list(vars = names(params$cols), type = "cols", facet = "grid")
+    )
+  }
+
+  labels <- character(0)
+  for (set in sets) {
+    vars <- intersect(set$vars, names(layout))
+    if (length(vars) == 0L) {
+      next
+    }
+    frame <- layout[, vars, drop = FALSE]
+    attr(frame, "type") <- set$type
+    attr(frame, "facet") <- set$facet
+    lines <- tryCatch(labeller(frame), error = function(e) NULL)
+    if (!is.list(lines) || length(lines) == 0L) {
+      return(values)
+    }
+    text <- vapply(lines, strip_label_text, character(1), row = row)
+    if (anyNA(text)) {
+      return(values)
+    }
+    labels <- c(labels, text)
+  }
+  if (length(labels) == 0L) values else labels
+}
+
+#' One line of a strip, as text
+#'
+#' A labeller gives each line as a vector over the panels, of text or, from
+#' `label_parsed` and `label_bquote`, of expressions; an expression is
+#' written out as R would print it.
+#'
+#' @param line One element of a labeller's result
+#' @param row The panel's row of the facet's layout
+#' @return A string, or NA when the line has none for the panel
+#' @keywords internal
+strip_label_text <- function(line, row) {
+  if (length(line) < row) {
+    return(NA_character_)
+  }
+  value <- line[[row]]
+  if (is.expression(value)) {
+    value <- if (length(value) == 1L) value[[1L]] else NULL
+  }
+  text <- if (is.language(value)) {
+    paste(deparse(value), collapse = " ")
+  } else {
+    as.character(value)
+  }
+  if (length(text) != 1L || is.na(text) || !nzchar(text)) NA_character_ else text
+}
+
 #' Rows of a layer's own data that belong to one facet panel
 #'
 #' The obvious `values == group` is wrong the moment the facet column holds
@@ -117,7 +203,8 @@ facet_group_rows <- function(values, group) {
 #' @param panel_info Panel information
 #' @param panel_data Panel-specific data
 #' @param facet_groups Facet group information
-#' @param gtable_panel_name Gtable panel name
+#' @param gtable_panel_name Gtable panel name, or NULL when no panel is drawn
+#'   at the panel's place, which is then read without marks
 #' @param built Built plot data
 #' @param layout Layout information
 #' @param gtable Gtable object
@@ -200,7 +287,14 @@ process_facet_panel <- function(
   }
 
   combined_data <- combine_facet_layer_data(layer_results)
-  combined_selectors <- combine_facet_layer_selectors(layer_results)
+  # A panel `map_visual_to_dom_panel()` found drawn nowhere names no marks:
+  # the name the processors were handed in its place is a guess, which may
+  # be another panel's.
+  combined_selectors <- if (is.null(gtable_panel_name)) {
+    list()
+  } else {
+    combine_facet_layer_selectors(layer_results)
+  }
 
   subplot_id <- paste0("maidr-subplot-", generate_unique_id(), "-", panel_info$PANEL)
 
@@ -233,7 +327,10 @@ process_facet_panel <- function(
 
     facet_title <- ""
     if (length(facet_groups) > 0) {
-      facet_title <- paste(facet_groups, collapse = " & ")
+      facet_title <- paste(
+        facet_strip_labels(panel_info, built, facet_groups),
+        collapse = " & "
+      )
     }
 
     # Prefer the axes the layer processors already resolved. They start from
@@ -417,66 +514,48 @@ combine_facet_layer_selectors <- function(layer_results) {
   combined_selectors
 }
 
-#' Map visual panel position to DOM panel name
+#' The gtable panel drawn at a facet panel's place in the grid
 #'
-#' This function handles the mismatch between visual layout order (row-major)
-#' and DOM element generation order (column-major) in gridSVG.
+#' ggplot2 reports where it lays each facet panel out as `ROW` and `COL` in
+#' `built$layout$layout`, and names the panels of the gtable it draws
+#' `panel-<a>-<b>`. What `a` and `b` count is not the row and the column,
+#' and differs between facets and releases. ggplot2 3.4.4 and 3.5 name a
+#' `facet_grid()` panel `panel-<row>-<col>`, but write the `facet_wrap()`
+#' names in an order that matches no grid: a 2 x 2 wrap is `panel-<row>-<col>`,
+#' a 2 x 3 one has `panel-3-1` in the first row, second column. ggplot2 4.0
+#' names a wrap's panels `panel-<col>-<row>`. Reading the name as the column-
+#' major position of the panel, as this did, gave each 2 x 2 wrap and grid
+#' the two off-diagonal panels each other's names, and most panels of a
+#' grid that is not square another panel's name, so their selectors named
+#' the marks of another panel: the highlight lit the other panel's marks,
+#' and maidr.js, which places a subplot where its first mark is drawn, put
+#' the subplots out of order.
 #'
-#' Visual layout (row-major):
-#'  1  2
-#'  3  4
-#'
-#' DOM order (column-major):
-#'  1  3
-#'  2  4
+#' What every release keeps is where a panel is drawn: its row and column in
+#' the gtable's layout, `t` and `l`. A panel's rank among the distinct `t`
+#' of the panels is its row, and its rank among the distinct `l` its column,
+#' whatever the gtable calls it. A place no panel is drawn at names none:
+#' guessing at another panel would hand the layer that panel's marks, as
+#' `find_gtable_panel_grob()` declines to.
 #'
 #' @param panel_info Panel information from layout
 #' @param gtable Gtable object
 #' @return Gtable panel name or NULL if not found
+#' @keywords internal
 map_visual_to_dom_panel <- function(panel_info, gtable) {
-  panel_names <- gtable$layout$name[grepl("^panel-", gtable$layout$name)]
-
-  if (length(panel_names) == 0) {
+  layout <- gtable$layout
+  panels <- layout[grepl("^panel-\\d+(-\\d+)?$", layout$name), , drop = FALSE]
+  if (nrow(panels) == 0) {
     return(NULL)
   }
 
-  panel_coords <- strsplit(gsub("panel-", "", panel_names), "-")
-  rows <- as.numeric(sapply(panel_coords, function(x) x[1]))
-  cols <- as.numeric(sapply(panel_coords, function(x) x[2]))
-
-  max_row <- max(rows)
-  max_col <- max(cols)
-
-  # Convert visual position (row-major) to DOM position (column-major)
-  visual_row <- as.numeric(panel_info$ROW)
-  visual_col <- as.numeric(panel_info$COL)
-
-  # DOM order is column-major: (1,1), (2,1), (3,1), (1,2), (2,2), (3,2), etc.
-  # Visual order is row-major: (1,1), (1,2), (1,3), (2,1), (2,2), (2,3), etc.
-
-  # Calculate the index in row-major order (visual)
-  visual_index <- (visual_row - 1) * max_col + visual_col
-
-  # Convert to column-major order (DOM)
-  dom_col <- ((visual_index - 1) %/% max_row) + 1
-  dom_row <- ((visual_index - 1) %% max_row) + 1
-
-  expected_dom_name <- paste0("panel-", dom_row, "-", dom_col)
-
-  if (expected_dom_name %in% gtable$layout$name) {
-    return(expected_dom_name)
+  row <- match(panels$t, sort(unique(panels$t)))
+  col <- match(panels$l, sort(unique(panels$l)))
+  hit <- which(
+    row == as.integer(panel_info$ROW) & col == as.integer(panel_info$COL)
+  )
+  if (length(hit) == 1L) {
+    return(panels$name[hit])
   }
-
-  # Fallback: try direct mapping
-  expected_name <- paste0("panel-", visual_row, "-", visual_col)
-  if (expected_name %in% gtable$layout$name) {
-    return(expected_name)
-  }
-
-  # Final fallback: return first available panel
-  if (length(panel_names) > 0) {
-    return(panel_names[1])
-  }
-
   NULL
 }

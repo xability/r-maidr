@@ -25,7 +25,8 @@ process_facet_panel(
 
 \item{facet_groups}{Facet group information}
 
-\item{gtable_panel_name}{Gtable panel name}
+\item{gtable_panel_name}{Gtable panel name, or NULL when no panel is drawn
+at the panel's place, which is then read without marks}
 
 \item{built}{Built plot data}
 

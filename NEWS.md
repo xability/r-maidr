@@ -746,6 +746,19 @@
 
 ### ggplot2
 
+* Each subplot of a `facet_wrap()` or `facet_grid()` chart highlights the
+  marks of its own panel. maidr worked out the name of a panel's grob from
+  its place in the grid, which ggplot2 does not name them by: in a 2 x 2
+  grid the top right and bottom left panels took each other's marks, and
+  in one of two rows and three columns, or three and two, four of the six
+  panels another's. The reader heard one panel's values with another's
+  marks lit, and the subplots were out of order, as maidr.js places each
+  where its first mark is: the 2 x 2 wrap of Regions A to D opened on
+  Region C. A panel is now found where ggplot2 draws it.
+* A facet subplot is named as its strips name it, through the facet's
+  labeller: `labeller(vs = c("0" = "V-engine", "1" = "Straight"))` names it
+  "V-engine" where it was "0", and `label_both` "cyl: 4". A `label_parsed`
+  label is read as written, "alpha^2".
 * The `d` key opens the chart description, and `L` then `T` says the
   title, on a box plot, violin plot, heat map, scatter plot, smooth,
   volcano plot and gantt chart. Their layers carried an empty object, `{}`,
