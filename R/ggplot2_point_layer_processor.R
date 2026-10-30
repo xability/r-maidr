@@ -32,6 +32,19 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
       axes <- self$extract_axes_labels(plot, built, panel_id)
+      # The values a continuous colour gives the points are named by the
+      # legend's title (`resolve_legend_label()`).
+      if (any(vapply(extracted_data, function(point) !is.null(point$z), logical(1)))) {
+        title <- resolve_legend_label(
+          plot,
+          built = built,
+          aes_names = c("colour", "color"),
+          layer_index = self$get_layer_index()
+        )
+        if (!is.null(title) && nzchar(title)) {
+          axes$z <- list(label = title)
+        }
+      }
 
       # A facet panel's layers are read as one entry (`process_facet_panel()`),
       # which has no room for a layer per group, so a faceted scatter is read
@@ -144,6 +157,15 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         layer
       })
       list(multi_layer = TRUE, layers = layers)
+    },
+
+    #' @description Whether the plot's colour scale is discrete
+    #' @param built Built plot data
+    #' @return TRUE for a discrete colour scale; FALSE for a continuous one,
+    #'   or where the plot has none
+    colour_is_discrete = function(built) {
+      scale <- tryCatch(built$plot$scales$get_scales("colour"), error = function(e) NULL)
+      !is.null(scale) && isTRUE(tryCatch(scale$is_discrete(), error = function(e) FALSE))
     },
 
     #' @description Extract axis information from the plot
@@ -370,6 +392,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       # evaluated over the data the way ggplot2 evaluates it, and the level
       # each row was drawn with is announced rather than its hex code.
       color_values <- NULL
+      z_values <- NULL
       if (!is.null(color_col)) {
         mapped <- if (color_col %in% names(original_data)) {
           original_data[[color_col]]
@@ -384,6 +407,15 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
             nrow(original_data) == nrow(full_layer_data)
         ) {
           color_values <- as.character(mapped)[panel_rows]
+          # A colour on a continuous scale, as `aes(colour = depth)` maps
+          # it, is a value the legend's colour bar reads off: each point
+          # carries it as its `z`, which maidr.js announces under the
+          # legend's title and sounds as the point's intensity. It was
+          # carried only as text in `color`, which maidr.js does not read,
+          # so a reader heard nothing of it.
+          if (is.numeric(mapped) && !self$colour_is_discrete(built)) {
+            z_values <- as.numeric(mapped)[panel_rows]
+          }
         } else if ("colour" %in% names(layer_data)) {
           color_values <- as.character(layer_data$colour)
         }
@@ -436,6 +468,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
         if (!is.null(color_values)) {
           point$color <- color_values[i]
+        }
+        if (!is.null(z_values) && is.finite(z_values[i])) {
+          point$z <- z_values[i]
         }
 
         points[[i]] <- point
