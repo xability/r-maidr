@@ -161,7 +161,8 @@ named_break_labels <- function(values, built, panel_index, axis = "x") {
   if (is.null(values) || !is.numeric(values) || inherits(values, "mapped_discrete")) {
     return(NULL)
   }
-  view <- tryCatch(built$layout$panel_params[[panel_index]][[axis]], error = function(e) NULL)
+  params <- tryCatch(built$layout$panel_params[[panel_index]], error = function(e) NULL)
+  view <- panel_scale_view(params, axis)
   if (is.null(view)) {
     return(NULL)
   }
@@ -175,4 +176,27 @@ named_break_labels <- function(values, built, panel_index, axis = "x") {
     return(NULL)
   }
   tick_names_at(values, breaks, labels)
+}
+
+#' The view of the scale that maps an aesthetic, in one panel
+#'
+#' A panel's `x` and `y` slots hold its horizontal and vertical axes, and
+#' those are not always the `x` and `y` scales: `coord_flip()` draws the x
+#' scale up the side, in the `y` slot. Read by slot, a flipped scatter
+#' plot's month names went to its values, "value is Mar" for 3, and its
+#' months were read as numbers.
+#'
+#' @param params One panel's `panel_params`
+#' @param aesthetic `"x"` or `"y"`
+#' @return The view scale, or NULL where no slot's scale maps `aesthetic`
+#' @keywords internal
+panel_scale_view <- function(params, aesthetic) {
+  for (slot in c("x", "y")) {
+    view <- tryCatch(params[[slot]], error = function(e) NULL)
+    aesthetics <- tryCatch(view$scale$aesthetics, error = function(e) NULL)
+    if (aesthetic %in% aesthetics) {
+      return(view)
+    }
+  }
+  NULL
 }

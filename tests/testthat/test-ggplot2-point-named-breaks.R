@@ -74,3 +74,19 @@ test_that("points drawn over a line are named as the line's are", {
   testthat::expect_identical(point_field(line, "x"), month.abb)
   testthat::expect_identical(point_field(panel_points(plot, 2L)[[1]], "xLabel"), month.abb)
 })
+
+test_that("a flipped chart reads each axis by the names its own scale gives", {
+  # coord_flip() draws the x scale up the side, in the panel's `y` slot.
+  # Read by slot, a scatter plot's month names went to its values, "value is
+  # Mar" for 3, and its months, like a line's, were read as numbers.
+  small <- data.frame(month = 1:4, sales = c(3, 1, 4, 2))
+  flipped <- ggplot2::ggplot(small, ggplot2::aes(month, sales)) + months + ggplot2::coord_flip()
+
+  points <- panel_points(flipped + ggplot2::geom_point())[[1]]
+  testthat::expect_identical(point_field(points, "xLabel"), month.abb[1:4])
+  testthat::expect_identical(point_field(points, "yLabel"), rep("", 4))
+
+  line <- panel_points(flipped + ggplot2::geom_line())[[1]][[1]]
+  testthat::expect_identical(point_field(line, "x"), month.abb[1:4])
+})
+

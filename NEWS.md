@@ -860,7 +860,8 @@
   number stays the point's position, and the name is announced in its
   place, as a discrete axis's is. Points that do not all sit on named
   breaks, or under labels a function makes, are still read by their
-  numbers.
+  numbers. A chart flipped with `coord_flip()` is read by each axis's own
+  names too: a flipped line's points were read by their numbers.
 
 ### Base R
 
