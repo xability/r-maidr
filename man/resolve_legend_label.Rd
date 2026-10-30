@@ -30,15 +30,17 @@ Character scalar, or NULL when the aesthetic has no title
 \description{
 Returns the title ggplot2 prints above the legend for a grouping
 aesthetic, which is what the MAIDR payload emits as the z axis label.
-A \code{labs()} override wins (ggplot2 stores it on the built plot's
-\code{labels}, normalising \code{color} to \code{colour}); otherwise the
-mapped expression is used, with the layer's own mapping taking precedence
-over the plot-level one. Returns NULL when the aesthetic carries neither.
+The scale's name wins, as \code{scale_fill_gradient(name = "Correlation")}
+gives it; then a \code{labs()} override (ggplot2 stores it on the built
+plot's \code{labels}, normalising \code{color} to \code{colour}); otherwise
+the mapped expression is used, with the layer's own mapping taking
+precedence over the plot-level one. Returns NULL when the aesthetic carries
+none of them.
 }
 \details{
 Callers are responsible for only asking about an aesthetic the layer is
 actually grouped by: \code{labs()} records a title even for an unmapped
-aesthetic, so an unguarded lookup would invent a legend that the plot does
-not draw.
+aesthetic, and a scale added for one names it all the same, so an
+unguarded lookup would invent a legend that the plot does not draw.
 }
 \keyword{internal}
