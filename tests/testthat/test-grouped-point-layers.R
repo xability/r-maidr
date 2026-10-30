@@ -170,6 +170,19 @@ test_that("Base R points of colours no legend names are read as one layer", {
   expect_length(rendered$layers[[1]]$data, 6)
 })
 
+test_that("points of a colour the legend does not name are read as one layer", {
+  skip_if_no_render()
+  # Three colours drawn, two named: the third names no group, so no colour
+  # is taken for one.
+  rendered <- base_r_grouped(function() {
+    plot(1:6, c(3, 1, 4, 1, 5, 9), col = rep(c("red", "blue", "darkgreen"), 2))
+    legend("topleft", legend = c("a", "b"), col = c("red", "blue"), pch = 1)
+  })
+
+  expect_length(rendered$layers, 1)
+  expect_length(rendered$layers[[1]]$data, 6)
+})
+
 test_that("a lattice key's title names the groups with their levels", {
   skip_if_no_lattice()
   skip_if_no_render()
