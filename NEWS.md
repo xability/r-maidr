@@ -917,6 +917,12 @@
   cells were highlighted on other cells' tiles. A computed grid whose stat
   colours nothing, as `stat_summary_2d(fill = "steelblue")`, is read under
   no title rather than under the one its stat would give a legend.
+* A legend titled by its guide, as
+  `guides(fill = guide_colourbar(title = "Correlation"))` or a scale's
+  `guide = guide_legend(title = "Kind")` titles it, now titles the values it
+  groups, ahead of the scale's name and `labs()`, as ggplot2 draws it. The
+  guide's title was not read, so the values were announced under another
+  name than the legend's.
 
 ### Base R
 
