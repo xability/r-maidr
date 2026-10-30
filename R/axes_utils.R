@@ -115,15 +115,17 @@ build_axes <- function(x = NULL, y = NULL, z = NULL) {
 #'
 #' Returns the title ggplot2 prints above the legend for a grouping
 #' aesthetic, which is what the MAIDR payload emits as the z axis label.
-#' A \code{labs()} override wins (ggplot2 stores it on the built plot's
-#' \code{labels}, normalising \code{color} to \code{colour}); otherwise the
-#' mapped expression is used, with the layer's own mapping taking precedence
-#' over the plot-level one. Returns NULL when the aesthetic carries neither.
+#' The scale's name wins, as \code{scale_fill_gradient(name = "Correlation")}
+#' gives it; then a \code{labs()} override (ggplot2 stores it on the built
+#' plot's \code{labels}, normalising \code{color} to \code{colour}); otherwise
+#' the mapped expression is used, with the layer's own mapping taking
+#' precedence over the plot-level one. Returns NULL when the aesthetic carries
+#' none of them.
 #'
 #' Callers are responsible for only asking about an aesthetic the layer is
 #' actually grouped by: \code{labs()} records a title even for an unmapped
-#' aesthetic, so an unguarded lookup would invent a legend that the plot does
-#' not draw.
+#' aesthetic, and a scale added for one names it all the same, so an
+#' unguarded lookup would invent a legend that the plot does not draw.
 #'
 #' @param plot The ggplot object
 #' @param built Built plot from \code{ggplot2::ggplot_build()}, or NULL to
@@ -137,10 +139,22 @@ build_axes <- function(x = NULL, y = NULL, z = NULL) {
 #' @keywords internal
 resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
                                  layer_index = NULL) {
-  labels <- if (!is.null(built)) {
-    built$plot$labels
-  } else {
-    tryCatch(ggplot2::ggplot_build(plot)$plot$labels, error = function(e) NULL)
+  if (is.null(built)) {
+    built <- tryCatch(ggplot2::ggplot_build(plot), error = function(e) NULL)
+  }
+  labels <- built$plot$labels
+
+  # ggplot2 titles a legend by its scale's name before `labs()`:
+  # `scale_fill_gradient(name = "Correlation")`, or the name given first, as
+  # in `scale_fill_viridis_c("Correlation")`. A scale given no name, or
+  # NULL, leaves the title to the chain below.
+  for (aes_name in aes_names) {
+    scale <- tryCatch(built$plot$scales$get_scales(aes_name), error = function(e) NULL)
+    name <- if (!is.null(scale)) scale$name
+    if (!is.null(name) && !inherits(name, "waiver") && length(name) == 1L &&
+      !is.na(name) && nzchar(as.character(name))) {
+      return(as.character(name))
+    }
   }
 
   for (aes_name in aes_names) {

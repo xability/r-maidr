@@ -418,6 +418,15 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return The axes, with `z` added when a fill legend exists
     attach_fill_axis = function(plot, built, axes, panel_id = NULL) {
+      # Only a mapped fill draws a legend. A scale or `labs()` given for a
+      # fill the layer does not map titles nothing the chart shows
+      # (`resolve_legend_label()`).
+      layer <- plot$layers[[self$get_layer_index()]]
+      mapped <- !is.null(layer$mapping$fill) ||
+        (!isFALSE(layer$inherit.aes) && !is.null(plot$mapping$fill))
+      if (!mapped) {
+        return(axes)
+      }
       label <- resolve_legend_label(
         plot = plot,
         built = built,
