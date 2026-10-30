@@ -1075,6 +1075,17 @@
   name and its description, and a title set with
   [`plot_annotation()`](https://patchwork.data-imaginist.com/reference/plot_annotation.html)
   was not read. Each plot is still read under its own title.
+- A legend titled by its scale’s name, as
+  `scale_fill_gradient(name = "Correlation")` or
+  `scale_fill_viridis_c("Correlation")` titles it, now titles the values
+  it groups: a heatmap’s values, and the fill groups of dodged and
+  stacked bars and stacked areas. They were read under the mapped column
+  (“score” where the legend says “Correlation”), or under a
+  [`labs()`](https://ggplot2.tidyverse.org/reference/labs.html) title
+  that the scale’s name replaces on the chart. An area chart with no
+  fill mapped is no longer given a fill title by a scale or
+  [`labs()`](https://ggplot2.tidyverse.org/reference/labs.html) set for
+  one.
 
 #### Base R
 
