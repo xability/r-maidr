@@ -19,11 +19,17 @@ Processes bar plot layers with complete logic included
     \item \href{#method-Ggplot2BarLayerProcessor-needs_reordering}{\code{Ggplot2BarLayerProcessor$needs_reordering()}}
     \item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
     \item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-stack_rows}{\code{Ggplot2BarLayerProcessor$stack_rows()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-drawn_rows}{\code{Ggplot2BarLayerProcessor$drawn_rows()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-stack_rows_of}{\code{Ggplot2BarLayerProcessor$stack_rows_of()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-collapse_stacks}{\code{Ggplot2BarLayerProcessor$collapse_stacks()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-discrete_limits_at}{\code{Ggplot2BarLayerProcessor$discrete_limits_at()}}
     \item \href{#method-Ggplot2BarLayerProcessor-format_x_value}{\code{Ggplot2BarLayerProcessor$format_x_value()}}
     \item \href{#method-Ggplot2BarLayerProcessor-panel_x_is_discrete}{\code{Ggplot2BarLayerProcessor$panel_x_is_discrete()}}
     \item \href{#method-Ggplot2BarLayerProcessor-map_discrete_x}{\code{Ggplot2BarLayerProcessor$map_discrete_x()}}
     \item \href{#method-Ggplot2BarLayerProcessor-map_continuous_x}{\code{Ggplot2BarLayerProcessor$map_continuous_x()}}
     \item \href{#method-Ggplot2BarLayerProcessor-generate_selectors}{\code{Ggplot2BarLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-rect_grob_names}{\code{Ggplot2BarLayerProcessor$rect_grob_names()}}
     \item \href{#method-Ggplot2BarLayerProcessor-own_rect_names}{\code{Ggplot2BarLayerProcessor$own_rect_names()}}
     \item \href{#method-Ggplot2BarLayerProcessor-clone}{\code{Ggplot2BarLayerProcessor$clone()}}
   }
@@ -228,6 +234,156 @@ matches the drawn rects
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-stack_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-stack_rows}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$stack_rows()}}{
+  The rows each bar is drawn from, when bars are stacks
+
+\code{ggplot(mtcars, aes(factor(cyl), mpg)) + geom_bar(stat = "identity")}
+draws three bars, each a stack of one rect per car: \code{geom_bar()} and
+\code{geom_col()} stack the rows that share a category by default, and with
+nothing mapped to \code{fill} the segments are drawn alike, so the page shows
+one bar per category, as tall as its segments together. ggplot2 keeps
+one built row per segment, which the reading took for one bar each:
+32 bars, the first three labelled with categories that belonged to
+other rows, the rest with none, every value the running total of its
+stack.
+
+A layer mapping \code{fill} is a stacked bar chart and never reaches this
+processor; a layer drawn with \code{position = "identity"} overlaps its rows
+rather than stacking them, and is left as it was.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$stack_rows(plot, built, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object.}
+      \item{\code{built}}{Its \code{ggplot_build()} result.}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{NULL} when every bar is one row; otherwise a list with one
+integer vector per bar, in the order the bars are read (along the
+category axis), holding the positions of its rows among the panel's
+drawn rows (\code{drawn_rows()}) -- which are also the positions of its
+rects in the panel's rect grob, drawn in row order.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-drawn_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-drawn_rows}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$drawn_rows()}}{
+  The rows of a panel that ggplot2 draws a rect for
+
+A row missing its position or extent is drawn as no rect. ggplot2
+3.4.4 drops such a row while stacking ("Removed 1 rows containing
+missing values (\code{position_stack()})"); left among the rows by a
+release that drops it only as it draws, it would put every later rect
+of the panel one place out from the row it was read from.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$drawn_rows(rows)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{rows}}{The layer's built rows for one panel, the category in \code{x}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The rows with a finite \code{x}, \code{ymin} and \code{ymax}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-stack_rows_of"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-stack_rows_of}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$stack_rows_of()}}{
+  \code{stack_rows()} on rows already read
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$stack_rows_of(plot, rows)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object.}
+      \item{\code{rows}}{The layer's built rows for one panel, the category in \code{x}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    As \code{stack_rows()}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-collapse_stacks"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-collapse_stacks}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$collapse_stacks()}}{
+  One row per bar, from rows that stack
+
+A bar's value is the sum of its segments, which is where the top of an
+all-positive stack is drawn. ggplot2 stacks negative values down from
+zero, keeping each segment's \code{ymin} below its \code{ymax}, so a segment below
+zero counts negatively.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$collapse_stacks(rows, stacks)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{rows}}{The layer's built rows for one panel, the category in \code{x}.}
+      \item{\code{stacks}}{The rows of each bar, from \code{stack_rows()}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with one row per bar, in the order of \code{stacks}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-discrete_limits_at"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-discrete_limits_at}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$discrete_limits_at()}}{
+  The limits of a discrete category scale at bar positions
+
+Read from the scale the layout trained (\code{panel_scales_x}), as the
+plot's own copy of a position scale is never trained and answers
+\code{c(0, 1)} for its limits.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$discrete_limits_at(built, positions, flipped = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{The plot's \code{ggplot_build()} result.}
+      \item{\code{positions}}{The bars' built positions along the category axis.}
+      \item{\code{flipped}}{Whether the bars are horizontal, their categories on y.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The limit at each position, or \code{NULL} when the category scale
+is not discrete or a position names no limit.
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-format_x_value"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-format_x_value}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$format_x_value()}}{
@@ -362,6 +518,33 @@ in \code{Ggplot2LineLayerProcessor}.
   }
   \subsection{Returns}{
     List of selectors
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-rect_grob_names"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-rect_grob_names}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$rect_grob_names()}}{
+  The names of the rect grobs this layer drew
+
+Searched in the panel the context names when there is one, and in the
+plot's only panel otherwise.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$rect_grob_names(plot, gt = NULL, panel_ctx = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional; built from \code{plot} when absent)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of rect grob names, empty when none is found
   }
 }
 
