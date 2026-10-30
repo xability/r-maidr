@@ -23,7 +23,7 @@ maidr_knitr_evaluate_hook(previous)
 - previous:
 
   The `evaluate` hook in place before; knitr evaluates with
-  [`evaluate::evaluate()`](https://rdrr.io/pkg/evaluate/man/evaluate.html)
+  [`evaluate::evaluate()`](https://r.maidr.ai/reference/evaluate.r-lib.org/reference/evaluate.md)
   when there is none
 
 ## Value

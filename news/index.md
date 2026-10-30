@@ -1098,6 +1098,34 @@
   [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
   is read by each axis’s own names too: a flipped line’s points were
   read by their numbers.
+- A heatmap whose fill is an expression of its data, as
+  `aes(fill = score * 2)` or `log(score)`, is read with the values
+  ggplot2 draws it from, in
+  [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
+  and
+  [`geom_raster()`](https://ggplot2.tidyverse.org/reference/geom_tile.html).
+  Each tile’s value was looked up as a column named after its mapping,
+  which named none, so every cell was read as missing. An expression for
+  `x` or `y`, as `factor(month, levels = month.abb)`, or a
+  [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
+  given data of its own, stopped
+  [`show()`](https://r.maidr.ai/reference/show.md) and
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) with
+  “attempt to set an attribute on NULL”. The layer’s values are now
+  evaluated as ggplot2 evaluates them, in the layer’s data and under its
+  mapping.
+- A heatmap whose fill is not mapped, as `geom_tile(fill = "steelblue")`
+  or a bare
+  [`geom_raster()`](https://ggplot2.tidyverse.org/reference/geom_tile.html),
+  is read with no values. Its tiles are all drawn in one colour, but the
+  data’s third column was read as their values, and announced under that
+  column’s name.
+- A heatmap filled by categories is read by the numbers its legend
+  shows, as `factor(score * 10)` shows 10, 20 and 30, and as missing
+  where its legend shows names, as `fill = grade` shows “High” and
+  “Low”. A factor’s tiles were read as its level codes, 1, 2 and 3,
+  which its legend does not show, and a column of names as missing, with
+  a coercion warning.
 
 #### Base R
 
