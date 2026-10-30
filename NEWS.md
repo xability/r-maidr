@@ -990,6 +990,16 @@
   under "Histogram of x", which R does not draw there. Written over a plot's
   own title, as in `qqnorm(x); title("Sales")`, it is the one read, as R
   draws it on top.
+* A chart drawn onto a plot with `add = TRUE`, as `hist(y, add = TRUE)` or
+  `contour(volcano, add = TRUE)` draws one, has no title of its own and is
+  read under the plot's axis titles, as R draws no title or axis title for
+  it. Its layer was read under those its function gives a plot of its own,
+  "Histogram of y" over an x axis "y", or under a `main`, `xlab` or `ylab`
+  it was given, which R does not draw either, and a chart of one panel was
+  named after that `main` in place of the plot's own title. A `title()`
+  written after such a chart titles the plot under it, and a `main` given to
+  `lines()` or `points()`, which R ignores with a warning, no longer titles
+  its layer.
 * A Base R chart is titled the way R titles it. `hist(mtcars$mpg)` writes
   "mtcars$mpg" under its x axis and "Histogram of mtcars$mpg" above it, and
   the chart maidr drew, in `show()`, `save_html()`, a knitted document and
