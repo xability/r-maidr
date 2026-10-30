@@ -110,9 +110,9 @@ test_that("a spine plot is read as the mosaic it draws", {
 test_that("the table is the one spineplot drew, replayed out of the call", {
   layer <- processed(list(table(LEVELS, ANSWERS)))
 
-  # Bottom tile first: `spineplot()` stacks the last level, yes, at the
-  # bottom of each column, and a segmented layer's first series is its
-  # bottom segment.
+  # Bottom tile first: `spineplot()` stacks the last level of ANSWERS,
+  # "yes", at the bottom of each column, and a segmented layer's first
+  # series is its bottom segment.
   expect_equal(
     cells(layer),
     c("low/yes=2", "mid/yes=6", "high/yes=1",
