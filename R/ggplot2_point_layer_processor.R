@@ -408,6 +408,16 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       x_names <- discrete_axis_labels(built, "x", panel_id)
       y_names <- discrete_axis_labels(built, "y", panel_id)
 
+      # A continuous axis whose breaks the author named codes a category with
+      # a number, as `scale_x_continuous(breaks = 1:12, labels = month.abb)`
+      # does, so a point on a named break is read by the name too, as a
+      # line's points are (`named_break_labels()`). The positions it is
+      # asked about are the built ones, in the scale's own space, where its
+      # breaks are.
+      panel_index <- self$resolve_panel_index(built, panel_id)
+      x_breaks <- named_break_labels(layer_data$x, built, panel_index, "x")
+      y_breaks <- named_break_labels(layer_data$y, built, panel_index, "y")
+
       points <- list()
       for (i in seq_len(nrow(layer_data))) {
         point <- list(
@@ -415,12 +425,12 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
           y = announced_y[i]
         )
 
-        x_label <- category_at(announced_x[i], x_names)
-        if (!is.null(x_label)) {
+        x_label <- category_at(announced_x[i], x_names) %||% x_breaks[i]
+        if (!is.null(x_label) && !is.na(x_label)) {
           point$xLabel <- x_label
         }
-        y_label <- category_at(announced_y[i], y_names)
-        if (!is.null(y_label)) {
+        y_label <- category_at(announced_y[i], y_names) %||% y_breaks[i]
+        if (!is.null(y_label) && !is.na(y_label)) {
           point$yLabel <- y_label
         }
 
