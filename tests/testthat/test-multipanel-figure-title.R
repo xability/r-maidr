@@ -126,6 +126,32 @@ test_that("a title every panel carries titles the figure", {
   testthat::expect_null(untitled_panel$title)
 })
 
+test_that("a plot drawn over an untitled one titles its panel", {
+  # After `par(new = TRUE)` the next plot is drawn in the same panel, and
+  # its title is the one R draws there. Only each panel's first plot was
+  # read, so a page of these had no title.
+  overdrawn <- base_r_figure(function() {
+    par(mfrow = c(1, 2))
+    for (i in 1:2) {
+      plot(1:10)
+      par(new = TRUE)
+      plot(10:1 * i, main = "Weekly sales")
+    }
+  })
+  testthat::expect_identical(overdrawn$title, "Weekly sales")
+
+  # The panels are still titled apart when the plots over them are.
+  apart <- base_r_figure(function() {
+    par(mfrow = c(1, 2))
+    for (i in 1:2) {
+      plot(1:10)
+      par(new = TRUE)
+      plot(10:1, main = paste("Week", i))
+    }
+  })
+  testthat::expect_null(apart$title)
+})
+
 test_that("a chart of one panel, or one that draws its own grid, keeps its title", {
   single <- base_r_figure(function() plot(1:10, main = "Single", sub = "One panel"))
   testthat::expect_identical(single$title, "Single")

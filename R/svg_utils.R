@@ -1812,10 +1812,13 @@ layer_title_text <- function(title) {
 #' `title(outer = TRUE)` or `plot_annotation()`, is still titled when every
 #' one of its panels carries the same title: a `par(mfrow)` grid of four
 #' plots each given `main = "Weekly sales"` is a page of weekly sales. A
-#' panel's title is its first layer's, compared without the spaces around
-#' it, which are not seen: R keeps them, so `"Sales"` and `"Sales "` are
-#' one title on the page. A cell with no layers, where nothing was drawn,
-#' is passed over, and an untitled panel leaves the figure untitled.
+#' panel's title is the first title among its layers: a Base R plot drawn
+#' over an untitled one with `par(new = TRUE)` titles the panel, and the
+#' lines or points drawn on a plot have no title of their own. It is
+#' compared without the spaces around it, which are not seen: R keeps
+#' them, so `"Sales"` and `"Sales "` are one title on the page. A cell with
+#' no layers, where nothing was drawn, is passed over, and a panel with no
+#' titled layer leaves the figure untitled.
 #'
 #' @param subplots The figure's subplots, its grid flattened to a list
 #' @return The title, or NULL when the panels' titles differ or one has none
@@ -1826,7 +1829,13 @@ shared_subplot_title <- function(subplots) {
     if (!is.list(cell) || length(cell$layers) == 0L) {
       next
     }
-    title <- trimws(layer_title_text(cell$layers[[1]]$title) %||% "")
+    title <- ""
+    for (layer in cell$layers) {
+      title <- trimws(layer_title_text(layer$title) %||% "")
+      if (nzchar(title)) {
+        break
+      }
+    }
     if (!nzchar(title)) {
       return(NULL)
     }
