@@ -119,6 +119,18 @@ test_that("the panel is found by where it is drawn, whatever it is named", {
   expect_null(at(3, 1))
 })
 
+test_that("a facet of one panel is found too", {
+  plot <- ggplot2::ggplot(facet_bars(1), ggplot2::aes(category, value)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(~panel)
+  expect_own_bars(rendered(plot))
+
+  # Named with one number, as the pattern the panel grobs are found by
+  # (`find_gtable_panel_grob()`) allows, it is found where it is drawn.
+  gtable <- list(layout = data.frame(name = c("panel-1", "strip-t-1"), t = c(8, 7), l = c(5, 5)))
+  expect_equal(maidr:::map_visual_to_dom_panel(list(ROW = 1, COL = 1), gtable), "panel-1")
+})
+
 test_that("a panel found drawn nowhere is read without marks", {
   # Its processors are handed the guess `panel-<row>-<col>`, which a panel
   # may be named whatever its place: under ggplot2 4.0's names, the guess
