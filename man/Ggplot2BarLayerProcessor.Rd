@@ -23,6 +23,7 @@ Processes bar plot layers with complete logic included
     \item \href{#method-Ggplot2BarLayerProcessor-drawn_rows}{\code{Ggplot2BarLayerProcessor$drawn_rows()}}
     \item \href{#method-Ggplot2BarLayerProcessor-stack_rows_of}{\code{Ggplot2BarLayerProcessor$stack_rows_of()}}
     \item \href{#method-Ggplot2BarLayerProcessor-collapse_stacks}{\code{Ggplot2BarLayerProcessor$collapse_stacks()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-discrete_limits_at}{\code{Ggplot2BarLayerProcessor$discrete_limits_at()}}
     \item \href{#method-Ggplot2BarLayerProcessor-format_x_value}{\code{Ggplot2BarLayerProcessor$format_x_value()}}
     \item \href{#method-Ggplot2BarLayerProcessor-panel_x_is_discrete}{\code{Ggplot2BarLayerProcessor$panel_x_is_discrete()}}
     \item \href{#method-Ggplot2BarLayerProcessor-map_discrete_x}{\code{Ggplot2BarLayerProcessor$map_discrete_x()}}
@@ -350,6 +351,35 @@ zero counts negatively.
   }
   \subsection{Returns}{
     A data frame with one row per bar, in the order of \code{stacks}.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-discrete_limits_at"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-discrete_limits_at}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$discrete_limits_at()}}{
+  The limits of a discrete category scale at bar positions
+
+Read from the scale the layout trained (\code{panel_scales_x}), as the
+plot's own copy of a position scale is never trained and answers
+\code{c(0, 1)} for its limits.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$discrete_limits_at(built, positions, flipped = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{The plot's \code{ggplot_build()} result.}
+      \item{\code{positions}}{The bars' built positions along the category axis.}
+      \item{\code{flipped}}{Whether the bars are horizontal, their categories on y.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The limit at each position, or \code{NULL} when the category scale
+is not discrete or a position names no limit.
   }
 }
 

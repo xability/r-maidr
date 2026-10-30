@@ -811,7 +811,8 @@
   of its stack. It now reads 4 is 293.3, 6 is 138.2 and 8 is 211.4, and the
   highlight covers the whole bar: each stack is given an invisible rect
   spanning its segments for maidr.js to outline, as a selector naming the
-  segments matched more rects than there are bars and highlighted nothing.
+  segments matched more rects than there are bars and highlighted nothing
+  (#404).
 
 ### Base R
 

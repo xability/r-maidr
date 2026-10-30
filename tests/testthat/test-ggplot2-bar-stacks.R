@@ -142,6 +142,39 @@ test_that("each stack gets one invisible rect spanning it, which the selector na
   expect_false(is.unsorted(as.numeric(xml2::xml_attr(outlines, "x"))))
 })
 
+test_that("bars in an order of the author's are read and outlined in that order", {
+  # The data and the outlines each order the stacks along the axis; with
+  # the categories put in an order of the author's, each bar is still named
+  # for its own category and has its own outline.
+  skip_if_not_installed("xml2")
+  html <- rendered(stack_plot() + ggplot2::scale_x_discrete(limits = c("8", "6", "4")))
+  layer <- layers_from(html)[[1]]
+  totals <- tapply(mtcars$mpg, mtcars$cyl, sum)[c("8", "6", "4")]
+
+  expect_equal(bar_points(layer$data), sprintf("%s=%g", names(totals), totals))
+  values <- vapply(layer$data, function(p) as.numeric(p$y), numeric(1))
+  outlines <- selected_rects(html, layer$selectors)
+  heights <- as.numeric(xml2::xml_attr(outlines, "height"))
+  expect_equal(heights / heights[1], values / values[1], tolerance = 1e-3)
+  expect_false(is.unsorted(as.numeric(xml2::xml_attr(outlines, "x"))))
+})
+
+test_that("a filled stack is read as the whole bar it is drawn as", {
+  # `position_fill()` is a stack scaled to 1, and draws every bar full
+  # height: each is read as 1, and outlined over its whole height.
+  skip_if_not_installed("xml2")
+  html <- rendered(
+    ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl), mpg)) +
+      ggplot2::geom_col(position = "fill")
+  )
+  layer <- layers_from(html)[[1]]
+
+  expect_equal(vapply(layer$data, function(p) as.numeric(p$y), numeric(1)), c(1, 1, 1))
+  heights <- as.numeric(xml2::xml_attr(selected_rects(html, layer$selectors), "height"))
+  expect_length(heights, 3)
+  expect_equal(heights, rep(heights[1], 3), tolerance = 1e-6)
+})
+
 test_that("each facet panel reads its own stacks and names its own outlines", {
   skip_if_not_installed("xml2")
   plot <- stack_plot() + ggplot2::facet_wrap(~am)

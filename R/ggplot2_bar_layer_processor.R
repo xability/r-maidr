@@ -302,6 +302,19 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         if (is.null(x_values)) {
           x_values <- seq_len(nrow(built_data))
         }
+
+        # Bars read from stacks are in the order they are drawn along the
+        # axis, which on a discrete scale is the order of its limits rather
+        # than of the column's sorted values: under
+        # `scale_x_discrete(limits = c("8", "6", "4"))` the stack drawn
+        # first, 8's, was read as "4". Each is named by the limit at its
+        # position.
+        if (!is.null(stacks)) {
+          named <- self$discrete_limits_at(built, built_data$x, flipped)
+          if (!is.null(named)) {
+            x_values <- named
+          }
+        }
       }
 
       data_points <- list()
@@ -417,6 +430,34 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         sum(ifelse(segment$ymin < 0, -height, height), na.rm = TRUE)
       }, numeric(1))
       bars
+    },
+
+    #' @description The limits of a discrete category scale at bar positions
+    #'
+    #' Read from the scale the layout trained (`panel_scales_x`), as the
+    #' plot's own copy of a position scale is never trained and answers
+    #' `c(0, 1)` for its limits.
+    #'
+    #' @param built The plot's `ggplot_build()` result.
+    #' @param positions The bars' built positions along the category axis.
+    #' @param flipped Whether the bars are horizontal, their categories on y.
+    #' @return The limit at each position, or `NULL` when the category scale
+    #'   is not discrete or a position names no limit.
+    discrete_limits_at = function(built, positions, flipped = FALSE) {
+      scale <- tryCatch(
+        if (isTRUE(flipped)) built$layout$panel_scales_y[[1]] else built$layout$panel_scales_x[[1]],
+        error = function(e) NULL
+      )
+      if (is.null(scale) || !isTRUE(tryCatch(scale$is_discrete(), error = function(e) FALSE))) {
+        return(NULL)
+      }
+      limits <- tryCatch(as.character(scale$get_limits()), error = function(e) NULL)
+      at <- suppressWarnings(as.integer(round(as.numeric(positions))))
+      if (length(limits) == 0L || length(at) == 0L || anyNA(at) ||
+            any(at < 1L | at > length(limits))) {
+        return(NULL)
+      }
+      limits[at]
     },
 
     #' @description Format an x-axis value as character.
