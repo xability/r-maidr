@@ -408,14 +408,15 @@ is drawn on it: the title R drew over its panels, with
 `title(outer = TRUE)` or `mtext(outer = TRUE)` along the top; else, for
 one panel, by its title, and for several, by each panel R drew in turn,
 an untitled one called so: "2 panels: Sales 2023, Costs 2024". A panel's
-title is its plot's, or the one
-[`title()`](https://r.maidr.ai/reference/base-r-wrappers.md) gave it; a
-plot drawn over a panel's, after `par(new = TRUE)`, with `add = TRUE` or
-sent back to it with `par(mfg = )`, is in that panel, which is named by
-the first title drawn on it. The chart's own title is, for several
-panels, only one drawn over them, which would leave a picture of panels
-without one unnamed; and maidr's grid of cells counts a panel spanning
-two cells twice, and an empty cell as a panel.
+title is the one a
+[`title()`](https://r.maidr.ai/reference/base-r-wrappers.md) written
+after its plot gave it, or else its plot's own; a plot drawn over a
+panel's, after `par(new = TRUE)`, with `add = TRUE` or sent back to it
+with `par(mfg = )`, is in that panel, which is named by the first title
+drawn on it. The chart's own title is, for several panels, only one
+drawn over them, which would leave a picture of panels without one
+unnamed; and maidr's grid of cells counts a panel spanning two cells
+twice, and an empty cell as a panel.
 
 #### Usage
 

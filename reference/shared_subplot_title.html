@@ -3,17 +3,23 @@
 title(outer = TRUE) or plot_annotation(), is still titled when every
 one of its panels carries the same title: a par(mfrow) grid of four
 plots each given main = &quot;Weekly sales&quot; is a page of weekly sales. A
-panel's title is its first layer's, compared without the spaces around
-it, which are not seen: R keeps them, so &quot;Sales&quot; and &quot;Sales &quot; are
-one title on the page. A cell with no layers, where nothing was drawn,
-is passed over, and an untitled panel leaves the figure untitled."><meta property="og:description" content="A figure of several panels that draws no title over them, with
+panel's title is the first title among its layers: a Base R plot drawn
+over an untitled one with par(new = TRUE) titles the panel, and the
+lines or points drawn on a plot have no title of their own. It is
+compared without the spaces around it, which are not seen: R keeps
+them, so &quot;Sales&quot; and &quot;Sales &quot; are one title on the page. A cell with
+no layers, where nothing was drawn, is passed over, and a panel with no
+titled layer leaves the figure untitled."><meta property="og:description" content="A figure of several panels that draws no title over them, with
 title(outer = TRUE) or plot_annotation(), is still titled when every
 one of its panels carries the same title: a par(mfrow) grid of four
 plots each given main = &quot;Weekly sales&quot; is a page of weekly sales. A
-panel's title is its first layer's, compared without the spaces around
-it, which are not seen: R keeps them, so &quot;Sales&quot; and &quot;Sales &quot; are
-one title on the page. A cell with no layers, where nothing was drawn,
-is passed over, and an untitled panel leaves the figure untitled."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+panel's title is the first title among its layers: a Base R plot drawn
+over an untitled one with par(new = TRUE) titles the panel, and the
+lines or points drawn on a plot have no title of their own. It is
+compared without the spaces around it, which are not seen: R keeps
+them, so &quot;Sales&quot; and &quot;Sales &quot; are one title on the page. A cell with
+no layers, where nothing was drawn, is passed over, and a panel with no
+titled layer leaves the figure untitled."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -42,10 +48,13 @@ is passed over, and an untitled panel leaves the figure untitled."><meta propert
 title(outer = TRUE) or plot_annotation(), is still titled when every
 one of its panels carries the same title: a par(mfrow) grid of four
 plots each given main = &quot;Weekly sales&quot; is a page of weekly sales. A
-panel&#x27;s title is its first layer&#x27;s, compared without the spaces around
-it, which are not seen: R keeps them, so &quot;Sales&quot; and &quot;Sales &quot; are
-one title on the page. A cell with no layers, where nothing was drawn,
-is passed over, and an untitled panel leaves the figure untitled.">
+panel&#x27;s title is the first title among its layers: a Base R plot drawn
+over an untitled one with par(new = TRUE) titles the panel, and the
+lines or points drawn on a plot have no title of their own. It is
+compared without the spaces around it, which are not seen: R keeps
+them, so &quot;Sales&quot; and &quot;Sales &quot; are one title on the page. A cell with
+no layers, where nothing was drawn, is passed over, and a panel with no
+titled layer leaves the figure untitled.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/shared_subplot_title.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
@@ -109,10 +118,13 @@ is passed over, and an untitled panel leaves the figure untitled.">
 <code>title(outer = TRUE)</code> or <code>plot_annotation()</code>, is still titled when every
 one of its panels carries the same title: a <code>par(mfrow)</code> grid of four
 plots each given <code>main = "Weekly sales"</code> is a page of weekly sales. A
-panel's title is its first layer's, compared without the spaces around
-it, which are not seen: R keeps them, so <code>"Sales"</code> and <code>"Sales "</code> are
-one title on the page. A cell with no layers, where nothing was drawn,
-is passed over, and an untitled panel leaves the figure untitled.</p>
+panel's title is the first title among its layers: a Base R plot drawn
+over an untitled one with <code>par(new = TRUE)</code> titles the panel, and the
+lines or points drawn on a plot have no title of their own. It is
+compared without the spaces around it, which are not seen: R keeps
+them, so <code>"Sales"</code> and <code>"Sales "</code> are one title on the page. A cell with
+no layers, where nothing was drawn, is passed over, and a panel with no
+titled layer leaves the figure untitled.</p>
     </div>
 
     <div class="section level2">
