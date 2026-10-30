@@ -862,6 +862,15 @@
   breaks, or under labels a function makes, are still read by their
   numbers. A chart flipped with `coord_flip()` is read by each axis's own
   names too: a flipped line's points were read by their numbers.
+* A heatmap whose fill is an expression of its data, as
+  `aes(fill = score * 2)` or `log(score)`, is read with the values ggplot2
+  draws it from, in `geom_tile()` and `geom_raster()`. Each tile's value was
+  looked up as a column named after its mapping, which named none, so every
+  cell was read as missing. An expression for `x` or `y`, as
+  `factor(month, levels = month.abb)`, or a `geom_tile()` given data of its
+  own, stopped `show()` and `save_html()` with "attempt to set an attribute
+  on NULL". The layer's values are now evaluated as ggplot2 evaluates them,
+  in the layer's data and under its mapping.
 
 ### Base R
 
