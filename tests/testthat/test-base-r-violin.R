@@ -123,11 +123,28 @@ test_that("each curve carries one point per evaluated position", {
     positions <- vapply(curve, function(p) p$y, numeric(1))
     expect_false(is.unsorted(positions))
     expect_true(all(vapply(curve, function(p) p$width, numeric(1)) >= 0))
-    # `width`, not `density`: the ggplot2 and matplotlib paths spell it that
-    # way for this layer and the frontend reads `density ?? width ?? 0`. No
-    # pixel coordinates -- the base R path has no SVG coordinate injection, so
-    # one emitted here would be a guess at where the point ended up.
-    expect_equal(sort(names(curve[[1]])), c("width", "x", "y"))
+    # No pixel coordinates -- the base R path has no SVG coordinate
+    # injection, so one emitted here would be a guess at where the point
+    # ended up.
+    expect_equal(sort(names(curve[[1]])), c("density", "width", "x", "y"))
+  }
+})
+
+test_that("each curve point carries its density as a density", {
+  skip_if_no_vioplot()
+  s <- violin_samples()
+
+  kde <- violin_layers(list(s$A, s$B, names = c("A", "B")))$layers[[2]]
+
+  # The number is `sm.density()`'s estimate, and maidr.js names it by the
+  # field it comes in: sent as `width` alone, it was read as the width the
+  # violin is drawn at. `width` keeps the same number for a maidr.js that
+  # reads only `width` on this layer.
+  for (curve in kde$data) {
+    densities <- vapply(curve, function(p) p$density, numeric(1))
+    widths <- vapply(curve, function(p) p$width, numeric(1))
+    expect_true(all(densities >= 0))
+    expect_equal(densities, widths)
   }
 })
 
