@@ -119,8 +119,18 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         return(data)
       }
 
-      x_col <- names(data)[1]
-      y_col <- names(data)[2]
+      # The heatmap's own x and y columns, by its mapping. The data's first
+      # two columns were taken for them: in `data.frame(score, x, y)` the
+      # fill was made a factor, drawn with a discrete legend, and the rows
+      # sorted by it, out of the order the cells are paired with; and where
+      # the tiles draw data of their own, the plot's data is another
+      # layer's, whose points were moved to discrete positions.
+      columns <- heat_position_columns(self$get_own_layer(plot), plot, data)
+      if (is.null(columns)) {
+        return(data)
+      }
+      x_col <- columns[["x"]]
+      y_col <- columns[["y"]]
 
       x_scale <- plot$scales$get_scales("x")
       y_scale <- plot$scales$get_scales("y")
@@ -611,4 +621,53 @@ heat_fill_scores <- function(score_matrix, source, x_col, y_col, fill_col,
     score_matrix[cbind(cell_y[hit], cell_x[hit])] <- score_val
   }
   score_matrix
+}
+
+#' The columns of the plot's data a heatmap layer takes its x and y from
+#'
+#' A heatmap is reordered before it is drawn, its x and y made factors, so
+#' its tiles come out in the order the reading pairs them with
+#' (`reorder_layer_data()`). That is done to the plot's data, and only where
+#' the tiles draw it: a layer with data of its own leaves it alone. Each
+#' position is the column its mapping names, the layer's or else the plot's
+#' unless `inherit.aes = FALSE`: a bare name, `.data$x` or `.data[["x"]]`.
+#' An expression names no one column, and is not reordered.
+#'
+#' @param layer The heatmap's layer, or NULL
+#' @param plot The ggplot2 object
+#' @param data The plot's data
+#' @return `c(x = , y = )`, the two column names, or NULL
+#' @keywords internal
+heat_position_columns <- function(layer, plot, data) {
+  if (is.null(layer) || is.data.frame(layer$data)) {
+    return(NULL)
+  }
+  mapping <- as.list(layer$mapping)
+  if (!isFALSE(layer$inherit.aes)) {
+    inherited <- as.list(plot$mapping)
+    mapping <- c(mapping, inherited[setdiff(names(inherited), names(mapping))])
+  }
+  column <- function(aesthetic) {
+    quo <- mapping[[aesthetic]]
+    if (is.null(quo)) {
+      return(NULL)
+    }
+    expr <- rlang::quo_get_expr(quo)
+    name <- if (is.symbol(expr)) {
+      as.character(expr)
+    } else if (is.call(expr) && length(expr) == 3L && identical(expr[[2]], quote(.data))) {
+      if (identical(expr[[1]], quote(`$`))) {
+        as.character(expr[[3]])
+      } else if (identical(expr[[1]], quote(`[[`))) {
+        tryCatch(eval(expr[[3]], rlang::quo_get_env(quo)), error = function(e) NULL)
+      }
+    }
+    if (is.character(name) && length(name) == 1L && name %in% names(data)) name
+  }
+  x <- column("x")
+  y <- column("y")
+  if (is.null(x) || is.null(y)) {
+    return(NULL)
+  }
+  c(x = x, y = y)
 }

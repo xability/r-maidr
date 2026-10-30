@@ -890,6 +890,14 @@
   carried only as text, in a field maidr.js does not read, so a reader
   heard nothing of the colour bar, and the legend had no title in the
   reading.
+* A heatmap whose x and y are not its data's first two columns is drawn
+  and highlighted as written. maidr reorders a heatmap's rows before
+  drawing, making its x and y factors, and took them to be the first two
+  columns: in `data.frame(score, x, y)` the fill was made a factor and
+  drawn with a discrete legend, and moving between cells highlighted the
+  wrong tiles. Where the tiles draw data of their own, the plot's data
+  belongs to another layer, and that layer's points were moved to discrete
+  positions, drawn on discrete axes and described as categories.
 
 ### Base R
 
