@@ -444,8 +444,9 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 #'
 #' An aesthetic the layer does not map is read from the data's first,
 #' second and third column, for `x`, `y` and `fill`, as it was before. One
-#' that cannot be evaluated here, as `after_stat()` cannot, is read as
-#' missing.
+#' that cannot be evaluated against the layer's data is read as missing: an
+#' `after_stat()` of a variable the stat computes, as `after_stat(group)`,
+#' names no column of it.
 #'
 #' @param plot The ggplot2 object
 #' @param layer_index The layer's index in `plot$layers`

@@ -79,3 +79,19 @@ test_that("each panel of a faceted heatmap is read from its own rows", {
     list(expected_cells(function(s) s / 2), expected_cells(function(s) s * 5))
   )
 })
+
+test_that("a pronoun, a constant and a value the stat computes are read as ggplot2 reads them", {
+  # `.data$score` names the column as plainly as `score` does.
+  pronoun <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = .data$score)) + ggplot2::geom_tile()
+  testthat::expect_equal(heat_cells(pronoun), list(expected_cells()))
+
+  # A constant is every tile's value.
+  constant <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = 5)) + ggplot2::geom_tile()
+  testthat::expect_equal(heat_cells(constant), list(expected_cells(function(s) rep(5, length(s)))))
+
+  # `group` is computed by the stat and is no column of the layer's data, so
+  # the cells are read as missing rather than guessed.
+  computed <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = ggplot2::after_stat(group))) +
+    ggplot2::geom_tile()
+  testthat::expect_true(all(is.na(unlist(heat_cells(computed)))))
+})

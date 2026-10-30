@@ -29,7 +29,8 @@ of its own, stopped the reading.
 \details{
 An aesthetic the layer does not map is read from the data's first,
 second and third column, for \code{x}, \code{y} and \code{fill}, as it was before. One
-that cannot be evaluated here, as \code{after_stat()} cannot, is read as
-missing.
+that cannot be evaluated against the layer's data is read as missing: an
+\code{after_stat()} of a variable the stat computes, as \code{after_stat(group)},
+names no column of it.
 }
 \keyword{internal}
