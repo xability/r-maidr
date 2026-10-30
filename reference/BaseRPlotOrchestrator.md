@@ -52,6 +52,8 @@ combines the results into a comprehensive interactive plot.
 
 - [`BaseRPlotOrchestrator$unsupported_layer_flags()`](#method-BaseRPlotOrchestrator-unsupported_layer_flags)
 
+- [`BaseRPlotOrchestrator$fills_read_curve()`](#method-BaseRPlotOrchestrator-fills_read_curve)
+
 - [`BaseRPlotOrchestrator$has_unsupported_layers()`](#method-BaseRPlotOrchestrator-has_unsupported_layers)
 
 - [`BaseRPlotOrchestrator$unsupported_group_indices()`](#method-BaseRPlotOrchestrator-unsupported_group_indices)
@@ -461,6 +463,40 @@ disappear from the accessible output, so they count as unsupported.
 #### Returns
 
 Logical vector, one entry per detected layer
+
+------------------------------------------------------------------------
+
+### `BaseRPlotOrchestrator$fills_read_curve()`
+
+Whether a [`polygon()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+fills a curve its plot already reads
+
+`d <- density(x); plot(d); polygon(d, col = ...)` is how Base R shades
+the area under a density curve: the polygon is drawn through the curve's
+own points, so it says nothing the curve layer does not. It counted as
+an overlay maidr could not read, and the whole chart was drawn as a
+picture. A polygon whose points are those of a curve read from the same
+plot is left out of the reading, as a legend is, and drawn as it was.
+Any other polygon still counts as data maidr cannot read, a polygon
+closed down to a baseline among them:
+`polygon(c(d$x, rev(d$x)), c(d$y, rep(0, n)))` has points the curve does
+not.
+
+#### Usage
+
+    BaseRPlotOrchestrator$fills_read_curve(layer)
+
+#### Arguments
+
+- `layer`:
+
+  A detected layer entry
+
+#### Returns
+
+TRUE when the layer is a
+[`polygon()`](https://r.maidr.ai/reference/base-r-wrappers.md) through
+the points of a line or smooth layer of the same plot
 
 ------------------------------------------------------------------------
 

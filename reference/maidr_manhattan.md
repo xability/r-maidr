@@ -121,7 +121,7 @@ declared chart
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   snps <- data.frame(
     snp = paste0("rs", 1:8),
-    chr = rep(c("1", "2"), each = 4),
+    chr = rep(c("chr1", "chr2"), each = 4),
     pos = c(1, 2, 3, 4, 6, 7, 8, 9),
     p = c(0.3, 2e-9, 0.01, 0.6, 0.05, 0.8, 4e-10, 0.2)
   )
@@ -135,8 +135,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
       significance = -log10(5e-8)
     ) +
     ggplot2::geom_hline(yintercept = -log10(5e-8), linetype = "dashed") +
-    ggplot2::scale_x_continuous(breaks = c(2.5, 7.5), labels = c("1", "2")) +
-    ggplot2::labs(x = "Chromosome", y = "-log10 p")
+    ggplot2::scale_x_continuous(breaks = c(2.5, 7.5), labels = c("chr1", "chr2")) +
+    ggplot2::labs(x = "Genomic position", y = "-log10 p")
 
   if (interactive()) {
     show(manhattan)

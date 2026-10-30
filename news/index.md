@@ -943,6 +943,23 @@
 
 #### ggplot2
 
+- Each subplot of a
+  [`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)
+  or
+  [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html)
+  chart highlights the marks of its own panel. maidr worked out the name
+  of a panel’s grob from its place in the grid, which ggplot2 does not
+  name them by: in a 2 x 2 grid the top right and bottom left panels
+  took each other’s marks, and in one of two rows and three columns, or
+  three and two, four of the six panels another’s. The reader heard one
+  panel’s values with another’s marks lit, and the subplots were out of
+  order, as maidr.js places each where its first mark is: the 2 x 2 wrap
+  of Regions A to D opened on Region C. A panel is now found where
+  ggplot2 draws it.
+- A facet subplot is named as its strips name it, through the facet’s
+  labeller: `labeller(vs = c("0" = "V-engine", "1" = "Straight"))` names
+  it “V-engine” where it was “0”, and `label_both` “cyl: 4”. A
+  `label_parsed` label is read as written, “alpha^2”.
 - The `d` key opens the chart description, and `L` then `T` says the
   title, on a box plot, violin plot, heat map, scatter plot, smooth,
   volcano plot and gantt chart. Their layers carried an empty object,
@@ -952,6 +969,13 @@
   text and the arrows were refused until they pressed Escape. A layer
   title is now written as one string or left out, and a layer without
   one is read under the chart’s title.
+- A heat map’s values are named by its legend’s title, as the groups of
+  a stacked or dodged bar chart are. With `labs(fill = "Correlation")`
+  the legend said Correlation while a cell was announced as “value is
+  0.8”, after the column the fill was mapped to, and the description’s Z
+  axis said “value”. Without `labs(fill = )` the value is still named
+  after that column, or “count” for
+  [`geom_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html).
 - A layer that maps x or y in its own
   [`aes()`](https://ggplot2.tidyverse.org/reference/aes.html) is read
   under the axis title,
@@ -1128,6 +1152,17 @@
   package’s own
   [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) method
   ([\#333](https://github.com/xability/r-maidr/issues/333)).
+- A density curve shaded with
+  [`polygon()`](https://r.maidr.ai/reference/base-r-wrappers.md) is read
+  as the curve. `d <- density(x); plot(d); polygon(d, col = ...)`, Base
+  R’s usual way to fill the area under a density, was saved as a picture
+  with “This plot contains unsupported elements”: the polygon counted as
+  an overlay maidr could not read, though it is drawn through the
+  curve’s own points. A polygon through the points of a line or density
+  curve read from the same plot is now left out of the reading, as a
+  legend is, and drawn as it was; any other polygon still makes the
+  chart a picture
+  ([\#409](https://github.com/xability/r-maidr/issues/409)).
 - `layout(1)`, and `par(op)` with the settings `op <- par(mfrow = ...)`
   saved, are read as the resets they are: a chart drawn after one is
   read as a single panel. maidr kept the grid set before the reset, and
@@ -1459,6 +1494,20 @@
   [`run_example()`](https://r.maidr.ai/reference/run_example.md) and run
   with `run_example("<name>", type = "lattice")`
   ([\#333](https://github.com/xability/r-maidr/issues/333)).
+- The keyboard table in the README, the getting-started vignette and the
+  examples hub says what the arrows do on a horizontal chart. It said Up
+  and Down move between “box plot sections”, which holds for a vertical
+  box plot only: on a horizontal one, as the vignette’s own
+  [`bwplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) is, Up and
+  Down move between the boxes and Left and Right along the sections
+  ([\#411](https://github.com/xability/r-maidr/issues/411)).
+- The Manhattan plot in the `volcano` example and in
+  [`?maidr_manhattan`](https://r.maidr.ai/reference/maidr_manhattan.md)
+  titles its x axis “Genomic position”, which is what its x holds, and
+  names each chromosome’s stretch on the ticks, “chr1” to “chr3”. The
+  axis was titled “Chromosome”, so a SNP on chromosome 3 was read
+  “Chromosome is 450”
+  ([\#411](https://github.com/xability/r-maidr/issues/411)).
 
 ## maidr 0.5.0
 

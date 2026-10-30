@@ -179,9 +179,6 @@ Internal functions for package developers
 - [`get_facet_groups()`](https://r.maidr.ai/reference/get_facet_groups.md)
   : Get facet group information for a panel
 
-- [`map_visual_to_dom_panel()`](https://r.maidr.ai/reference/map_visual_to_dom_panel.md)
-  : Map visual panel position to DOM panel name
-
 - [`organize_facet_grid()`](https://r.maidr.ai/reference/organize_facet_grid.md)
   : Organize subplots into 2D grid structure
 

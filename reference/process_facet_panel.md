@@ -38,7 +38,8 @@ process_facet_panel(
 
 - gtable_panel_name:
 
-  Gtable panel name
+  Gtable panel name, or NULL when no panel is drawn at the panel's
+  place, which is then read without marks
 
 - built:
 

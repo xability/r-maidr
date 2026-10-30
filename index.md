@@ -618,8 +618,8 @@ documentation:
 | Key | Action |
 |----|----|
 | **Tab** | Focus the chart; **Shift + Tab** leaves it |
-| **Left / Right** | Move between data points |
-| **Up / Down** | Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them |
+| **Left / Right** | Move between data points, or along the sections of a horizontal box plot |
+| **Up / Down** | Move between series, stacked segments or heat map rows, along the sections of a vertical box plot, or between the categories of a horizontal chart, on a chart that has them |
 | **Page Up / Page Down** | Switch between the layers of a chart that has several |
 | **B** | Toggle braille mode |
 | **T** | Toggle text mode |

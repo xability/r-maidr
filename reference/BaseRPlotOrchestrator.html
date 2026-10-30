@@ -36,7 +36,7 @@ the results into a comprehensive interactive plot.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-05">
+<meta name="DC.date" content="2026-10-30">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -123,6 +123,7 @@ the results into a comprehensive interactive plot.</p>
 <li><p><a href="#method-BaseRPlotOrchestrator-picture_title"><code>BaseRPlotOrchestrator$picture_title()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-get_grob_for_layer"><code>BaseRPlotOrchestrator$get_grob_for_layer()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-unsupported_layer_flags"><code>BaseRPlotOrchestrator$unsupported_layer_flags()</code></a></p></li>
+<li><p><a href="#method-BaseRPlotOrchestrator-fills_read_curve"><code>BaseRPlotOrchestrator$fills_read_curve()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-has_unsupported_layers"><code>BaseRPlotOrchestrator$has_unsupported_layers()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-unsupported_group_indices"><code>BaseRPlotOrchestrator$unsupported_group_indices()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-resolve_fallback_scope"><code>BaseRPlotOrchestrator$resolve_fallback_scope()</code></a></p></li>
@@ -479,13 +480,43 @@ disappear from the accessible output, so they count as unsupported.</p><div clas
 
 </div>
 
+<p></p><hr><a id="method-BaseRPlotOrchestrator-fills_read_curve"></a><div class="section">
+<h3 id="baserplotorchestrator-fills-read-curve-"><code>BaseRPlotOrchestrator$fills_read_curve()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-fills-read-curve-"></a></h3>
+<p>Whether a <code><a href="base-r-wrappers.html">polygon()</a></code> fills a curve its plot already reads</p>
+<p><code>d &lt;- density(x); plot(d); polygon(d, col = ...)</code> is how Base R shades
+the area under a density curve: the polygon is drawn through the
+curve's own points, so it says nothing the curve layer does not. It
+counted as an overlay maidr could not read, and the whole chart was
+drawn as a picture. A polygon whose points are those of a curve read
+from the same plot is left out of the reading, as a legend is, and
+drawn as it was. Any other polygon still counts as data maidr cannot
+read, a polygon closed down to a baseline among them:
+<code>polygon(c(d$x, rev(d$x)), c(d$y, rep(0, n)))</code> has points the curve
+does not.</p><div class="section">
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">fills_read_curve</span><span class="op">(</span><span class="va">layer</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>A detected layer entry</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
+<p>TRUE when the layer is a <code><a href="base-r-wrappers.html">polygon()</a></code> through the points of a
+line or smooth layer of the same plot</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BaseRPlotOrchestrator-has_unsupported_layers"></a><div class="section">
 <h3 id="baserplotorchestrator-has-unsupported-layers-"><code>BaseRPlotOrchestrator$has_unsupported_layers()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-has-unsupported-layers-"></a></h3>
 <p>Check if any HIGH-level layers are unsupported (unknown type)</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">has_unsupported_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
+<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
 <p>Logical indicating if there are unsupported layers</p>
 </div>
 
@@ -494,10 +525,10 @@ disappear from the accessible output, so they count as unsupported.</p><div clas
 <p></p><hr><a id="method-BaseRPlotOrchestrator-unsupported_group_indices"></a><div class="section">
 <h3 id="baserplotorchestrator-unsupported-group-indices-"><code>BaseRPlotOrchestrator$unsupported_group_indices()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-unsupported-group-indices-"></a></h3>
 <p>Plot groups holding a layer maidr cannot process</p><div class="section">
-<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">unsupported_group_indices</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
+<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
 <p>Integer vector of plot-group indices, in ascending order</p>
 </div>
 
@@ -514,10 +545,10 @@ affected panels. It widens to the whole figure when there is nothing
 left to scope to: a single-panel figure, a figure whose every
 visible panel is affected, an unsupported call that belongs to no
 panel of the exported page, or an unsupported HIGH-level call.</p><div class="section">
-<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">resolve_fallback_scope</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
+<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
 <p>Invisible NULL; the scope is cached on the orchestrator</p>
 </div>
 
@@ -526,17 +557,17 @@ panel of the exported page, or an unsupported HIGH-level call.</p><div class="se
 <p></p><hr><a id="method-BaseRPlotOrchestrator-is_group_scoped_out"></a><div class="section">
 <h3 id="baserplotorchestrator-is-group-scoped-out-"><code>BaseRPlotOrchestrator$is_group_scoped_out()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-is-group-scoped-out-"></a></h3>
 <p>Check whether a plot group is scoped out of the payload</p><div class="section">
-<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">is_group_scoped_out</span><span class="op">(</span><span class="va">group_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>group_index</code></dt>
 <dd><p>Plot-group index to test</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
+<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
 <p>TRUE when the group's panel falls back on its own</p>
 </div>
 
@@ -545,10 +576,10 @@ panel of the exported page, or an unsupported HIGH-level call.</p><div class="se
 <p></p><hr><a id="method-BaseRPlotOrchestrator-fallback_panels"></a><div class="section">
 <h3 id="baserplotorchestrator-fallback-panels-"><code>BaseRPlotOrchestrator$fallback_panels()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-fallback-panels-"></a></h3>
 <p>Panels rendered without accessible data</p><div class="section">
-<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">fallback_panels</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
+<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
 <p>Integer vector of 1-based panel numbers, empty when the whole
 figure renders normally or falls back as a whole</p>
 </div>
@@ -558,10 +589,10 @@ figure renders normally or falls back as a whole</p>
 <p></p><hr><a id="method-BaseRPlotOrchestrator-should_fallback"></a><div class="section">
 <h3 id="baserplotorchestrator-should-fallback-"><code>BaseRPlotOrchestrator$should_fallback()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-should-fallback-"></a></h3>
 <p>Determine if the plot should fall back to image rendering</p><div class="section">
-<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
+<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">should_fallback</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
+<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
 <p>Logical indicating if fallback should be used</p>
 </div>
 
@@ -570,10 +601,10 @@ figure renders normally or falls back as a whole</p>
 <p></p><hr><a id="method-BaseRPlotOrchestrator-clone"></a><div class="section">
 <h3 id="baserplotorchestrator-clone-"><code>BaseRPlotOrchestrator$clone()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
+<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
