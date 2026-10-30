@@ -1781,8 +1781,9 @@ test_that("a Base R layout() page is held to its size by the room R gives its pl
 
 test_that("drawn at 7 x 7 in, a Base R chart is the drawing ggplotify makes of it", {
   testthat::skip_on_cran()
-  # base_r_drawing_grob() is ggplotify::as.grob() with the page sized; at
-  # as.grob()'s own 7 x 7 in, the two draw the same.
+  # base_r_drawing_grob() is ggplotify::as.grob() with the page sized and
+  # R's own `xpd`, where as.grob() sets `xpd = NA`; at as.grob()'s own
+  # 7 x 7 in, the two draw the same once that is set back.
   draw <- function() {
     graphics::plot(1:10, (1:10)^2, main = "Legend")
     graphics::legend("topleft", legend = c("first series", "second"), pch = 1:2)
@@ -1797,7 +1798,10 @@ test_that("drawn at 7 x 7 in, a Base R chart is the drawing ggplotify makes of i
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
   ours <- maidr:::base_r_drawing_grob(draw, c(width = 7, height = 7))
-  theirs <- ggplotify::as.grob(draw)
+  theirs <- ggplotify::as.grob(function() {
+    graphics::par(xpd = FALSE)
+    draw()
+  })
   testthat::expect_identical(svg_of(ours), svg_of(theirs))
 })
 
