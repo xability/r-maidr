@@ -447,9 +447,11 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 #' such column. A fill the layer does not map is read as missing: its tiles
 #' are all drawn in one colour, so no column of the data is what they show.
 #' It was read from the data's third column, whatever that held. An
-#' aesthetic that cannot be evaluated against the layer's data is read as
-#' missing too: an `after_stat()` of a variable the stat computes, as
-#' `after_stat(group)`, names no column of it.
+#' aesthetic that cannot be evaluated against the layer's data, or is no
+#' vector there, is read as missing too. An `after_stat()` of a variable
+#' the stat computes names no column of it, as `after_stat(group)` does, or
+#' names a function: `after_stat(density)` is `stats::density()` there,
+#' which stopped the reading.
 #'
 #' @param plot The ggplot2 object
 #' @param layer_index The layer's index in `plot$layers`
@@ -485,6 +487,9 @@ heat_source_frame <- function(plot, layer_index) {
       return(data[[columns[position]]])
     }
     value <- tryCatch(rlang::eval_tidy(quo, data), error = function(e) NULL)
+    if (!is.atomic(value)) {
+      return(rep(NA, rows))
+    }
     if (length(value) == 1L && rows != 1L) {
       value <- rep(value, rows)
     }

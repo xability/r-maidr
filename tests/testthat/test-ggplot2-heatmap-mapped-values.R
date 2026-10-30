@@ -114,3 +114,18 @@ test_that("an unmapped fill is read as missing, whatever columns the data has", 
   )$generate_maidr_data()$subplots[[1]][[1]]$layers[[1]]
   testthat::expect_null(layer$axes$z)
 })
+
+test_that("a fill the stat computes under a function's name is read as missing", {
+  # `after_stat(density)` is the density stat_density_2d() computes and,
+  # evaluated against the layer's data, stats::density(), a function: the
+  # reading stopped `show()` and `save_html()` with "attempt to replicate an
+  # object of type 'closure'". The values exist only in the built data.
+  set.seed(1)
+  points <- data.frame(x = stats::runif(40), y = stats::runif(40))
+  raster <- ggplot2::ggplot(points, ggplot2::aes(x, y)) +
+    ggplot2::stat_density_2d(
+      ggplot2::aes(fill = ggplot2::after_stat(density)),
+      geom = "raster", contour = FALSE, n = 3
+    )
+  testthat::expect_true(all(is.na(unlist(heat_cells(raster)))))
+})

@@ -33,8 +33,10 @@ second column, as it was before, and as missing where the data has no
 such column. A fill the layer does not map is read as missing: its tiles
 are all drawn in one colour, so no column of the data is what they show.
 It was read from the data's third column, whatever that held. An
-aesthetic that cannot be evaluated against the layer's data is read as
-missing too: an \code{after_stat()} of a variable the stat computes, as
-\code{after_stat(group)}, names no column of it.
+aesthetic that cannot be evaluated against the layer's data, or is no
+vector there, is read as missing too. An \code{after_stat()} of a variable
+the stat computes names no column of it, as \code{after_stat(group)} does, or
+names a function: \code{after_stat(density)} is \code{stats::density()} there,
+which stopped the reading.
 }
 \keyword{internal}
