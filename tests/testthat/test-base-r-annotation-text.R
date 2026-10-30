@@ -583,8 +583,9 @@ test_that("the title and axis titles announced are the text R draws", {
   testthat::expect_identical(first_layer(chart)$axes$x$label, "2024")
   testthat::expect_identical(first_layer(chart)$axes$y$label, "m\nn")
 
+  # monthplot()'s xlab names its series, the z the months are read under.
   chart <- schema(function() monthplot(ts(1:24, frequency = 12), xlab = 2024L, ylab = TRUE))
-  testthat::expect_identical(first_layer(chart)$axes$x$label, "2024")
+  testthat::expect_identical(first_layer(chart)$axes$z$label, "2024")
   testthat::expect_identical(first_layer(chart)$axes$y$label, "TRUE")
 })
 

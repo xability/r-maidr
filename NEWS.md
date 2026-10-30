@@ -970,6 +970,33 @@
   shows the data it was drawn with. An argument written longer than R lets
   a name be (10,000 bytes), or written as `..1`, is still titled with its
   values (#353).
+* `monthplot()`'s `xlab` names the series, not the years. It names the axis
+  the month labels are written along, and was put on the cycles, so
+  `monthplot(nottem, xlab = "Month")` was read "Month is 1921, Temperature
+  (F) is 44.2, Group is Jan" and described with a "Month range: 1920 to
+  1939". It is now the name each month is read under, and the cycles are
+  "Year" for a monthly or quarterly time series, "Cycle" otherwise: "Year is
+  1921, Temperature (F) is 44.2, Month is Jan" (#406).
+* A `qqline()` is read under the axis titles of the plot it is drawn on,
+  "Theoretical Quantiles is -2.33, Sample Quantiles is -2.2" on a
+  `qqnorm()`, where it was "X is -2.33, Y is -2.2": a line drawn on a plot
+  took the plot's titles only when drawn with `abline()`, `lines()` or
+  `points()` (#406).
+* A correlogram's value axis is named as `plot.acf()` names it: "ACF" for
+  a `ccf()` as for an `acf()`, where the reading said "CCF" while the chart
+  said "ACF", and "ACF (cov)" for a covariance, where it said
+  "Autocovariance". An `xlab` or `ylab` the call gives is read too (#406).
+* The cells of an `image()` heat map are named by the `axis()` labels drawn
+  at their centres. `image(m, axes = FALSE)` with `axis(1, at = seq(0, 1,
+  length.out = 5), labels = c("Mon", ...))` and `axis(2, ...)` was read by
+  index, "Day is 2, Hour is 1" for the cell the chart shows as Tue at 9am,
+  and "Highest cell: 3, 4"; it now reads "Day is Tue, Hour is 9am".
+  Several `axis()` calls on one side are read together; calls that name
+  some cells and not others name none (#406).
+* The two halves of a `biplot()` are titled "Observations" and "Variables",
+  under the chart's own title. Both carried the chart's title and plot the
+  same two components, so nothing in the lobby or the description said
+  which half was which (#406).
 * The data a screen reader reads names a Base R chart's axes, and a
   histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
   as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,

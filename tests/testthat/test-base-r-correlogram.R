@@ -78,7 +78,18 @@ test_that("the lag axis is named, and so is what is drawn against it", {
   expect_equal(acf_layer$axes$x$label, "Lag")
   expect_equal(acf_layer$axes$y$label, "ACF")
   expect_equal(pacf_layer$axes$y$label, "Partial ACF")
-  expect_equal(ccf_layer$axes$y$label, "CCF")
+  # `plot.acf()` draws a cross-correlation under "ACF" too, and the chart's
+  # axis is what the reading names.
+  expect_equal(ccf_layer$axes$y$label, "ACF")
+})
+
+test_that("the axis titles the caller wrote are the ones read", {
+  layer <- correlogram_layers(function() {
+    acf(V, lag.max = 3, xlab = "Lag (months)", ylab = "Autocorrelation")
+  })[[1]]
+
+  expect_equal(layer$axes$x$label, "Lag (months)")
+  expect_equal(layer$axes$y$label, "Autocorrelation")
 })
 
 test_that("a covariance correlogram is not announced as a correlation", {
@@ -90,7 +101,7 @@ test_that("a covariance correlogram is not announced as a correlation", {
   })[[1]]
   expected <- stats::acf(V, lag.max = 3, type = "covariance", plot = FALSE)
 
-  expect_equal(layer$axes$y$label, "Autocovariance")
+  expect_equal(layer$axes$y$label, "ACF (cov)")
   expect_equal(values_of(layer), as.numeric(drop(expected$acf)))
 })
 

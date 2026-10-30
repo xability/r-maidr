@@ -226,3 +226,26 @@ test_that("a fit with only one component is declined rather than halved", {
 
   testthat::expect_null(result)
 })
+
+test_that("each half is titled for what it holds, under the chart's title", {
+  # Both halves carried the chart's title and plot the same two components,
+  # so nothing in the lobby or the description said which held the
+  # observations and which the variables.
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+  biplot(stats::prcomp(READINGS), main = "Readings: PC1 vs PC2")
+  schema <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
+
+  grid <- schema$subplots
+  expect_equal(cell_layer(grid, 1, 1)$title, "Observations")
+  expect_equal(cell_layer(grid, 1, 2)$title, "Variables")
+  expect_equal(schema$title, "Readings: PC1 vs PC2")
+})

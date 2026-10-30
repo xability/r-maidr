@@ -131,6 +131,18 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         if (!is.null(caller_cols)) col_names <- caller_cols
       }
 
+      # image() writes no names on its axes; an author who wants them draws
+      # them with axis(), as `image(m, axes = FALSE); axis(1, at = seq(0, 1,
+      # length.out = 5), labels = c("Mon", ...))` does. Read where they name
+      # every cell (`image_axis_names()`), over the matrix's dimnames, which
+      # image() never draws.
+      if (identical(function_name, "image")) {
+        named_x <- self$image_axis_names(layer_info, 1L, ncol(heat_matrix))
+        if (!is.null(named_x)) col_names <- named_x
+        named_y <- self$image_axis_names(layer_info, 2L, nrow(heat_matrix))
+        if (!is.null(named_y)) row_names <- named_y
+      }
+
       # An unnamed matrix keeps no dimnames through the reorder, so fall back
       # the way heatmap() itself does: it labels the reordered matrix with
       # `(1L:nr)[rowInd]`, i.e. the ORIGINAL indices in drawn order, not with
@@ -171,6 +183,62 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         x = as.list(col_names),
         y = as.list(row_names)
       )
+    },
+
+    #' @description The names the `axis()` calls drawn on an `image()` give its cells
+    #'
+    #' `image(z)` centres its cells on `seq(0, 1, length.out = n)` along each
+    #' axis and writes no names there. The `axis()` calls drawn on that side
+    #' of the same plot name the cells when their `labels` put a name at the
+    #' centre of every cell: the reader is told "Day is Tue, Hour is 9am"
+    #' where they heard "Day is 2, Hour is 1". Several calls on one side are
+    #' read together, a later name at a centre written over an earlier one,
+    #' as R draws it. Calls that name some cells and not others name none of
+    #' them, as a value between ticks has no name of its own.
+    #'
+    #' Only `image(z)`'s own centres are read. An `image(x, y, z)` given its
+    #' coordinates is not read as a heat map here at all (`extract_data()`
+    #' finds no matrix in `x`), so it has no cells to name.
+    #'
+    #' @param layer_info Layer information with the recorded call and its
+    #'   plot group
+    #' @param side The axis: 1 for x, 2 for y
+    #' @param cells How many cells run along it
+    #' @return One name per cell, from the low end of the axis, or NULL
+    image_axis_names = function(layer_info, side, cells) {
+      if (cells < 1L) {
+        return(NULL)
+      }
+      centres <- seq(0, 1, length.out = cells)
+      named <- rep(NA_character_, cells)
+      for (call in layer_info$group$low_calls) {
+        if (!identical(call$function_name, "axis") || isTRUE(call$overlay)) {
+          next
+        }
+        args <- call$args
+        at <- suppressWarnings(as.numeric(args$at))
+        labels <- args$labels
+        drawn_side <- suppressWarnings(as.numeric(
+          if (!is.null(args$side)) args$side else args[[1]]
+        ))
+        if (!identical(drawn_side, as.numeric(side)) || !length(at) ||
+              !(is.character(labels) || is.factor(labels)) ||
+              length(labels) != length(at)) {
+          next
+        }
+        labels <- as.character(labels)
+        for (cell in seq_len(cells)) {
+          centre <- centres[[cell]]
+          hit <- which(!is.na(at) & abs(at - centre) <= 1e-9 * max(1, abs(centre)))
+          if (length(hit) > 0L) {
+            named[[cell]] <- labels[[hit[[1L]]]]
+          }
+        }
+      }
+      if (anyNA(named) || !all(nzchar(named))) {
+        return(NULL)
+      }
+      named
     },
 
     #' @description Reproduce the row/column ordering heatmap() draws with

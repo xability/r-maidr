@@ -71,14 +71,13 @@ BaseRBiplotLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
-      title <- self$extract_main_title(info)
       panels <- list()
       for (index in seq_along(halves)) {
         half <- halves[[index]]
         panels[[length(panels) + 1]] <- list(
           row = 1,
           col = index,
-          layers = list(private$panel_layer(half, index, title))
+          layers = list(private$panel_layer(half, index))
         )
       }
 
@@ -91,8 +90,11 @@ BaseRBiplotLayerProcessor <- R6::R6Class(
     }
   ),
   private = list(
-    # One half's points, axes and selector.
-    panel_layer = function(half, panel, title) {
+    # One half's points, axes and selector, titled for what it holds: the
+    # chart's own title stays the figure's. Both halves were titled with it,
+    # and plot the same two components, so nothing in the lobby or the
+    # description said which held the observations and which the variables.
+    panel_layer = function(half, panel) {
       list(
         data = lapply(
           seq_along(half$names),
@@ -107,7 +109,7 @@ BaseRBiplotLayerProcessor <- R6::R6Class(
           paste0("g#graphics-plot-", panel, "-text-1\\.1 > g")
         ),
         type = "point",
-        title = title,
+        title = half$title,
         axes = build_axes(x = half$x_label, y = half$y_label)
       )
     },
@@ -127,11 +129,13 @@ BaseRBiplotLayerProcessor <- R6::R6Class(
       list(
         list(
           x = scores$x, y = scores$y, names = scores$names,
-          x_label = scores$x_label, y_label = scores$y_label
+          x_label = scores$x_label, y_label = scores$y_label,
+          title = "Observations"
         ),
         list(
           x = loadings$x, y = loadings$y, names = loadings$names,
-          x_label = loadings$x_label, y_label = loadings$y_label
+          x_label = loadings$x_label, y_label = loadings$y_label,
+          title = "Variables"
         )
       )
     },

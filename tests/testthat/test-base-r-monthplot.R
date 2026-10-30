@@ -225,21 +225,34 @@ test_that("the y axis is named after the expression the caller wrote", {
   expect_equal(layer$axes$y$label, "MONTHLY")
 })
 
-test_that("an unwritten x label is left unset rather than invented", {
+test_that("an unwritten xlab is left unset rather than invented", {
   # `monthplot` blanks `xlab` unless the caller passes one: the axis it writes
   # carries the cycle labels, not a quantity, so there is no name to give.
   layer <- monthplot_layers(function() monthplot(MONTHLY))[[1]]
 
-  expect_null(layer$axes$x)
+  expect_null(layer$axes$z)
 })
 
-test_that("an explicit label wins over the deparsed default", {
+test_that("xlab names the series, and the cycles are years", {
+  # `xlab` names the axis the cycle labels are written along, J F M ... D:
+  # what the series are. On x, which holds the cycles, it made
+  # `monthplot(nottem, xlab = "Month")` read "Month is 1921, ..., Group is
+  # Jan". A monthly `ts` counts its cycles in years, the unit of its `time()`.
   layer <- monthplot_layers(function() {
     monthplot(MONTHLY, xlab = "Month", ylab = "Readings")
   })[[1]]
 
-  expect_equal(layer$axes$x$label, "Month")
+  expect_equal(layer$axes$z$label, "Month")
+  expect_equal(layer$axes$x$label, "Year")
   expect_equal(layer$axes$y$label, "Readings")
+})
+
+test_that("cycles that are not a monthly or quarterly series' years are cycles", {
+  layer <- monthplot_layers(function() {
+    monthplot(ts(1:21, frequency = 7))
+  })[[1]]
+
+  expect_equal(layer$axes$x$label, "Cycle")
 })
 
 test_that("naming the x axis does not empty the series (#292)", {
@@ -254,7 +267,7 @@ test_that("naming the x axis does not empty the series (#292)", {
 
   expect_length(named$data, 12L)
   expect_equal(named$data, unnamed$data)
-  expect_equal(named$axes$x$label, "Month")
+  expect_equal(named$axes$z$label, "Month")
 })
 
 test_that("one selector per subseries, in the order the lines were drawn", {

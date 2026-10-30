@@ -15,6 +15,7 @@ Processes Base R heatmap layers using the heatmap() function
   \itemize{
     \item \href{#method-BaseRHeatmapLayerProcessor-process}{\code{BaseRHeatmapLayerProcessor$process()}}
     \item \href{#method-BaseRHeatmapLayerProcessor-extract_data}{\code{BaseRHeatmapLayerProcessor$extract_data()}}
+    \item \href{#method-BaseRHeatmapLayerProcessor-image_axis_names}{\code{BaseRHeatmapLayerProcessor$image_axis_names()}}
     \item \href{#method-BaseRHeatmapLayerProcessor-compute_heatmap_ordering}{\code{BaseRHeatmapLayerProcessor$compute_heatmap_ordering()}}
     \item \href{#method-BaseRHeatmapLayerProcessor-generate_selectors}{\code{BaseRHeatmapLayerProcessor$generate_selectors()}}
     \item \href{#method-BaseRHeatmapLayerProcessor-find_image_rect_grobs}{\code{BaseRHeatmapLayerProcessor$find_image_rect_grobs()}}
@@ -107,6 +108,44 @@ the recorded call
   }
   \subsection{Returns}{
     List of rows
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-image_axis_names"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-image_axis_names}{}}}
+\subsection{\code{BaseRHeatmapLayerProcessor$image_axis_names()}}{
+  The names the \code{axis()} calls drawn on an \code{image()} give its cells
+
+\code{image(z)} centres its cells on \code{seq(0, 1, length.out = n)} along each
+axis and writes no names there. The \code{axis()} calls drawn on that side
+of the same plot name the cells when their \code{labels} put a name at the
+centre of every cell: the reader is told "Day is Tue, Hour is 9am"
+where they heard "Day is 2, Hour is 1". Several calls on one side are
+read together, a later name at a centre written over an earlier one,
+as R draws it. Calls that name some cells and not others name none of
+them, as a value between ticks has no name of its own.
+
+Only \code{image(z)}'s own centres are read. An \code{image(x, y, z)} given its
+coordinates is not read as a heat map here at all (\code{extract_data()}
+finds no matrix in \code{x}), so it has no cells to name.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHeatmapLayerProcessor$image_axis_names(layer_info, side, cells)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call and its
+plot group}
+      \item{\code{side}}{The axis: 1 for x, 2 for y}
+      \item{\code{cells}}{How many cells run along it}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One name per cell, from the low end of the axis, or NULL
   }
 }
 
