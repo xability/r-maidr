@@ -38,7 +38,10 @@ discrete_axis_labels <- function(built, axis = "x", panel_id = NULL) {
     return(NULL)
   }
 
-  view <- params[[axis]]
+  # The view of the scale that maps `axis`, not the view in its slot:
+  # coord_flip() puts the x scale in the `y` slot, and read from the slot a
+  # flipped scatter plot's group names went to its values.
+  view <- panel_scale_view(params, axis)
   if (is.null(view) || is.null(view$get_breaks) || is.null(view$get_labels)) {
     return(NULL)
   }
