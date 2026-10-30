@@ -23,6 +23,16 @@ Processes bar plot layers with complete logic included
 
 - [`Ggplot2BarLayerProcessor$extract_data()`](#method-Ggplot2BarLayerProcessor-extract_data)
 
+- [`Ggplot2BarLayerProcessor$stack_rows()`](#method-Ggplot2BarLayerProcessor-stack_rows)
+
+- [`Ggplot2BarLayerProcessor$drawn_rows()`](#method-Ggplot2BarLayerProcessor-drawn_rows)
+
+- [`Ggplot2BarLayerProcessor$stack_rows_of()`](#method-Ggplot2BarLayerProcessor-stack_rows_of)
+
+- [`Ggplot2BarLayerProcessor$collapse_stacks()`](#method-Ggplot2BarLayerProcessor-collapse_stacks)
+
+- [`Ggplot2BarLayerProcessor$discrete_limits_at()`](#method-Ggplot2BarLayerProcessor-discrete_limits_at)
+
 - [`Ggplot2BarLayerProcessor$format_x_value()`](#method-Ggplot2BarLayerProcessor-format_x_value)
 
 - [`Ggplot2BarLayerProcessor$panel_x_is_discrete()`](#method-Ggplot2BarLayerProcessor-panel_x_is_discrete)
@@ -32,6 +42,8 @@ Processes bar plot layers with complete logic included
 - [`Ggplot2BarLayerProcessor$map_continuous_x()`](#method-Ggplot2BarLayerProcessor-map_continuous_x)
 
 - [`Ggplot2BarLayerProcessor$generate_selectors()`](#method-Ggplot2BarLayerProcessor-generate_selectors)
+
+- [`Ggplot2BarLayerProcessor$rect_grob_names()`](#method-Ggplot2BarLayerProcessor-rect_grob_names)
 
 - [`Ggplot2BarLayerProcessor$own_rect_names()`](#method-Ggplot2BarLayerProcessor-own_rect_names)
 
@@ -263,6 +275,172 @@ List of points
 
 ------------------------------------------------------------------------
 
+### `Ggplot2BarLayerProcessor$stack_rows()`
+
+The rows each bar is drawn from, when bars are stacks
+
+`ggplot(mtcars, aes(factor(cyl), mpg)) + geom_bar(stat = "identity")`
+draws three bars, each a stack of one rect per car:
+[`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
+and
+[`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
+stack the rows that share a category by default, and with nothing mapped
+to `fill` the segments are drawn alike, so the page shows one bar per
+category, as tall as its segments together. ggplot2 keeps one built row
+per segment, which the reading took for one bar each: 32 bars, the first
+three labelled with categories that belonged to other rows, the rest
+with none, every value the running total of its stack.
+
+A layer mapping `fill` is a stacked bar chart and never reaches this
+processor; a layer drawn with `position = "identity"` overlaps its rows
+rather than stacking them, and is left as it was.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$stack_rows(plot, built, panel_id = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object.
+
+- `built`:
+
+  Its
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+  result.
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional).
+
+#### Returns
+
+`NULL` when every bar is one row; otherwise a list with one integer
+vector per bar, in the order the bars are read (along the category
+axis), holding the positions of its rows among the panel's drawn rows
+(`drawn_rows()`) – which are also the positions of its rects in the
+panel's rect grob, drawn in row order.
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$drawn_rows()`
+
+The rows of a panel that ggplot2 draws a rect for
+
+A row missing its position or extent is drawn as no rect. ggplot2 3.4.4
+drops such a row while stacking ("Removed 1 rows containing missing
+values
+([`position_stack()`](https://ggplot2.tidyverse.org/reference/position_stack.html))");
+left among the rows by a release that drops it only as it draws, it
+would put every later rect of the panel one place out from the row it
+was read from.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$drawn_rows(rows)
+
+#### Arguments
+
+- `rows`:
+
+  The layer's built rows for one panel, the category in `x`.
+
+#### Returns
+
+The rows with a finite `x`, `ymin` and `ymax`.
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$stack_rows_of()`
+
+`stack_rows()` on rows already read
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$stack_rows_of(plot, rows)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object.
+
+- `rows`:
+
+  The layer's built rows for one panel, the category in `x`.
+
+#### Returns
+
+As `stack_rows()`.
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$collapse_stacks()`
+
+One row per bar, from rows that stack
+
+A bar's value is the sum of its segments, which is where the top of an
+all-positive stack is drawn. ggplot2 stacks negative values down from
+zero, keeping each segment's `ymin` below its `ymax`, so a segment below
+zero counts negatively.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$collapse_stacks(rows, stacks)
+
+#### Arguments
+
+- `rows`:
+
+  The layer's built rows for one panel, the category in `x`.
+
+- `stacks`:
+
+  The rows of each bar, from `stack_rows()`.
+
+#### Returns
+
+A data frame with one row per bar, in the order of `stacks`.
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$discrete_limits_at()`
+
+The limits of a discrete category scale at bar positions
+
+Read from the scale the layout trained (`panel_scales_x`), as the plot's
+own copy of a position scale is never trained and answers `c(0, 1)` for
+its limits.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$discrete_limits_at(built, positions, flipped = FALSE)
+
+#### Arguments
+
+- `built`:
+
+  The plot's
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+  result.
+
+- `positions`:
+
+  The bars' built positions along the category axis.
+
+- `flipped`:
+
+  Whether the bars are horizontal, their categories on y.
+
+#### Returns
+
+The limit at each position, or `NULL` when the category scale is not
+discrete or a position names no limit.
+
+------------------------------------------------------------------------
+
 ### `Ggplot2BarLayerProcessor$format_x_value()`
 
 Format an x-axis value as character.
@@ -414,6 +592,37 @@ Selectors for the layer's rects
 #### Returns
 
 List of selectors
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$rect_grob_names()`
+
+The names of the rect grobs this layer drew
+
+Searched in the panel the context names when there is one, and in the
+plot's only panel otherwise.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$rect_grob_names(plot, gt = NULL, panel_ctx = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object (optional; built from `plot` when absent)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+Character vector of rect grob names, empty when none is found
 
 ------------------------------------------------------------------------
 

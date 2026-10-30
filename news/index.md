@@ -1051,6 +1051,19 @@
   nudged by hand – `as.numeric(term) + 0.1`, or `factor(cyl)` beside
   `cyl` – is still that category
   ([\#349](https://github.com/xability/r-maidr/issues/349)).
+- A bar drawn as a stack of rows is read as one bar, its value the sum
+  of the rows.
+  `ggplot(mtcars, aes(factor(cyl), mpg)) + geom_bar(stat = "identity")`
+  draws three bars, one per cylinder count, each a stack of one rect per
+  car; it was read as 32 bars, the first three labelled 4, 6 and 8 by
+  position though each belonged to another car, the other 29 with no
+  category (“factor(cyl) is missing”), and every value a running total
+  of its stack. It now reads 4 is 293.3, 6 is 138.2 and 8 is 211.4, and
+  the highlight covers the whole bar: each stack is given an invisible
+  rect spanning its segments for maidr.js to outline, as a selector
+  naming the segments matched more rects than there are bars and
+  highlighted nothing
+  ([\#404](https://github.com/xability/r-maidr/issues/404)).
 
 #### Base R
 
