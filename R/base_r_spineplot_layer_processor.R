@@ -117,8 +117,8 @@ BaseRSpineplotLayerProcessor <- R6::R6Class(
     #'   The index runs column-major with the fill levels **descending**
     #'   inside a column, which is the order measured off the drawing and
     #'   recorded in the class note. The emitted list is in the payload's own
-    #'   order -- all categories of the first fill, then the second -- so the
-    #'   two line up.
+    #'   order -- all categories of the last fill, the bottom tiles, then
+    #'   the one before it (see `extract_data()`) -- so the two line up.
     #'
     #' @param layer_info Information about the recorded plot call
     #' @param gt Gtable object to search
@@ -149,7 +149,7 @@ BaseRSpineplotLayerProcessor <- R6::R6Class(
       # written in -- so the drawing-order walk below was thrown away and
       # every tile after the first was outlined for another cell's value
       # (#316).
-      lapply(seq_len(fills), function(fill_index) {
+      lapply(rev(seq_len(fills)), function(fill_index) {
         lapply(seq_len(categories), function(category_index) {
           drawn_at <- (category_index - 1) * fills + (fills - fill_index + 1)
           rect_cell_selector(panel, drawn_at)

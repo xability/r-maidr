@@ -146,8 +146,8 @@ at worst, and a spine plot with no highlight still reads (#145).
 The index runs column-major with the fill levels \strong{descending}
 inside a column, which is the order measured off the drawing and
 recorded in the class note. The emitted list is in the payload's own
-order -- all categories of the first fill, then the second -- so the
-two line up.
+order -- all categories of the last fill, the bottom tiles, then
+the one before it (see \code{extract_data()}) -- so the two line up.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSpineplotLayerProcessor$generate_selectors(layer_info, gt = NULL)}

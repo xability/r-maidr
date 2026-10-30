@@ -101,7 +101,7 @@ test_that("a cell with no expectation is 0 rather than NaN", {
   expect_equal(values[c(2, 4)], c(0, 0))
 })
 
-test_that("each cell is addressed on its own, bottom band last", {
+test_that("each cell is addressed on its own, bottom band first", {
   table <- hair_eye()
   info <- layer_info_for(table)
   processor <- BaseRAssocplotLayerProcessor$new(info)
@@ -110,17 +110,21 @@ test_that("each cell is addressed on its own, bottom band last", {
   selectors <- processor$generate_selectors(info, NULL, data)
 
   # `assocplot()` draws every cell into ONE rect grob -- measured, sixteen
-  # rects in `graphics-plot-1-rect-1` -- bottom band first. The grid's first
-  # row is the TOP band, so it addresses the LAST four rects.
+  # rects in `graphics-plot-1-rect-1` -- bottom band first. A selector grid's
+  # rows run bottom first, the reverse of the points (docs/SCHEMA.md), so its
+  # first row addresses the FIRST four rects: Green, at the bottom, where
+  # the points' first row is Brown, at the top. Written top first, every
+  # outline was on the band mirrored top to bottom.
   expect_length(selectors, 4)
   expect_equal(
     unlist(selectors[[1]]),
-    paste0("#graphics-plot-1-rect-1\\.1 > rect:nth-of-type(", 13:16, ")")
+    paste0("#graphics-plot-1-rect-1\\.1 > rect:nth-of-type(", 1:4, ")")
   )
   expect_equal(
     unlist(selectors[[4]]),
-    paste0("#graphics-plot-1-rect-1\\.1 > rect:nth-of-type(", 1:4, ")")
+    paste0("#graphics-plot-1-rect-1\\.1 > rect:nth-of-type(", 13:16, ")")
   )
+  expect_equal(unlist(data$y), c("Brown", "Blue", "Hazel", "Green"))
 })
 
 test_that("a table that is not two-way is declined rather than flattened", {

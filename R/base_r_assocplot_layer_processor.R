@@ -226,11 +226,15 @@ BaseRAssocplotLayerProcessor <- R6::R6Class(
       n_cols <- length(extracted_data$points[[1]])
 
       # The rects arrive bottom band first, left to right within a band --
-      # measured from their coordinates. Row 0 of the emitted grid is the TOP
-      # band, so the nth-of-type runs up from the bottom.
+      # measured from their coordinates. A selector grid's rows run bottom
+      # first, the reverse of `data$points` (docs/SCHEMA.md, the heat row of
+      # the selectors table), so row r of the grid is the r-th band from the
+      # bottom. Written top first, as the points are, every outline was on
+      # the band mirrored top to bottom: the reader on Green, the bottom
+      # band, saw the Brown tile at the top outlined.
       lapply(seq_len(n_rows), function(r) {
         lapply(seq_len(n_cols), function(c) {
-          nth <- (n_rows - r) * n_cols + c
+          nth <- (r - 1) * n_cols + c
           paste0(container, " > rect:nth-of-type(", nth, ")")
         })
       })
