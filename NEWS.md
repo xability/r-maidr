@@ -1129,6 +1129,17 @@
   lattice's readings as experimental. Five lattice example scripts ship
   with the package, listed by `run_example()` and run with
   `run_example("<name>", type = "lattice")` (#333).
+* The keyboard table in the README, the getting-started vignette and the
+  examples hub says what the arrows do on a horizontal chart. It said Up and
+  Down move between "box plot sections", which holds for a vertical box
+  plot only: on a horizontal one, as the vignette's own `bwplot()` is, Up
+  and Down move between the boxes and Left and Right along the sections
+  (#411).
+* The Manhattan plot in the `volcano` example and in `?maidr_manhattan`
+  titles its x axis "Genomic position", which is what its x holds, and
+  names each chromosome's stretch on the ticks, "chr1" to "chr3". The axis
+  was titled "Chromosome", so a SNP on chromosome 3 was read "Chromosome is
+  450" (#411).
 
 # maidr 0.5.0
 

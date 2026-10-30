@@ -50,11 +50,13 @@ volcano <- ggplot(
 
 show(volcano)
 
-# A Manhattan plot: positions offset by chromosome, axis labelled by
-# chromosome, genome-wide significance at p < 5e-8.
+# A Manhattan plot: positions offset by chromosome, genome-wide significance
+# at p < 5e-8. x is each SNP's position along the genome, so the axis is
+# titled for that, and its ticks name the chromosome each stretch belongs to;
+# the chromosome is each point's region.
 snps <- data.frame(
   snp = paste0("rs", 1:600),
-  chr = factor(rep(1:3, each = 200)),
+  chr = factor(paste0("chr", rep(1:3, each = 200))),
   pos = rep(1:200, 3)
 )
 snps$bp <- snps$pos + (as.integer(snps$chr) - 1) * 200
@@ -67,10 +69,10 @@ manhattan <- ggplot(snps, aes(x = bp, y = -log10(p), colour = chr)) +
     significance = -log10(5e-8)
   ) +
   geom_hline(yintercept = -log10(5e-8), linetype = "dashed") +
-  scale_x_continuous(breaks = c(100, 300, 500), labels = c("1", "2", "3")) +
+  scale_x_continuous(breaks = c(100, 300, 500), labels = c("chr1", "chr2", "chr3")) +
   labs(
     title = "Genome-wide Association",
-    x = "Chromosome",
+    x = "Genomic position",
     y = "-log10 p value"
   ) +
   theme_minimal() +

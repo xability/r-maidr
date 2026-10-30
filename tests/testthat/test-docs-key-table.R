@@ -74,3 +74,19 @@ test_that("the table binds Space and Escape the way the core does", {
   testthat::expect_false(any(grepl("Escape", table, fixed = TRUE)))
   testthat::expect_false(any(grepl("Enter", table, fixed = TRUE)))
 })
+
+test_that("the arrow keys are described for charts of either orientation", {
+  # The table said Up / Down "move between ... box plot sections", which
+  # holds for a vertical box plot only: on a horizontal one, as the
+  # getting-started vignette's own `bwplot()` is, Up / Down move between the
+  # boxes and Left / Right along the sections.
+  skip_without_pages()
+
+  table <- key_table_of(key_table_pages[["README"]])
+  up_down <- grep("**Up / Down**", table, fixed = TRUE, value = TRUE)
+  left_right <- grep("**Left / Right**", table, fixed = TRUE, value = TRUE)
+
+  testthat::expect_match(up_down, "sections of a vertical box plot", fixed = TRUE)
+  testthat::expect_match(up_down, "categories of a horizontal chart", fixed = TRUE)
+  testthat::expect_match(left_right, "sections of a horizontal box plot", fixed = TRUE)
+})
