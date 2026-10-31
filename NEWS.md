@@ -884,6 +884,14 @@
   category. The names were read from the axis drawn where the scale is
   not: `aes(group, value) + geom_point() + coord_flip()` read the values 1,
   2 and 3 as "a", "b" and "c", and the groups by their positions.
+* A heatmap whose x and y are not its data's first two columns is drawn
+  and highlighted as written. maidr reorders a heatmap's rows before
+  drawing, making its x and y factors, and took them to be the first two
+  columns: in `data.frame(score, x, y)` the fill was made a factor and
+  drawn with a discrete legend, and moving between cells highlighted the
+  wrong tiles. Where the tiles draw data of their own, the plot's data
+  belongs to another layer, and that layer's points were moved to discrete
+  positions, drawn on discrete axes and described as categories.
 
 ### Base R
 
