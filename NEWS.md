@@ -897,7 +897,10 @@
   drawn with a discrete legend, and moving between cells highlighted the
   wrong tiles. Where the tiles draw data of their own, the plot's data
   belongs to another layer, and that layer's points were moved to discrete
-  positions, drawn on discrete axes and described as categories.
+  positions, drawn on discrete axes and described as categories. A heatmap
+  under `scale_x_continuous()` or `scale_y_continuous()` keeps its numbers
+  and is drawn: made factors, its first two columns stopped `save_html()`
+  with "Discrete value supplied to a continuous scale".
 
 ### Base R
 
