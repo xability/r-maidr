@@ -16,6 +16,8 @@ generate selectors for individual points in the SVG structure.
 
 - [`Ggplot2PointLayerProcessor$colour_group_layers()`](#method-Ggplot2PointLayerProcessor-colour_group_layers)
 
+- [`Ggplot2PointLayerProcessor$colour_is_discrete()`](#method-Ggplot2PointLayerProcessor-colour_is_discrete)
+
 - [`Ggplot2PointLayerProcessor$extract_axes_labels()`](#method-Ggplot2PointLayerProcessor-extract_axes_labels)
 
 - [`Ggplot2PointLayerProcessor$extract_axis_grid_info()`](#method-Ggplot2PointLayerProcessor-extract_axis_grid_info)
@@ -172,6 +174,27 @@ are announced as each point's region.
 
 A multi-layer result, or NULL when the layer is not grouped by colour
 into two groups or more
+
+------------------------------------------------------------------------
+
+### `Ggplot2PointLayerProcessor$colour_is_discrete()`
+
+Whether the plot's colour scale is discrete
+
+#### Usage
+
+    Ggplot2PointLayerProcessor$colour_is_discrete(built)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+#### Returns
+
+TRUE for a discrete colour scale; FALSE for a continuous one, or where
+the plot has none
 
 ------------------------------------------------------------------------
 
