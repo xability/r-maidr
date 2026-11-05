@@ -18,7 +18,7 @@ drawn <- matrix(
   nrow = 2, byrow = TRUE, dimnames = list(c("q", "p"), c("a", "b"))
 )
 
-#' Each panel's cells, as a y-by-x matrix named by the axis labels
+# Each panel's cells, as a y-by-x matrix named by the axis labels
 heat_cells <- function(plot, layer = 1L) {
   figure <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
   lapply(unlist(figure$subplots, recursive = FALSE), function(cell) {
@@ -66,4 +66,36 @@ test_that("tiles drawn from data of their own leave the plot's data alone", {
   scatter <- figure$subplots[[1]][[1]]$layers[[1]]$data
   testthat::expect_equal(vapply(scatter, function(point) point$x, numeric(1)), c(1.5, 2.5))
   testthat::expect_equal(vapply(scatter, function(point) point$y, numeric(1)), c(0.7, 1.3))
+})
+
+test_that("an axis given as an expression, or as .data[[ ]] of a call, leaves the data alone", {
+  grid <- data.frame(z = c(5, 6, 7, 8), x = c(2, 1, 2, 1), y = c(1, 1, 2, 2))
+  processor <- maidr:::Ggplot2HeatmapLayerProcessor$new(list(index = 1L))
+
+  shifted <- ggplot2::ggplot(grid, ggplot2::aes(x + 0, y, fill = z)) + ggplot2::geom_tile()
+  testthat::expect_identical(processor$reorder_layer_data(grid, shifted), grid)
+
+  # rlang evaluates the index of `.data[[ ]]` when an `aes()` is captured, so
+  # a mapping holds `.data[["x"]]`. One built by hand can still hold a call,
+  # which names its column only by being called; the reordering does not
+  # call it, and leaves the data as it is.
+  calls <- 0
+  column <- function() {
+    calls <<- calls + 1
+    "x"
+  }
+  mapping <- ggplot2::aes(y = y, fill = z)
+  mapping$x <- rlang::new_quosure(quote(.data[[column()]]), environment())
+  called <- ggplot2::ggplot(grid, mapping) + ggplot2::geom_tile()
+  calls <- 0
+  testthat::expect_identical(processor$reorder_layer_data(grid, called), grid)
+  testthat::expect_equal(calls, 0)
+})
+
+test_that("each facet panel of a heatmap whose x and y are not first reads its fill", {
+  halves <- rbind(transform(moved, half = "H1"), transform(moved, score = score + 1, half = "H2"))
+  plot <- ggplot2::ggplot(halves, ggplot2::aes(x, y, fill = score)) +
+    ggplot2::geom_tile() +
+    ggplot2::facet_wrap(~half)
+  testthat::expect_equal(heat_cells(plot), list(drawn, drawn + 1))
 })

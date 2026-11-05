@@ -22,7 +22,9 @@ its tiles come out in the order the reading pairs them with
 (\code{reorder_layer_data()}). That is done to the plot's data, and only where
 the tiles draw it: a layer with data of its own leaves it alone. Each
 position is the column its mapping names, the layer's or else the plot's
-unless \code{inherit.aes = FALSE}: a bare name, \code{.data$x} or \code{.data[["x"]]}.
-An expression names no one column, and is not reordered.
+unless \code{inherit.aes = FALSE}: a bare name, \code{.data$x}, \code{.data[["x"]]}, or
+\code{.data[[var]]} where \code{var} holds the name. An expression names no one
+column, and is not reordered; nor is \code{.data[[f()]]}, so that \code{f()} is not
+called again.
 }
 \keyword{internal}

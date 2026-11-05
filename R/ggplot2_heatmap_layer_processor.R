@@ -630,8 +630,10 @@ heat_fill_scores <- function(score_matrix, source, x_col, y_col, fill_col,
 #' (`reorder_layer_data()`). That is done to the plot's data, and only where
 #' the tiles draw it: a layer with data of its own leaves it alone. Each
 #' position is the column its mapping names, the layer's or else the plot's
-#' unless `inherit.aes = FALSE`: a bare name, `.data$x` or `.data[["x"]]`.
-#' An expression names no one column, and is not reordered.
+#' unless `inherit.aes = FALSE`: a bare name, `.data$x`, `.data[["x"]]`, or
+#' `.data[[var]]` where `var` holds the name. An expression names no one
+#' column, and is not reordered; nor is `.data[[f()]]`, so that `f()` is not
+#' called again.
 #'
 #' @param layer The heatmap's layer, or NULL
 #' @param plot The ggplot2 object
@@ -656,10 +658,17 @@ heat_position_columns <- function(layer, plot, data) {
     name <- if (is.symbol(expr)) {
       as.character(expr)
     } else if (is.call(expr) && length(expr) == 3L && identical(expr[[2]], quote(.data))) {
+      index <- expr[[3]]
       if (identical(expr[[1]], quote(`$`))) {
-        as.character(expr[[3]])
+        as.character(index)
       } else if (identical(expr[[1]], quote(`[[`))) {
-        tryCatch(eval(expr[[3]], rlang::quo_get_env(quo)), error = function(e) NULL)
+        # A string, or a variable holding one, is looked up without running
+        # anything: `.data[[f()]]` would call `f()` a second time.
+        if (is.character(index)) {
+          index
+        } else if (is.symbol(index)) {
+          get0(as.character(index), envir = rlang::quo_get_env(quo), inherits = TRUE)
+        }
       }
     }
     if (is.character(name) && length(name) == 1L && name %in% names(data)) name
