@@ -632,16 +632,18 @@ patchwork_annotation_text <- function(plot) {
 extract_leaf_plot_layout <- function(leaf_plot, leaf_built = NULL) {
   built_labels <- if (!is.null(leaf_built)) leaf_built$plot$labels else NULL
 
-  # Extract x label: built labels, then user labels, then mapping
-  x_label <- built_labels$x
+  # Extract x label: the scale's name, then built labels, then user labels,
+  # then mapping
+  x_label <- axis_scale_title(leaf_built, "x") %||% built_labels$x
   if (is.null(x_label)) x_label <- leaf_plot$labels$x
   if (is.null(x_label) && !is.null(leaf_plot$mapping$x)) {
     x_label <- rlang::as_label(leaf_plot$mapping$x)
   }
   if (is.null(x_label)) x_label <- ""
 
-  # Extract y label: built labels, then user labels, then mapping
-  y_label <- built_labels$y
+  # Extract y label: the scale's name, then built labels, then user labels,
+  # then mapping
+  y_label <- axis_scale_title(leaf_built, "y") %||% built_labels$y
   if (is.null(y_label)) y_label <- leaf_plot$labels$y
   if (is.null(y_label) && !is.null(leaf_plot$mapping$y)) {
     y_label <- rlang::as_label(leaf_plot$mapping$y)

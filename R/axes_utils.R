@@ -325,6 +325,27 @@ positional_axis_label <- function(plot, built = NULL, aes_name = "x",
   if (is.null(label)) aes_name else label
 }
 
+#' The title a position scale gives its axis, or NULL
+#'
+#' ggplot2 titles an axis by its scale's name before `labs()` and the
+#' mapping: `scale_x_continuous("Month")` draws "Month" whatever `labs(x = )`
+#' or `aes(month, ...)` say. A scale given no name, or NULL, leaves the title
+#' to them.
+#'
+#' @param built The built ggplot2 object, or NULL
+#' @param aes_name `"x"` or `"y"`
+#' @return The name, or NULL
+#' @keywords internal
+axis_scale_title <- function(built, aes_name) {
+  scale <- tryCatch(built$plot$scales$get_scales(aes_name), error = function(e) NULL)
+  name <- if (!is.null(scale)) scale$name
+  if (is.null(name) || inherits(name, "waiver") || length(name) != 1L || is.na(name) ||
+    !nzchar(as.character(name))) {
+    return(NULL)
+  }
+  as.character(name)
+}
+
 #' A mapped expression as ggplot2 names it
 #'
 #' The expression a mapping plots, with what ggplot2 leaves out of the names it
