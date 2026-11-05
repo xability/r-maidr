@@ -211,7 +211,10 @@ legend_title_given <- function(title) {
 #' object, whose `get_guide()` answers with the scale's guide where the
 #' plot gives none, each holding its title in `params`. Where the plot names
 #' a guide, the scale's is not drawn. A guide named by a string, as
-#' `guides(fill = "colourbar")`, has no title of its own.
+#' `guides(fill = "colourbar")`, has no title of its own, and an aesthetic
+#' with no scale has no legend. A guide given `title = NULL` hides the
+#' title on the chart; the values are still read under the scale's name or
+#' `labs()`, rather than under no name.
 #'
 #' @param built Built plot from `ggplot2::ggplot_build()`
 #' @param aes_name The aesthetic, as ggplot2 spells it
@@ -220,6 +223,11 @@ legend_title_given <- function(title) {
 #' @keywords internal
 #' @noRd
 legend_guide_title <- function(built, aes_name, scale) {
+  # No scale, no legend: ggplot2 3.4 keeps a plot's guide for an aesthetic
+  # nothing maps, and read, it titled a constant-fill heatmap's values.
+  if (is.null(scale)) {
+    return(NULL)
+  }
   guides <- built$plot$guides
   plot_guide <- if (inherits(guides, "ggproto")) {
     tryCatch(guides$get_guide(aes_name), error = function(e) NULL)
@@ -235,6 +243,11 @@ legend_guide_title <- function(built, aes_name, scale) {
   title <- tryCatch(guide$params$title, error = function(e) NULL)
   if (is.null(title) && is.list(guide) && !inherits(guide, "ggproto")) {
     title <- guide$title
+  }
+  # A plotmath title given as a call, as `bquote(alpha^2)` makes one, is one
+  # title, read as it is written; taken apart it was three, and dropped.
+  if (is.call(title) || is.name(title)) {
+    title <- paste(deparse(title), collapse = "")
   }
   if (legend_title_given(title)) as.character(title)
 }
