@@ -884,6 +884,12 @@
   category. The names were read from the axis drawn where the scale is
   not: `aes(group, value) + geom_point() + coord_flip()` read the values 1,
   2 and 3 as "a", "b" and "c", and the groups by their positions.
+* A scatter plot coloured by a number, as `aes(colour = depth)` colours
+  it, is read with each point's colour value under the legend's title, and
+  the value sets the point's intensity in sonification. The value was
+  carried only as text, in a field maidr.js does not read, so a reader
+  heard nothing of the colour bar, and the legend had no title in the
+  reading.
 
 ### Base R
 

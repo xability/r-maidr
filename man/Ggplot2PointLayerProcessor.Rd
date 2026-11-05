@@ -16,6 +16,7 @@ for individual points in the SVG structure.
   \itemize{
     \item \href{#method-Ggplot2PointLayerProcessor-process}{\code{Ggplot2PointLayerProcessor$process()}}
     \item \href{#method-Ggplot2PointLayerProcessor-colour_group_layers}{\code{Ggplot2PointLayerProcessor$colour_group_layers()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-colour_is_discrete}{\code{Ggplot2PointLayerProcessor$colour_is_discrete()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_axes_labels}{\code{Ggplot2PointLayerProcessor$extract_axes_labels()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_data}{\code{Ggplot2PointLayerProcessor$extract_data()}}
@@ -136,6 +137,29 @@ and its colour groups are announced as each point's region.
   \subsection{Returns}{
     A multi-layer result, or NULL when the layer is not grouped by
 colour into two groups or more
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-colour_is_discrete"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-colour_is_discrete}{}}}
+\subsection{\code{Ggplot2PointLayerProcessor$colour_is_discrete()}}{
+  Whether the plot's colour scale is discrete
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$colour_is_discrete(built)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE for a discrete colour scale; FALSE for a continuous one,
+or where the plot has none
   }
 }
 
