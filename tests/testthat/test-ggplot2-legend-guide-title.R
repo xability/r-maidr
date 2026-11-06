@@ -10,13 +10,16 @@ tiles <- expand.grid(x = c("a", "b"), y = c("p", "q"), stringsAsFactors = FALSE)
 tiles$score <- 1:4
 heat <- ggplot2::ggplot(tiles, ggplot2::aes(x, y, fill = score)) + ggplot2::geom_tile()
 
+# The z axis title of the plot's first layer, or its name where it has none.
+# testthat sources each test file into an environment of its own, so this
+# and the `z_title()` in test-ggplot2-legend-scale-name.R do not clash.
+z_title <- function(plot) {
+  figure <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
+  layer <- figure$subplots[[1]][[1]]$layers[[1]]
+  layer$axes$z$label %||% layer$name
+}
+
 test_that("a legend titled by its guide is read under the guide's title", {
-  # The z axis title of the plot's first layer, or its name where it has none
-  z_title <- function(plot) {
-    figure <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
-    layer <- figure$subplots[[1]][[1]]$layers[[1]]
-    layer$axes$z$label %||% layer$name
-  }
   testthat::expect_identical(
     z_title(heat + ggplot2::guides(fill = ggplot2::guide_colourbar(title = "Correlation"))),
     "Correlation"
@@ -43,12 +46,6 @@ test_that("a legend titled by its guide is read under the guide's title", {
 })
 
 test_that("the guide's title is read over the scale's name and labs(), as drawn", {
-  # The z axis title of the plot's first layer, or its name where it has none
-  z_title <- function(plot) {
-    figure <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
-    layer <- figure$subplots[[1]][[1]]$layers[[1]]
-    layer$axes$z$label %||% layer$name
-  }
   testthat::expect_identical(
     z_title(
       heat + ggplot2::labs(fill = "From labs") +
@@ -99,7 +96,6 @@ test_that("a plotmath guide title given as a call is read as written", {
   layer <- figure$subplots[[1]][[1]]$layers[[1]]
   testthat::expect_identical(layer$axes$z$label, "alpha^2")
 })
-
 
 test_that("a title given as a function is read as the title it returns", {
   # ggplot2 3.5 and later title a legend by what a function, or a formula for
