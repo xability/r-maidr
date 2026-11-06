@@ -22,7 +22,7 @@ Description: Provides accessible, interactive visualizations through the 'MAIDR'
     data exploration for users with visual impairments through multiple sensory
     modalities. For more details see the 'MAIDR' project
     <https://maidr.ai/>.
-License: GPL (>= 3)
+License: MIT + file LICENSE
 Encoding: UTF-8
 Language: en
 Depends: R (>= 4.0.0)

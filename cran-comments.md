@@ -15,6 +15,12 @@ tests, and Uwe Ligges asked us to reduce the test timings. In this version:
 On win-builder R-release, which runs on the same machines as R-devel, the
 tests now take 184 s (previously 13 minutes) and the whole check 431 s.
 
+## License change
+
+The license changes from GPL (>= 3) to MIT ('MIT + file LICENSE'). The
+copyright holder, JooYoung Seo, has relicensed the package and the bundled
+MAIDR web assets.
+
 ## Maintainer change
 
 The maintainer changes from Niranjan Kalaiselvan <nk46@illinois.edu> to
@@ -66,8 +72,8 @@ acknowledged it the same day.
 ## Bundled third-party components
 
 The bundled MAIDR web assets in 'inst/htmlwidgets/lib/maidr-*/' are, like
-this package, under GPL (>= 3). They embed React, KaTeX and other
-components under MIT licenses, which are compatible with it; all are
+this package, under the MIT license. They embed React, KaTeX and other
+components under MIT licenses as well; all are
 documented in 'inst/COPYRIGHTS'. The KaTeX web-font data is stripped from
 the bundled stylesheet to keep the installed size small.
 
