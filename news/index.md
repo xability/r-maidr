@@ -1186,6 +1186,16 @@
   [`show()`](https://r.maidr.ai/reference/show.md) and
   [`save_html()`](https://r.maidr.ai/reference/save_html.md) with
   “cannot coerce type ‘closure’ to vector of type ‘character’”.
+- An axis titled by its scale’s name, as `scale_x_continuous("Month")`
+  titles it, is read under that name in scatter plots, lines, smooths,
+  bars, histograms and box plots, in each facet panel and each plot of a
+  patchwork, as heatmaps, contours, dot plots, Gantt charts and hexbins
+  already are. They were read under
+  [`labs()`](https://ggplot2.tidyverse.org/reference/labs.html) or the
+  mapped column: “month is 1” where the axis shows “Month”, and
+  `labs(x = "Old")` where the scale’s name replaces it on the chart. A
+  name given as a function, as ggplot2 3.5 and later allow with
+  `scale_x_continuous(toupper)`, is read as the title it returns.
 
 #### Base R
 
