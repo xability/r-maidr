@@ -14,6 +14,11 @@ name: test-coverage
 
 permissions: read-all
 
+# Cancel obsolete PR runs without sharing a queue with push or manual runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test-coverage:
     runs-on: ubuntu-latest
