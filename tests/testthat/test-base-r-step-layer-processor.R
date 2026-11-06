@@ -322,11 +322,12 @@ test_that("BaseRStepLayerProcessor process() on NULL layer_info stays well forme
 
 test_that("BaseRStepLayerProcessor honours custom axis() labels", {
   layer_info <- step_layer_info(xlab = "Day", ylab = "Stage")
+  # Each label names the tick at its `at`; R refuses labels without one.
   layer_info$group <- list(
     low_calls = list(
       list(
         function_name = "axis",
-        args = list(1, labels = c("Mon", "Tue", "Wed", "Thu", "Fri"))
+        args = list(1, at = 1:5, labels = c("Mon", "Tue", "Wed", "Thu", "Fri"))
       )
     )
   )

@@ -18,7 +18,7 @@ Processes Base R line plot layers based on recorded plot calls
     \item \href{#method-BaseRLineLayerProcessor-extract_data}{\code{BaseRLineLayerProcessor$extract_data()}}
     \item \href{#method-BaseRLineLayerProcessor-name_y_ticks}{\code{BaseRLineLayerProcessor$name_y_ticks()}}
     \item \href{#method-BaseRLineLayerProcessor-get_axis_ticks}{\code{BaseRLineLayerProcessor$get_axis_ticks()}}
-    \item \href{#method-BaseRLineLayerProcessor-get_axis_labels}{\code{BaseRLineLayerProcessor$get_axis_labels()}}
+    \item \href{#method-BaseRLineLayerProcessor-name_x_ticks}{\code{BaseRLineLayerProcessor$name_x_ticks()}}
     \item \href{#method-BaseRLineLayerProcessor-extract_single_line_data}{\code{BaseRLineLayerProcessor$extract_single_line_data()}}
     \item \href{#method-BaseRLineLayerProcessor-extract_multiline_data}{\code{BaseRLineLayerProcessor$extract_multiline_data()}}
     \item \href{#method-BaseRLineLayerProcessor-extract_axis_titles}{\code{BaseRLineLayerProcessor$extract_axis_titles()}}
@@ -199,25 +199,37 @@ names, a date as it prints.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_axis_labels"></a>}}
-\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_axis_labels}{}}}
-\subsection{\code{BaseRLineLayerProcessor$get_axis_labels()}}{
-  Get custom axis labels from axis() LOW-level calls
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-name_x_ticks"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-name_x_ticks}{}}}
+\subsection{\code{BaseRLineLayerProcessor$name_x_ticks()}}{
+  The names of the x ticks an \code{axis()} call drawn on this
+plot named, for the points that sit on them
+
+Each label names the tick at its \code{at}, as R draws it: under
+\code{axis(1, at = 1:12, labels = month.abb)} the point at 7 is July,
+whichever point it is. The labels were handed to the points in turn,
+the first label to the first point, so a line from July on was read
+from "Jan". The points are named only when every one of them sits on
+a named tick (\code{tick_names_at()}), as on the y axis
+(\code{name_y_ticks()}). Labels given without \code{at} name the ticks R puts
+where it chooses, which the recording does not keep, so they name no
+point.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BaseRLineLayerProcessor$get_axis_labels(layer_info, axis_side = 1)}
+    \preformatted{BaseRLineLayerProcessor$name_x_ticks(x, layer_info)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
+      \item{\code{x}}{The points' x positions}
       \item{\code{layer_info}}{Layer information containing group data}
-      \item{\code{axis_side}}{Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    Character vector of labels or NULL if not found
+    A character vector as long as \code{x}, NA where a value is
+missing, or NULL
   }
 }
 
@@ -236,7 +248,8 @@ names, a date as it prints.
     \describe{
       \item{\code{x}}{x positions}
       \item{\code{y}}{y values}
-      \item{\code{x_labels}}{Category labels to announce in place of the x positions (optional)}
+      \item{\code{x_labels}}{The names to announce in place of the x positions,
+one per position (\code{name_x_ticks()}), or NULL}
     }
     \if{html}{\out{</div>}}
   }
@@ -260,7 +273,8 @@ names, a date as it prints.
     \describe{
       \item{\code{x}}{x positions}
       \item{\code{y_matrix}}{One column of y values per series}
-      \item{\code{x_labels}}{Category labels to announce in place of the x positions (optional)}
+      \item{\code{x_labels}}{The names to announce in place of the x positions,
+one per position (\code{name_x_ticks()}), or NULL}
     }
     \if{html}{\out{</div>}}
   }
