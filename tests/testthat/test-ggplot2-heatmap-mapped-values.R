@@ -115,11 +115,12 @@ test_that("an unmapped fill is read as missing, whatever columns the data has", 
   testthat::expect_null(layer$axes$z)
 })
 
-test_that("a fill the stat computes under a function's name is read as missing", {
+test_that("a fill the stat computes under a function's name is read from the stat", {
   # `after_stat(density)` is the density stat_density_2d() computes and,
   # evaluated against the layer's data, stats::density(), a function: the
   # reading stopped `show()` and `save_html()` with "attempt to replicate an
-  # object of type 'closure'". The values exist only in the built data.
+  # object of type 'closure'". The values exist only in the built data, and
+  # are read from there.
   set.seed(1)
   points <- data.frame(x = stats::runif(40), y = stats::runif(40))
   raster <- ggplot2::ggplot(points, ggplot2::aes(x, y)) +
@@ -127,7 +128,8 @@ test_that("a fill the stat computes under a function's name is read as missing",
       ggplot2::aes(fill = ggplot2::after_stat(density)),
       geom = "raster", contour = FALSE, n = 3
     )
-  testthat::expect_true(all(is.na(unlist(heat_cells(raster)))))
+  drawn <- ggplot2::ggplot_build(raster)$data[[1]]
+  testthat::expect_equal(sort(unlist(heat_cells(raster))), sort(drawn$density))
 })
 
 test_that("a fill of categories is read by the numbers its legend shows, or as missing", {

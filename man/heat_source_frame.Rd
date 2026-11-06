@@ -37,9 +37,11 @@ aesthetic that cannot be evaluated against the layer's data, or is no
 vector there, is read as missing too. An \code{after_stat()} of a variable
 the stat computes names no column of it, as \code{after_stat(group)} does, or
 names a function: \code{after_stat(density)} is \code{stats::density()} there,
-which stopped the reading. A fill of categories is read by the numbers
-its legend shows, as \code{factor(score * 10)} shows 10, 20 and 30, and as
-missing where the names are not numbers, as \code{fill = grade} and the
-colours \code{after_scale()} gives: a factor was read as its level codes.
+which stopped the reading. A grid a stat computes is read from what the
+stat computed instead (\code{\link[=heat_stat_fill]{heat_stat_fill()}}). A fill of categories is read
+by the numbers its legend shows, as \code{factor(score * 10)} shows 10, 20
+and 30, and as missing where the names are not numbers, as
+\code{fill = grade} and the colours \code{after_scale()} gives: a factor was read
+as its level codes.
 }
 \keyword{internal}
