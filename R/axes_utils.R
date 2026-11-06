@@ -332,6 +332,13 @@ positional_axis_label <- function(plot, built = NULL, aes_name = "x",
 #' or `aes(month, ...)` say. A scale given no name, or NULL, leaves the title
 #' to them.
 #'
+#' ggplot2 3.5 and later also take a function as the name, or a formula for
+#' one, as `scale_x_continuous(toupper)` or `~ paste(.x, "(kg)")`: the axis
+#' is titled by what it returns for the title the axis would otherwise have.
+#' It is called on that title here too. Coerced as a string, the function
+#' stopped the reading with "cannot coerce type 'closure' to vector of type
+#' 'character'". One that fails leaves the title to `labs()` and the mapping.
+#'
 #' @param built The built ggplot2 object, or NULL
 #' @param aes_name `"x"` or `"y"`
 #' @return The name, or NULL
@@ -339,11 +346,17 @@ positional_axis_label <- function(plot, built = NULL, aes_name = "x",
 axis_scale_title <- function(built, aes_name) {
   scale <- tryCatch(built$plot$scales$get_scales(aes_name), error = function(e) NULL)
   name <- if (!is.null(scale)) scale$name
-  if (is.null(name) || inherits(name, "waiver") || length(name) != 1L || is.na(name) ||
-    !nzchar(as.character(name))) {
+  if (rlang::is_formula(name)) {
+    name <- tryCatch(rlang::as_function(name), error = function(e) NULL)
+  }
+  if (is.function(name)) {
+    name <- tryCatch(name(built$plot$labels[[aes_name]]), error = function(e) NULL)
+  }
+  title <- tryCatch(as.character(name), error = function(e) NULL)
+  if (inherits(name, "waiver") || length(title) != 1L || is.na(title) || !nzchar(title)) {
     return(NULL)
   }
-  as.character(name)
+  title
 }
 
 #' A mapped expression as ggplot2 names it

@@ -20,4 +20,12 @@ mapping: \code{scale_x_continuous("Month")} draws "Month" whatever \code{labs(x 
 or \code{aes(month, ...)} say. A scale given no name, or NULL, leaves the title
 to them.
 }
+\details{
+ggplot2 3.5 and later also take a function as the name, or a formula for
+one, as \code{scale_x_continuous(toupper)} or \code{~ paste(.x, "(kg)")}: the axis
+is titled by what it returns for the title the axis would otherwise have.
+It is called on that title here too. Coerced as a string, the function
+stopped the reading with "cannot coerce type 'closure' to vector of type
+'character'". One that fails leaves the title to \code{labs()} and the mapping.
+}
 \keyword{internal}

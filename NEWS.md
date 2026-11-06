@@ -933,7 +933,9 @@
   patchwork, as heatmaps, contours, dot plots, Gantt charts and hexbins
   already are. They were read under `labs()` or the mapped column: "month
   is 1" where the axis shows "Month", and `labs(x = "Old")` where the
-  scale's name replaces it on the chart.
+  scale's name replaces it on the chart. A name given as a function, as
+  ggplot2 3.5 and later allow with `scale_x_continuous(toupper)`, is read as
+  the title it returns.
 
 ### Base R
 

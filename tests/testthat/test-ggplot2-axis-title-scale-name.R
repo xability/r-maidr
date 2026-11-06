@@ -65,6 +65,25 @@ test_that("a scale's name is read over labs(), as ggplot2 draws it", {
   testthat::expect_equal(layer_titles(plot), list(c(x = "Month", y = "sales")))
 })
 
+test_that("a scale named by a function is read by the title it returns", {
+  # ggplot2 3.5 and later title the axis by what the function, or a formula
+  # for one, returns for the title the axis would otherwise have. Coerced as
+  # a string, the function stopped the reading with "cannot coerce type
+  # 'closure' to vector of type 'character'". ggplot2 3.4 cannot draw one.
+  testthat::skip_if(
+    utils::packageVersion("ggplot2") < "3.5.0",
+    "ggplot2 3.4 cannot draw a function as a scale's name"
+  )
+  points <- ggplot2::ggplot(sales, ggplot2::aes(month, sales)) + ggplot2::geom_point()
+  named <- points +
+    ggplot2::scale_x_continuous(toupper) +
+    ggplot2::scale_y_continuous(function(title) "Sales ($)")
+  testthat::expect_equal(layer_titles(named), list(c(x = "MONTH", y = "Sales ($)")))
+
+  lambda <- points + ggplot2::scale_x_continuous(~ paste(.x, "(1 to 4)"))
+  testthat::expect_equal(layer_titles(lambda), list(c(x = "month (1 to 4)", y = "sales")))
+})
+
 test_that("each facet panel and each plot of a patchwork is read under its scales' names", {
   faceted <- ggplot2::ggplot(sales, ggplot2::aes(month, sales)) +
     ggplot2::geom_point() +
