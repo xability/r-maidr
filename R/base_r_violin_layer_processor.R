@@ -196,15 +196,23 @@ BaseRViolinLayerProcessor <- R6::R6Class(
       lapply(violins, function(v) {
         positions <- v$stats$positions
         density <- v$stats$density
-        # `width` rather than `density`, matching the ggplot2 and matplotlib
-        # vocabulary for this layer; the frontend reads `density ?? width ?? 0`
-        # so either is understood, and consistency within r-maidr wins.
+        # Sent as `density`, which it is: `sm.density()`'s estimate rather
+        # than the width the violin is drawn at, which the ggplot2 and
+        # matplotlib paths send as `width`. maidr.js names the number by the
+        # field it comes in, so it has to come in as a density to be read as
+        # one. `width` carries the same number too, for a maidr.js that reads
+        # only `width` on this layer.
         #
         # No pixel coordinates: the base R path has no SVG coordinate
         # injection -- that machinery is ggplot2-only -- so a coordinate
         # emitted here would be a guess at where the point ended up.
         lapply(seq_along(positions), function(i) {
-          list(x = v$label, y = positions[i], width = density[i])
+          list(
+            x = v$label,
+            y = positions[i],
+            density = density[i],
+            width = density[i]
+          )
         })
       })
     },
