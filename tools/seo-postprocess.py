@@ -55,8 +55,8 @@ PUBLISHER = "(x)Ability Design Lab, University of Illinois Urbana-Champaign"
 # DESCRIPTION.
 CREATORS = ["Seo, JooYoung", "Kalaiselvan, Niranjan"]
 
-# SPDX form of DESCRIPTION's "GPL (>= 3)".
-RIGHTS = "GPL-3.0-or-later"
+# SPDX form of DESCRIPTION's "MIT + file LICENSE".
+RIGHTS = "MIT"
 
 TITLE_RE = re.compile(r"<title>(?P<title>.*?)</title>", re.S)
 SITE_NAME_RE = re.compile(
@@ -90,8 +90,7 @@ DESCRIPTIONS = {
         "plot examples by family, and Shiny integration."
     ),
     "LICENSE.html": (
-        "GNU General Public License version 3, the license of the maidr R "
-        "package."
+        "MIT License, the license of the maidr R package."
     ),
 }
 
