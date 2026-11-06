@@ -236,7 +236,7 @@ legend_guide_title <- function(built, aes_name, scale) {
   }
   # The plot's guide, where it names one, is the one drawn, as ggplot2
   # resolves it (`guides[[aesthetic]] %||% scale$guide`).
-  guide <- plot_guide %||% (if (!is.null(scale)) scale$guide)
+  guide <- plot_guide %||% scale$guide
   if (is.null(guide) || is.character(guide) || isFALSE(guide)) {
     return(NULL)
   }
