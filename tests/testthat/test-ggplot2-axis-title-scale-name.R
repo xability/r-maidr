@@ -84,6 +84,17 @@ test_that("a scale named by a function is read by the title it returns", {
   testthat::expect_equal(layer_titles(lambda), list(c(x = "month (1 to 4)", y = "sales")))
 })
 
+test_that("a scale's name follows its axis under coord_flip(), as labs() does", {
+  bars <- ggplot2::ggplot(sales, ggplot2::aes(group, sales)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_flip()
+  scales <- bars + ggplot2::scale_x_discrete("Group") + ggplot2::scale_y_continuous("Sales ($)")
+  testthat::expect_equal(
+    layer_titles(scales),
+    layer_titles(bars + ggplot2::labs(x = "Group", y = "Sales ($)"))
+  )
+})
+
 test_that("each facet panel and each plot of a patchwork is read under its scales' names", {
   faceted <- ggplot2::ggplot(sales, ggplot2::aes(month, sales)) +
     ggplot2::geom_point() +
