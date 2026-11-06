@@ -51,7 +51,7 @@ of its own, stopped the reading.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-30">
+<meta name="DC.date" content="2026-11-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -150,10 +150,12 @@ aesthetic that cannot be evaluated against the layer's data, or is no
 vector there, is read as missing too. An <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_stat()</a></code> of a variable
 the stat computes names no column of it, as <code>after_stat(group)</code> does, or
 names a function: <code>after_stat(density)</code> is <code><a href="https://rdrr.io/r/stats/density.html" class="external-link">stats::density()</a></code> there,
-which stopped the reading. A fill of categories is read by the numbers
-its legend shows, as <code>factor(score * 10)</code> shows 10, 20 and 30, and as
-missing where the names are not numbers, as <code>fill = grade</code> and the
-colours <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_scale()</a></code> gives: a factor was read as its level codes.</p>
+which stopped the reading. A grid a stat computes is read from what the
+stat computed instead (<code><a href="heat_stat_fill.html">heat_stat_fill()</a></code>). A fill of categories is read
+by the numbers its legend shows, as <code>factor(score * 10)</code> shows 10, 20
+and 30, and as missing where the names are not numbers, as
+<code>fill = grade</code> and the colours <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_scale()</a></code> gives: a factor was read
+as its level codes.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

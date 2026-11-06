@@ -45,9 +45,11 @@ vector there, is read as missing too. An
 of a variable the stat computes names no column of it, as
 `after_stat(group)` does, or names a function: `after_stat(density)` is
 [`stats::density()`](https://rdrr.io/r/stats/density.html) there, which
-stopped the reading. A fill of categories is read by the numbers its
-legend shows, as `factor(score * 10)` shows 10, 20 and 30, and as
-missing where the names are not numbers, as `fill = grade` and the
-colours
+stopped the reading. A grid a stat computes is read from what the stat
+computed instead
+([`heat_stat_fill()`](https://r.maidr.ai/reference/heat_stat_fill.md)).
+A fill of categories is read by the numbers its legend shows, as
+`factor(score * 10)` shows 10, 20 and 30, and as missing where the names
+are not numbers, as `fill = grade` and the colours
 [`after_scale()`](https://ggplot2.tidyverse.org/reference/aes_eval.html)
 gives: a factor was read as its level codes.

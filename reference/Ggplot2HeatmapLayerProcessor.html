@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-21">
+<meta name="DC.date" content="2026-11-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -101,8 +101,8 @@
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-needs_reordering"><code>Ggplot2HeatmapLayerProcessor$needs_reordering()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-binned_selector_grid"><code>Ggplot2HeatmapLayerProcessor$binned_selector_grid()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data"><code>Ggplot2HeatmapLayerProcessor$reorder_layer_data()</code></a></p></li>
-<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-is_binned_layer"><code>Ggplot2HeatmapLayerProcessor$is_binned_layer()</code></a></p></li>
-<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-extract_binned_data"><code>Ggplot2HeatmapLayerProcessor$extract_binned_data()</code></a></p></li>
+<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-is_computed_grid"><code>Ggplot2HeatmapLayerProcessor$is_computed_grid()</code></a></p></li>
+<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-extract_computed_grid"><code>Ggplot2HeatmapLayerProcessor$extract_computed_grid()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-format_bin_edge"><code>Ggplot2HeatmapLayerProcessor$format_bin_edge()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-bin_labels"><code>Ggplot2HeatmapLayerProcessor$bin_labels()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-extract_data"><code>Ggplot2HeatmapLayerProcessor$extract_data()</code></a></p></li>
@@ -187,8 +187,9 @@ matches the drawn tiles</p><div class="section">
 
 <p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-binned_selector_grid"></a><div class="section">
 <h3 id="ggplot-heatmaplayerprocessor-binned-selector-grid-"><code>Ggplot2HeatmapLayerProcessor$binned_selector_grid()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-binned-selector-grid-"></a></h3>
-<p>One selector per drawn bin of a binned grid, <code>NA</code> for an empty one</p>
-<p>ggplot2 draws the bins in the order the built data lists them, so the
+<p>One selector per drawn tile of a grid a stat computed, <code>NA</code> where
+none was drawn</p>
+<p>ggplot2 draws the tiles in the order the built data lists them, so the
 k-th rect under the layer's group is the k-th built row; <code>cells</code> holds
 that row number per cell, in the emitted row order.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
@@ -232,14 +233,17 @@ that row number per cell, in the emitted row order.</p><div class="section">
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-is_binned_layer"></a><div class="section">
-<h3 id="ggplot-heatmaplayerprocessor-is-binned-layer-"><code>Ggplot2HeatmapLayerProcessor$is_binned_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-is-binned-layer-"></a></h3>
+<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-is_computed_grid"></a><div class="section">
+<h3 id="ggplot-heatmaplayerprocessor-is-computed-grid-"><code>Ggplot2HeatmapLayerProcessor$is_computed_grid()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-is-computed-grid-"></a></h3>
 <p>Report whether this layer's grid was computed by a stat.</p>
 <p><code><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin_2d()</a></code> is <code>GeomTile</code> + <code>StatBin2d</code>, so it arrives here
 classified as a heatmap – correctly, since a rectangular bin grid
 is one. What differs is where the grid comes from: a <code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile()</a></code>
 heatmap is handed one in <code>plot$data</code>, and a binned one has its
-computed for it.</p>
+computed for it. So do <code><a href="https://ggplot2.tidyverse.org/reference/stat_summary_2d.html" class="external-link">stat_summary_2d()</a></code>, a summary of the values
+in each bin, and <code>stat_density_2d(geom = "raster", contour = FALSE)</code>,
+the density at each point of a lattice; and a stat built on one of
+the three, as ggplot2 4.0 builds <code>StatBin2d</code> on <code>StatSummary2d</code>.</p>
 <p>Matched on the stat rather than on the presence of a <code>count</code>
 column, because a tidy heatmap whose value column happens to be
 named <code>count</code> is not a binned layer and must not take that path.
@@ -247,7 +251,7 @@ Reached through <code>get_own_layer()</code>, which already answers "is there
 a layer at my index?" – a second bounds check here would be a
 second place for the answer to change.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">is_binned_layer</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">is_computed_grid</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
@@ -257,30 +261,35 @@ second place for the answer to change.</p><div class="section">
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p><code>TRUE</code> when the layer's stat computes a 2D bin grid</p>
+<p><code>TRUE</code> when the layer's stat computes its grid</p>
 </div>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-extract_binned_data"></a><div class="section">
-<h3 id="ggplot-heatmaplayerprocessor-extract-binned-data-"><code>Ggplot2HeatmapLayerProcessor$extract_binned_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-extract-binned-data-"></a></h3>
-<p>Read a computed 2D bin grid out of the built data.</p>
-<p>The built data <em>is</em> the grid: one row per drawn tile, carrying the
-bin's count and its edges. Only the bins that hold something are
-present, so the full rectangle is rebuilt from the distinct
+<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-extract_computed_grid"></a><div class="section">
+<h3 id="ggplot-heatmaplayerprocessor-extract-computed-grid-"><code>Ggplot2HeatmapLayerProcessor$extract_computed_grid()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-extract-computed-grid-"></a></h3>
+<p>Read a grid a stat computed out of the built data.</p>
+<p>The built data <em>is</em> the grid: one row per drawn tile, carrying its
+edges and the value its fill was computed from
+(<code><a href="heat_stat_fill.html">heat_stat_fill()</a></code>). A binned grid lists only the bins that hold
+something, so the full rectangle is rebuilt from the distinct
 positions and the empty cells left missing rather than scored zero
 – an empty bin genuinely counted nothing, but the frontend reads a
 zero as "no rect here" for highlighting, and every cell of a
 heatmap has one.</p>
-<p>Axis labels are the bin's coordinate <em>range</em>, not its index: "a
+<p>Axis labels are the tile's coordinate <em>range</em>, not its index: "a
 count of 4" means nothing without "between -2.2 and -1.1", and the
 range is what a sighted reader gets from the axis (#136).</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">extract_binned_data</span><span class="op">(</span><span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">extract_computed_grid</span><span class="op">(</span><span class="va">built_data</span>, <span class="va">fill_label</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built_data</code></dt>
-<dd><p>This layer's computed data, already panel-filtered</p></dd>
+<dd><p>This layer's computed data, already panel-filtered,
+with each tile's value in <code>.maidr_heat_fill</code></p></dd>
+
+      <dt><code>fill_label</code></dt>
+<dd><p>The fill's name, or NULL where the stat computes none</p></dd>
 
 
 </dl><p></p></div>

@@ -1156,6 +1156,23 @@
 - A heatmap on a continuous x or y scale is read by the value each tile
   is drawn at. maidr matched tiles to cells by a level’s index, so a
   heatmap at x = 10 and 20 was read as missing in every cell.
+- A heatmap whose grid its stat computes, as
+  [`stat_summary_2d()`](https://ggplot2.tidyverse.org/reference/stat_summary_2d.html)
+  and `stat_density_2d(geom = "raster", contour = FALSE)` compute one,
+  is drawn as written and read by the values its fill shows, as
+  [`geom_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html)
+  already was. maidr made the observations such a stat computes from
+  into categories, so the summary drew one tile per observation and the
+  density no tiles at all, and it read every cell as missing, on a grid
+  of one row and one column per observation.
+  [`geom_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html)
+  is read by the variable its fill shows, as `after_stat(density)`: it
+  was read by its counts, under the fill’s title. Moving between the
+  cells of a computed grid highlights the tile drawn for each: where
+  every bin held something, cells were highlighted on other cells’
+  tiles. A computed grid whose stat colours nothing, as
+  `stat_summary_2d(fill = "steelblue")`, is read under no title rather
+  than under the one its stat would give a legend.
 
 #### Base R
 

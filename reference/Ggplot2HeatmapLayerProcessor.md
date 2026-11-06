@@ -20,9 +20,9 @@ reordering
 
 - [`Ggplot2HeatmapLayerProcessor$reorder_layer_data()`](#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data)
 
-- [`Ggplot2HeatmapLayerProcessor$is_binned_layer()`](#method-Ggplot2HeatmapLayerProcessor-is_binned_layer)
+- [`Ggplot2HeatmapLayerProcessor$is_computed_grid()`](#method-Ggplot2HeatmapLayerProcessor-is_computed_grid)
 
-- [`Ggplot2HeatmapLayerProcessor$extract_binned_data()`](#method-Ggplot2HeatmapLayerProcessor-extract_binned_data)
+- [`Ggplot2HeatmapLayerProcessor$extract_computed_grid()`](#method-Ggplot2HeatmapLayerProcessor-extract_computed_grid)
 
 - [`Ggplot2HeatmapLayerProcessor$format_bin_edge()`](#method-Ggplot2HeatmapLayerProcessor-format_bin_edge)
 
@@ -128,9 +128,10 @@ TRUE
 
 ### `Ggplot2HeatmapLayerProcessor$binned_selector_grid()`
 
-One selector per drawn bin of a binned grid, `NA` for an empty one
+One selector per drawn tile of a grid a stat computed, `NA` where none
+was drawn
 
-ggplot2 draws the bins in the order the built data lists them, so the
+ggplot2 draws the tiles in the order the built data lists them, so the
 k-th rect under the layer's group is the k-th built row; `cells` holds
 that row number per cell, in the emitted row order.
 
@@ -179,7 +180,7 @@ The reordered data frame
 
 ------------------------------------------------------------------------
 
-### `Ggplot2HeatmapLayerProcessor$is_binned_layer()`
+### `Ggplot2HeatmapLayerProcessor$is_computed_grid()`
 
 Report whether this layer's grid was computed by a stat.
 
@@ -189,7 +190,12 @@ is `GeomTile` + `StatBin2d`, so it arrives here classified as a heatmap
 the grid comes from: a
 [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
 heatmap is handed one in `plot$data`, and a binned one has its computed
-for it.
+for it. So do
+[`stat_summary_2d()`](https://ggplot2.tidyverse.org/reference/stat_summary_2d.html),
+a summary of the values in each bin, and
+`stat_density_2d(geom = "raster", contour = FALSE)`, the density at each
+point of a lattice; and a stat built on one of the three, as ggplot2 4.0
+builds `StatBin2d` on `StatSummary2d`.
 
 Matched on the stat rather than on the presence of a `count` column,
 because a tidy heatmap whose value column happens to be named `count` is
@@ -200,7 +206,7 @@ change.
 
 #### Usage
 
-    Ggplot2HeatmapLayerProcessor$is_binned_layer(plot)
+    Ggplot2HeatmapLayerProcessor$is_computed_grid(plot)
 
 #### Arguments
 
@@ -210,34 +216,41 @@ change.
 
 #### Returns
 
-`TRUE` when the layer's stat computes a 2D bin grid
+`TRUE` when the layer's stat computes its grid
 
 ------------------------------------------------------------------------
 
-### `Ggplot2HeatmapLayerProcessor$extract_binned_data()`
+### `Ggplot2HeatmapLayerProcessor$extract_computed_grid()`
 
-Read a computed 2D bin grid out of the built data.
+Read a grid a stat computed out of the built data.
 
-The built data *is* the grid: one row per drawn tile, carrying the bin's
-count and its edges. Only the bins that hold something are present, so
-the full rectangle is rebuilt from the distinct positions and the empty
-cells left missing rather than scored zero – an empty bin genuinely
-counted nothing, but the frontend reads a zero as "no rect here" for
+The built data *is* the grid: one row per drawn tile, carrying its edges
+and the value its fill was computed from
+([`heat_stat_fill()`](https://r.maidr.ai/reference/heat_stat_fill.md)).
+A binned grid lists only the bins that hold something, so the full
+rectangle is rebuilt from the distinct positions and the empty cells
+left missing rather than scored zero – an empty bin genuinely counted
+nothing, but the frontend reads a zero as "no rect here" for
 highlighting, and every cell of a heatmap has one.
 
-Axis labels are the bin's coordinate *range*, not its index: "a count of
-4" means nothing without "between -2.2 and -1.1", and the range is what
-a sighted reader gets from the axis (#136).
+Axis labels are the tile's coordinate *range*, not its index: "a count
+of 4" means nothing without "between -2.2 and -1.1", and the range is
+what a sighted reader gets from the axis (#136).
 
 #### Usage
 
-    Ggplot2HeatmapLayerProcessor$extract_binned_data(built_data)
+    Ggplot2HeatmapLayerProcessor$extract_computed_grid(built_data, fill_label)
 
 #### Arguments
 
 - `built_data`:
 
-  This layer's computed data, already panel-filtered
+  This layer's computed data, already panel-filtered, with each tile's
+  value in `.maidr_heat_fill`
+
+- `fill_label`:
+
+  The fill's name, or NULL where the stat computes none
 
 #### Returns
 
