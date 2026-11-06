@@ -917,6 +917,16 @@
   cells were highlighted on other cells' tiles. A computed grid whose stat
   colours nothing, as `stat_summary_2d(fill = "steelblue")`, is read under
   no title rather than under the one its stat would give a legend.
+* A legend titled by its guide, as
+  `guides(fill = guide_colourbar(title = "Correlation"))` or a scale's
+  `guide = guide_legend(title = "Kind")` titles it, now titles the values it
+  groups, ahead of the scale's name and `labs()`, as ggplot2 draws it. The
+  guide's title was not read, so the values were announced under another
+  name than the legend's. A guide's title or a scale's name given as a
+  function, as ggplot2 3.5 and later allow with
+  `scale_fill_gradient(name = toupper)`, is read as the title it returns. A
+  scale's name given as one stopped `show()` and `save_html()` with "cannot
+  coerce type 'closure' to vector of type 'character'".
 
 ### Base R
 

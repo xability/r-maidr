@@ -144,15 +144,27 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
   }
   labels <- built$plot$labels
 
-  # ggplot2 titles a legend by its scale's name before `labs()`:
-  # `scale_fill_gradient(name = "Correlation")`, or the name given first, as
-  # in `scale_fill_viridis_c("Correlation")`. A scale given no name, or
-  # NULL, leaves the title to the chain below.
+  # ggplot2 titles a legend by its guide's title first, as
+  # `guides(fill = guide_colourbar(title = "Correlation"))` or a scale's
+  # `guide = guide_legend(title = )` sets it (`legend_guide_title()`); then
+  # by its scale's name, `scale_fill_gradient(name = "Correlation")` or the
+  # name given first, as in `scale_fill_viridis_c("Correlation")`; then by
+  # `labs()`. A guide or scale given no title, or NULL, leaves the title to
+  # the next in turn.
+  #
+  # ggplot2 3.5 and later also take a function, or a formula for one, as the
+  # scale's name or the guide's title (`legend_title_value()`).
   for (aes_name in aes_names) {
     scale <- tryCatch(built$plot$scales$get_scales(aes_name), error = function(e) NULL)
-    name <- if (!is.null(scale)) scale$name
-    if (!is.null(name) && !inherits(name, "waiver") && length(name) == 1L &&
-      !is.na(name) && nzchar(as.character(name))) {
+    name <- if (!is.null(scale)) legend_title_value(scale$name, labels[[aes_name]])
+    if (!legend_title_given(name)) {
+      name <- NULL
+    }
+    title <- legend_guide_title(built, aes_name, scale, name %||% labels[[aes_name]])
+    if (!is.null(title)) {
+      return(title)
+    }
+    if (!is.null(name)) {
       return(as.character(name))
     }
   }
@@ -182,6 +194,98 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
   }
 
   NULL
+}
+
+#' Whether a legend title was given: one non-empty string or plotmath value
+#'
+#' @param title A guide's title, a scale's name or a `labs()` label
+#' @return TRUE or FALSE; FALSE for a `waiver()`, NULL, NA or "", and for
+#'   anything that is not one string as written, as a function
+#' @keywords internal
+#' @noRd
+legend_title_given <- function(title) {
+  text <- tryCatch(as.character(title), error = function(e) NULL)
+  !inherits(title, "waiver") && length(text) == 1L && !is.na(text) && nzchar(text)
+}
+
+#' A legend title given as a function, called as ggplot2 calls it
+#'
+#' ggplot2 3.5 and later take a function as a scale's name or a guide's
+#' title, or a formula for one, as `scale_fill_gradient(name = toupper)` or
+#' `guide_colourbar(title = ~ paste(.x, "(%)"))`, and title the legend by
+#' what it returns for the title it would otherwise have: the scale's is
+#' handed the title from `labs()` or the mapping, and the guide's the title
+#' so far. Coerced as a string, the function stopped the reading with
+#' "cannot coerce type 'closure' to vector of type 'character'".
+#'
+#' @param title A guide's title or a scale's name
+#' @param default The title it is handed
+#' @return What the function returns, NULL where it fails, or `title` where
+#'   it is no function
+#' @keywords internal
+#' @noRd
+legend_title_value <- function(title, default) {
+  if (rlang::is_formula(title)) {
+    title <- tryCatch(rlang::as_function(title), error = function(e) NULL)
+  }
+  if (is.function(title)) {
+    title <- tryCatch(title(default), error = function(e) NULL)
+  }
+  title
+}
+
+#' The title a legend's guide was given
+#'
+#' `guides(fill = guide_colourbar(title = "Correlation"))`, or the scale's
+#' own `guide = guide_legend(title = )`, titles a legend over the scale's
+#' name and `labs()`. ggplot2 keeps the guide where releases differ: 3.4
+#' keeps the plot's guides in a list by aesthetic, each a list with a
+#' `title`, and the scale's in `scale$guide`; 3.5 and 4.0 keep a `Guides`
+#' object, whose `get_guide()` answers with the scale's guide where the
+#' plot gives none, each holding its title in `params`. Where the plot names
+#' a guide, the scale's is not drawn. A guide named by a string, as
+#' `guides(fill = "colourbar")`, has no title of its own, and an aesthetic
+#' with no scale has no legend. A guide given `title = NULL` hides the
+#' title on the chart; the values are still read under the scale's name or
+#' `labs()`, rather than under no name.
+#'
+#' @param built Built plot from `ggplot2::ggplot_build()`
+#' @param aes_name The aesthetic, as ggplot2 spells it
+#' @param scale The aesthetic's scale, or NULL
+#' @param default The title a guide's function is handed: the scale's name,
+#'   or else the title from `labs()` or the mapping
+#' @return The title as one string, or NULL where the guide gives none
+#' @keywords internal
+#' @noRd
+legend_guide_title <- function(built, aes_name, scale, default = NULL) {
+  # No scale, no legend: ggplot2 3.4 keeps a plot's guide for an aesthetic
+  # nothing maps, and read, it titled a constant-fill heatmap's values.
+  if (is.null(scale)) {
+    return(NULL)
+  }
+  guides <- built$plot$guides
+  plot_guide <- if (inherits(guides, "ggproto")) {
+    tryCatch(guides$get_guide(aes_name), error = function(e) NULL)
+  } else if (is.list(guides)) {
+    guides[[aes_name]]
+  }
+  # The plot's guide, where it names one, is the one drawn, as ggplot2
+  # resolves it (`guides[[aesthetic]] %||% scale$guide`).
+  guide <- plot_guide %||% scale$guide
+  if (is.null(guide) || is.character(guide) || isFALSE(guide)) {
+    return(NULL)
+  }
+  title <- tryCatch(guide$params$title, error = function(e) NULL)
+  if (is.null(title) && is.list(guide) && !inherits(guide, "ggproto")) {
+    title <- guide$title
+  }
+  title <- legend_title_value(title, default)
+  # A plotmath title given as a call, as `bquote(alpha^2)` makes one, is one
+  # title, read as it is written; taken apart it was three, and dropped.
+  if (is.call(title) || is.name(title)) {
+    title <- paste(deparse(title), collapse = "")
+  }
+  if (legend_title_given(title)) as.character(title)
 }
 
 #' Resolve the printed label for a positional axis
