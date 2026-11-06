@@ -890,6 +890,20 @@
   carried only as text, in a field maidr.js does not read, so a reader
   heard nothing of the colour bar, and the legend had no title in the
   reading.
+* A heatmap whose x and y are not its data's first two columns is drawn
+  and highlighted as written. maidr reorders a heatmap's rows before
+  drawing, making its x and y factors, and took them to be the first two
+  columns: in `data.frame(score, x, y)` the fill was made a factor and
+  drawn with a discrete legend, and moving between cells highlighted the
+  wrong tiles. Where the tiles draw data of their own, the plot's data
+  belongs to another layer, and that layer's points were moved to discrete
+  positions, drawn on discrete axes and described as categories. A heatmap
+  under `scale_x_continuous()` or `scale_y_continuous()` keeps its numbers
+  and is drawn: made factors, its first two columns stopped `save_html()`
+  with "Discrete value supplied to a continuous scale".
+* A heatmap on a continuous x or y scale is read by the value each tile
+  is drawn at. maidr matched tiles to cells by a level's index, so a
+  heatmap at x = 10 and 20 was read as missing in every cell.
 
 ### Base R
 

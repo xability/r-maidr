@@ -119,32 +119,47 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         return(data)
       }
 
-      x_col <- names(data)[1]
-      y_col <- names(data)[2]
-
-      x_scale <- plot$scales$get_scales("x")
-      y_scale <- plot$scales$get_scales("y")
-
-      # Determine x-axis order
-      if (!is.null(x_scale) && !is.null(x_scale$limits)) {
-        x_order <- x_scale$limits
-      } else {
-        x_order <- sort(unique(data[[x_col]]))
+      # The heatmap's own x and y, by its mapping. The data's first two
+      # columns were taken for them: in `data.frame(score, x, y)` the fill
+      # was made a factor, drawn with a discrete legend, and the rows sorted
+      # by it, out of the order the cells are paired with; and where the
+      # tiles draw data of their own, the plot's data is another layer's,
+      # whose points were moved to discrete positions.
+      positions <- heat_positions(self$get_own_layer(plot), plot, data)
+      if (is.null(positions)) {
+        return(data)
       }
 
-      # Determine y-axis order
-      if (!is.null(y_scale) && !is.null(y_scale$limits)) {
-        y_order <- y_scale$limits
-      } else {
-        y_order <- sort(unique(data[[y_col]]))
+      # Each axis sorts by its positions in the order ggplot2 draws them: a
+      # continuous scale's numbers, else a discrete scale's limits or the
+      # values sorted. A column the mapping names is made a factor so its
+      # tiles take those positions, unless its scale is continuous, which a
+      # factor would stop the plot from drawing on ("Discrete value supplied
+      # to a continuous scale"). An expression is sorted by what it
+      # evaluates to, and its columns are left alone.
+      keys <- list()
+      for (aesthetic in c("x", "y")) {
+        position <- positions[[aesthetic]]
+        values <- if (!is.null(position$column)) data[[position$column]] else position$values
+        scale <- plot$scales$get_scales(aesthetic)
+        discrete <- isTRUE(tryCatch(scale$is_discrete(), error = function(e) FALSE))
+        if (!is.null(scale) && !discrete) {
+          keys[[aesthetic]] <- xtfrm(values)
+          next
+        }
+        limits <- if (!is.null(scale)) scale$limits
+        order <- if (is.atomic(limits) && length(limits) > 0L) limits else sort(unique(values))
+        if (!is.null(position$column)) {
+          data[[position$column]] <- factor(values, levels = order)
+          keys[[aesthetic]] <- as.integer(data[[position$column]])
+        } else {
+          keys[[aesthetic]] <- match(as.character(values), as.character(order))
+        }
       }
 
-      data[[x_col]] <- factor(data[[x_col]], levels = x_order)
-      data[[y_col]] <- factor(data[[y_col]], levels = y_order)
-
-      # Reorder data column-wise (x first, then y) for column-major DOM order
-      # Keep y order as-is so bottom row comes first (for navigation starting from bottom-left)
-      reordered_data <- data[order(data[[x_col]], data[[y_col]]), , drop = FALSE]
+      # Column-major: x first, then y from the bottom row up, the order the
+      # tiles are paired with the cells.
+      reordered_data <- data[order(keys$x, keys$y), , drop = FALSE]
       rownames(reordered_data) <- NULL
 
       reordered_data
@@ -380,9 +395,19 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       score_matrix <- matrix(NA, nrow = length(y_values), ncol = length(x_values))
       rownames(score_matrix) <- y_values
       colnames(score_matrix) <- x_values
+      # A discrete scale draws a tile at its level's index, the position the
+      # lookup takes; a continuous one at the value itself, which is matched
+      # to its level here. Read as an index, a tile at x = 10 matched none.
+      as_index <- function(built, values) {
+        if (inherits(built, "mapped_discrete") || !is.numeric(values)) {
+          return(built)
+        }
+        match(built, values)
+      }
       score_matrix <- heat_fill_scores(
         score_matrix, panel_source, x_col, y_col, fill_col,
-        x_values, y_values, built_data$x, built_data$y
+        x_values, y_values,
+        as_index(built_data$x, x_values), as_index(built_data$y, y_values)
       )
 
       # Reverse y_values to match DOM order (bottom row first)
@@ -611,4 +636,76 @@ heat_fill_scores <- function(score_matrix, source, x_col, y_col, fill_col,
     score_matrix[cbind(cell_y[hit], cell_x[hit])] <- score_val
   }
   score_matrix
+}
+
+#' Where a heatmap layer takes its x and y from, in the plot's data
+#'
+#' A heatmap is reordered before it is drawn, so its tiles come out in the
+#' order the reading pairs them with (`reorder_layer_data()`). That is done
+#' to the plot's data, and only where the tiles draw it as it is: a layer
+#' with data of its own, or a function of the plot's, leaves it alone.
+#'
+#' Each position follows the mapping, the layer's or else the plot's unless
+#' `inherit.aes = FALSE`. A column it names, as a bare name, `.data$x`,
+#' `.data[["x"]]` or `.data[[var]]` where `var` holds the name, is given as
+#' that column. Any other expression is given as what it evaluates to over
+#' the data, a symbol that is no column (a variable of the caller's) among
+#' them. A constant, as `aes(x = 1)` stores it, and `.data[[f()]]`, which
+#' names its column only by calling `f()` again, give none: the data is
+#' then left as it is.
+#'
+#' @param layer The heatmap's layer, or NULL
+#' @param plot The ggplot2 object
+#' @param data The plot's data
+#' @return `list(x = , y = )`, each `list(column = )` or `list(values = )`,
+#'   or NULL
+#' @keywords internal
+heat_positions <- function(layer, plot, data) {
+  if (is.null(layer) || !inherits(layer$data, "waiver")) {
+    return(NULL)
+  }
+  mapping <- as.list(layer$mapping)
+  if (!isFALSE(layer$inherit.aes)) {
+    inherited <- as.list(plot$mapping)
+    mapping <- c(mapping, inherited[setdiff(names(inherited), names(mapping))])
+  }
+  position <- function(aesthetic) {
+    quo <- mapping[[aesthetic]]
+    if (!rlang::is_quosure(quo)) {
+      return(NULL)
+    }
+    expr <- rlang::quo_get_expr(quo)
+    name <- if (is.symbol(expr)) {
+      as.character(expr)
+    } else if (is.call(expr) && length(expr) == 3L && identical(expr[[2]], quote(.data))) {
+      index <- expr[[3]]
+      if (identical(expr[[1]], quote(`$`))) {
+        as.character(index)
+      } else if (identical(expr[[1]], quote(`[[`))) {
+        # A string, or a variable holding one, is looked up without running
+        # anything: `.data[[f()]]` would call `f()` a second time.
+        if (is.character(index)) {
+          index
+        } else if (is.symbol(index)) {
+          get0(as.character(index), envir = rlang::quo_get_env(quo), inherits = TRUE)
+        } else {
+          return(NULL)
+        }
+      }
+    }
+    if (is.character(name) && length(name) == 1L && name %in% names(data)) {
+      return(list(column = name))
+    }
+    values <- tryCatch(rlang::eval_tidy(quo, data), error = function(e) NULL)
+    if (!is.atomic(values) || length(values) != nrow(data)) {
+      return(NULL)
+    }
+    list(values = values)
+  }
+  x <- position("x")
+  y <- position("y")
+  if (is.null(x) || is.null(y)) {
+    return(NULL)
+  }
+  list(x = x, y = y)
 }
