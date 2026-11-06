@@ -215,12 +215,12 @@ test_that("the binned path is chosen by the stat, not by a column name", {
 
   first <- maidr:::Ggplot2HeatmapLayerProcessor$new(list(index = 1))
 
-  testthat::expect_false(first$is_binned_layer(tidy))
-  testthat::expect_true(first$is_binned_layer(bin2d_plot()))
+  testthat::expect_false(first$is_computed_grid(tidy))
+  testthat::expect_true(first$is_computed_grid(bin2d_plot()))
 
   # A processor whose index names no layer answers "no" rather than
   # erroring -- through `get_own_layer()`, so there is one bounds check
   # rather than two that could disagree.
   fifth <- maidr:::Ggplot2HeatmapLayerProcessor$new(list(index = 5))
-  testthat::expect_false(fifth$is_binned_layer(tidy))
+  testthat::expect_false(fifth$is_computed_grid(tidy))
 })

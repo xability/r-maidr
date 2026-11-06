@@ -17,8 +17,8 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
     \item \href{#method-Ggplot2HeatmapLayerProcessor-needs_reordering}{\code{Ggplot2HeatmapLayerProcessor$needs_reordering()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-binned_selector_grid}{\code{Ggplot2HeatmapLayerProcessor$binned_selector_grid()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data}{\code{Ggplot2HeatmapLayerProcessor$reorder_layer_data()}}
-    \item \href{#method-Ggplot2HeatmapLayerProcessor-is_binned_layer}{\code{Ggplot2HeatmapLayerProcessor$is_binned_layer()}}
-    \item \href{#method-Ggplot2HeatmapLayerProcessor-extract_binned_data}{\code{Ggplot2HeatmapLayerProcessor$extract_binned_data()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-is_computed_grid}{\code{Ggplot2HeatmapLayerProcessor$is_computed_grid()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-extract_computed_grid}{\code{Ggplot2HeatmapLayerProcessor$extract_computed_grid()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-format_bin_edge}{\code{Ggplot2HeatmapLayerProcessor$format_bin_edge()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-bin_labels}{\code{Ggplot2HeatmapLayerProcessor$bin_labels()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-extract_data}{\code{Ggplot2HeatmapLayerProcessor$extract_data()}}
@@ -105,9 +105,10 @@ matches the drawn tiles
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-binned_selector_grid"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-binned_selector_grid}{}}}
 \subsection{\code{Ggplot2HeatmapLayerProcessor$binned_selector_grid()}}{
-  One selector per drawn bin of a binned grid, \code{NA} for an empty one
+  One selector per drawn tile of a grid a stat computed, \code{NA} where
+none was drawn
 
-ggplot2 draws the bins in the order the built data lists them, so the
+ggplot2 draws the tiles in the order the built data lists them, so the
 k-th rect under the layer's group is the k-th built row; \code{cells} holds
 that row number per cell, in the emitted row order.
   \subsection{Usage}{
@@ -152,16 +153,19 @@ that row number per cell, in the emitted row order.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-is_binned_layer"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-is_binned_layer}{}}}
-\subsection{\code{Ggplot2HeatmapLayerProcessor$is_binned_layer()}}{
+\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-is_computed_grid"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-is_computed_grid}{}}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$is_computed_grid()}}{
   Report whether this layer's grid was computed by a stat.
 
 \code{geom_bin_2d()} is \code{GeomTile} + \code{StatBin2d}, so it arrives here
 classified as a heatmap -- correctly, since a rectangular bin grid
 is one. What differs is where the grid comes from: a \code{geom_tile()}
 heatmap is handed one in \code{plot$data}, and a binned one has its
-computed for it.
+computed for it. So do \code{stat_summary_2d()}, a summary of the values
+in each bin, and \code{stat_density_2d(geom = "raster", contour = FALSE)},
+the density at each point of a lattice; and a stat built on one of
+the three, as ggplot2 4.0 builds \code{StatBin2d} on \code{StatSummary2d}.
 
 Matched on the stat rather than on the presence of a \code{count}
 column, because a tidy heatmap whose value column happens to be
@@ -171,7 +175,7 @@ a layer at my index?" -- a second bounds check here would be a
 second place for the answer to change.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2HeatmapLayerProcessor$is_binned_layer(plot)}
+    \preformatted{Ggplot2HeatmapLayerProcessor$is_computed_grid(plot)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -182,36 +186,39 @@ second place for the answer to change.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    \code{TRUE} when the layer's stat computes a 2D bin grid
+    \code{TRUE} when the layer's stat computes its grid
   }
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-extract_binned_data"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-extract_binned_data}{}}}
-\subsection{\code{Ggplot2HeatmapLayerProcessor$extract_binned_data()}}{
-  Read a computed 2D bin grid out of the built data.
+\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-extract_computed_grid"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-extract_computed_grid}{}}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$extract_computed_grid()}}{
+  Read a grid a stat computed out of the built data.
 
-The built data \emph{is} the grid: one row per drawn tile, carrying the
-bin's count and its edges. Only the bins that hold something are
-present, so the full rectangle is rebuilt from the distinct
+The built data \emph{is} the grid: one row per drawn tile, carrying its
+edges and the value its fill was computed from
+(\code{heat_stat_fill()}). A binned grid lists only the bins that hold
+something, so the full rectangle is rebuilt from the distinct
 positions and the empty cells left missing rather than scored zero
 -- an empty bin genuinely counted nothing, but the frontend reads a
 zero as "no rect here" for highlighting, and every cell of a
 heatmap has one.
 
-Axis labels are the bin's coordinate \emph{range}, not its index: "a
+Axis labels are the tile's coordinate \emph{range}, not its index: "a
 count of 4" means nothing without "between -2.2 and -1.1", and the
 range is what a sighted reader gets from the axis (#136).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2HeatmapLayerProcessor$extract_binned_data(built_data)}
+    \preformatted{Ggplot2HeatmapLayerProcessor$extract_computed_grid(built_data, fill_label)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{built_data}}{This layer's computed data, already panel-filtered}
+      \item{\code{built_data}}{This layer's computed data, already panel-filtered,
+with each tile's value in \code{.maidr_heat_fill}}
+      \item{\code{fill_label}}{The fill's name, or NULL where the stat computes none}
     }
     \if{html}{\out{</div>}}
   }

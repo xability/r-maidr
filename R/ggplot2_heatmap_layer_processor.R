@@ -31,15 +31,15 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       cells <- extracted_data$cells
       data <- extracted_data[!names(extracted_data) %in% c("fill_label", "cells")]
 
-      # A binned grid with empty bins has fewer rects than cells, and one
-      # selector over all of them gives the frontend nothing to pair: its
-      # heatmap model wants exactly one element per cell from a string, so
-      # the layer had no highlight at all (#316). Named cell by cell instead,
-      # with `null` where no bin was drawn, which the model reads as a hole.
-      if (
-        !is.null(cells) && is.character(selectors) && length(selectors) == 1L &&
-          anyNA(unlist(cells))
-      ) {
+      # A grid a stat computed is named cell by cell, with `null` where no
+      # tile was drawn, which the frontend's heatmap model reads as a hole.
+      # One selector over all the rects gives the model nothing to pair
+      # where bins are empty: it wants exactly one element per cell from a
+      # string, so the layer had no highlight at all (#316). Nor where every
+      # cell is drawn: a stat draws its grid a row at a time from the
+      # bottom, and the model pairs a string's rects a column at a time, so
+      # cells were highlighted on other cells' tiles.
+      if (!is.null(cells) && is.character(selectors) && length(selectors) == 1L) {
         selectors <- self$binned_selector_grid(selectors, cells)
       }
 
@@ -54,13 +54,18 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       # The values are named by the legend's title, as the stacked and
       # dodged bars' groups are: `labs(fill = "Correlation")` titled the
       # legend while the reader heard "value is 0.8", the name of the column
-      # the cells were read from. That name, or the count a binned grid
-      # holds, remains the fallback.
+      # the cells were read from. That name, or the variable a stat computed
+      # the fill from, remains the fallback. A fill neither mapped nor
+      # computed draws every tile in one colour, under no legend, and is read
+      # as missing under no title: `stat_summary_2d(fill = "steelblue")` was
+      # read under "value", the title its stat would have given a legend.
       layer_index <- self$get_layer_index()
       axes <- build_axes(
         x = positional_axis_label(plot, built, "x", layer_index),
         y = positional_axis_label(plot, built, "y", layer_index),
-        z = resolve_legend_label(plot, built, "fill", layer_index) %||% fill_label
+        z = if (!is.null(fill_label)) {
+          resolve_legend_label(plot, built, "fill", layer_index) %||% fill_label
+        }
       )
 
       list(
@@ -75,9 +80,10 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
     needs_reordering = function() {
       TRUE
     },
-    #' @description One selector per drawn bin of a binned grid, `NA` for an empty one
+    #' @description One selector per drawn tile of a grid a stat computed, `NA` where
+    #'   none was drawn
     #'
-    #' ggplot2 draws the bins in the order the built data lists them, so the
+    #' ggplot2 draws the tiles in the order the built data lists them, so the
     #' k-th rect under the layer's group is the k-th built row; `cells` holds
     #' that row number per cell, in the emitted row order.
     #'
@@ -107,15 +113,17 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         return(data)
       }
 
-      # Not for a computed bin grid. Below, the first two columns are made
+      # Not for a grid a stat computes. Below, the heatmap's x and y are made
       # into factors so the tiles sort into DOM order -- correct when they
-      # are the heatmap's categories, and destructive when they are raw
-      # continuous observations: ggplot2 then maps 200 data points to 200
-      # *discrete* positions, and `StatBin2d` bins those integers instead
-      # of the numbers, producing one bin per observation. That is what
-      # made a four-by-four binned scatter come out as a 200x200 grid
-      # labelled "0.5 to 1.5", "1.5 to 2.5", and so on (#136).
-      if (self$is_binned_layer(plot)) {
+      # are its categories, and destructive when they are the observations a
+      # stat computes the grid from: ggplot2 then maps 200 data points to
+      # 200 *discrete* positions. `StatBin2d` binned those integers instead
+      # of the numbers, one bin per observation, which made a four-by-four
+      # binned scatter come out as a 200x200 grid labelled "0.5 to 1.5",
+      # "1.5 to 2.5", and so on (#136); `stat_summary_2d()` drew a tile per
+      # observation the same way, and `stat_density_2d()` drew no tiles at
+      # all: "Computation failed in `stat_density2d()`".
+      if (self$is_computed_grid(plot)) {
         return(data)
       }
 
@@ -170,7 +178,10 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
     #'   classified as a heatmap -- correctly, since a rectangular bin grid
     #'   is one. What differs is where the grid comes from: a `geom_tile()`
     #'   heatmap is handed one in `plot$data`, and a binned one has its
-    #'   computed for it.
+    #'   computed for it. So do `stat_summary_2d()`, a summary of the values
+    #'   in each bin, and `stat_density_2d(geom = "raster", contour = FALSE)`,
+    #'   the density at each point of a lattice; and a stat built on one of
+    #'   the three, as ggplot2 4.0 builds `StatBin2d` on `StatSummary2d`.
     #'
     #'   Matched on the stat rather than on the presence of a `count`
     #'   column, because a tidy heatmap whose value column happens to be
@@ -179,53 +190,36 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
     #'   a layer at my index?" -- a second bounds check here would be a
     #'   second place for the answer to change.
     #' @param plot The ggplot object
-    #' @return `TRUE` when the layer's stat computes a 2D bin grid
-    is_binned_layer = function(plot) {
+    #' @return `TRUE` when the layer's stat computes its grid
+    is_computed_grid = function(plot) {
       layer <- self$get_own_layer(plot)
       if (is.null(layer)) {
         return(FALSE)
       }
-      identical(class(layer$stat)[1], "StatBin2d")
+      inherits(layer$stat, c("StatBin2d", "StatSummary2d", "StatDensity2d"))
     },
-    #' @description Read a computed 2D bin grid out of the built data.
+    #' @description Read a grid a stat computed out of the built data.
     #'
-    #'   The built data *is* the grid: one row per drawn tile, carrying the
-    #'   bin's count and its edges. Only the bins that hold something are
-    #'   present, so the full rectangle is rebuilt from the distinct
+    #'   The built data *is* the grid: one row per drawn tile, carrying its
+    #'   edges and the value its fill was computed from
+    #'   (`heat_stat_fill()`). A binned grid lists only the bins that hold
+    #'   something, so the full rectangle is rebuilt from the distinct
     #'   positions and the empty cells left missing rather than scored zero
     #'   -- an empty bin genuinely counted nothing, but the frontend reads a
     #'   zero as "no rect here" for highlighting, and every cell of a
     #'   heatmap has one.
     #'
-    #'   Axis labels are the bin's coordinate *range*, not its index: "a
+    #'   Axis labels are the tile's coordinate *range*, not its index: "a
     #'   count of 4" means nothing without "between -2.2 and -1.1", and the
     #'   range is what a sighted reader gets from the axis (#136).
-    #' @param built_data This layer's computed data, already panel-filtered
+    #' @param built_data This layer's computed data, already panel-filtered,
+    #'   with each tile's value in `.maidr_heat_fill`
+    #' @param fill_label The fill's name, or NULL where the stat computes none
     #' @return The same shape `extract_data` returns for a tidy heatmap
-    extract_binned_data = function(built_data) {
+    extract_computed_grid = function(built_data, fill_label) {
       if (nrow(built_data) == 0 || !all(c("x", "y") %in% names(built_data))) {
         return(list(points = list(), x = character(0), y = character(0),
-                    fill_label = "count"))
-      }
-
-      # `count` is what `stat_bin_2d()` computes, and `value` is the same
-      # number under ggplot2 3.x's spelling -- checked rather than assumed:
-      # on 3.4.4 both columns are present and identical row for row. So the
-      # label below is "count" either way, and reading `value` is a
-      # fallback for a build that stops emitting `count` rather than a
-      # different quantity.
-      #
-      # `fill` is never it: that is the mapped colour, not a number.
-      value_col <- if ("count" %in% names(built_data)) {
-        "count"
-      } else if ("value" %in% names(built_data)) {
-        "value"
-      } else {
-        NULL
-      }
-      if (is.null(value_col)) {
-        return(list(points = list(), x = character(0), y = character(0),
-                    fill_label = "count"))
+                    fill_label = fill_label))
       }
 
       x_positions <- sort(unique(built_data$x))
@@ -245,7 +239,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       for (i in seq_len(nrow(built_data))) {
         row <- match(built_data$y[i], y_positions)
         col <- match(built_data$x[i], x_positions)
-        scores[row, col] <- as.numeric(built_data[[value_col]][i])
+        scores[row, col] <- built_data$.maidr_heat_fill[i]
         rows_of[row, col] <- i
       }
 
@@ -263,7 +257,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         points = points,
         x = self$bin_labels(built_data, x_positions, "x"),
         y = y_labels,
-        fill_label = "count",
+        fill_label = fill_label,
         cells = cells
       )
     },
@@ -320,20 +314,31 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       layer_index <- self$get_layer_index()
       built_data <- built$data[[layer_index]]
 
+      # A grid a stat computed is coloured by what the stat computed, which
+      # is in the built data and nowhere else. It is evaluated over every
+      # panel's tiles at once, as ggplot2 evaluates it, before this panel's
+      # are taken: `after_stat(count / max(count))` is a share of the
+      # layer's largest count, not of the panel's.
+      computed <- self$is_computed_grid(plot)
+      if (computed) {
+        fill <- heat_stat_fill(self$get_own_layer(plot), plot, built_data)
+        built_data[[".maidr_heat_fill"]] <- fill$values
+      }
+
       if (!is.null(panel_id) && "PANEL" %in% names(built_data)) {
         built_data <- built_data[built_data$PANEL == panel_id, , drop = FALSE]
       }
 
-      # A computed 2D bin layer is already a grid, and reconstructing one
-      # from the source columns cannot work: everything below assumes a
+      # A computed 2D grid is already a grid, and reconstructing one from
+      # the source columns cannot work: everything below assumes a
       # `geom_tile()` heatmap built from tidy data, one row per cell. On a
       # binned scatter the source columns are the raw observations, so the
       # axis levels come out as one per data point and the built x is a bin
       # *centre* that matches none of them -- a complete, well-formed and
       # entirely empty grid, 200x200 of missing against 18 drawn tiles
       # (#136).
-      if (self$is_binned_layer(plot)) {
-        return(self$extract_binned_data(built_data))
+      if (computed) {
+        return(self$extract_computed_grid(built_data, fill$label))
       }
 
       # The values each tile was drawn from, evaluated as ggplot2 evaluates
@@ -476,10 +481,12 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 #' vector there, is read as missing too. An `after_stat()` of a variable
 #' the stat computes names no column of it, as `after_stat(group)` does, or
 #' names a function: `after_stat(density)` is `stats::density()` there,
-#' which stopped the reading. A fill of categories is read by the numbers
-#' its legend shows, as `factor(score * 10)` shows 10, 20 and 30, and as
-#' missing where the names are not numbers, as `fill = grade` and the
-#' colours `after_scale()` gives: a factor was read as its level codes.
+#' which stopped the reading. A grid a stat computes is read from what the
+#' stat computed instead ([heat_stat_fill()]). A fill of categories is read
+#' by the numbers its legend shows, as `factor(score * 10)` shows 10, 20
+#' and 30, and as missing where the names are not numbers, as
+#' `fill = grade` and the colours `after_scale()` gives: a factor was read
+#' as its level codes.
 #'
 #' @param plot The ggplot2 object
 #' @param layer_index The layer's index in `plot$layers`
@@ -529,21 +536,116 @@ heat_source_frame <- function(plot, layer_index) {
 
   x <- read("x", 1L)
   y <- read("y", 2L)
-  fill <- read("fill")
-  # Each cell holds a number. A category's is the one its legend shows,
-  # where its name is a number, as `factor(score * 10)` shows 10, 20 and
-  # 30; categories named otherwise, and colours as `after_scale()` gives,
-  # have none. Read as numbers, a factor gave its level codes, and the rest
-  # came out missing with a coercion warning.
-  if (is.factor(fill) || is.character(fill)) {
-    shown <- as.character(fill)
-    numbers <- suppressWarnings(as.numeric(shown))
-    fill <- if (identical(is.na(numbers), is.na(shown))) numbers else rep(NA, rows)
-  }
+  fill <- heat_fill_numbers(read("fill"))
   data[[".maidr_heat_x"]] <- x
   data[[".maidr_heat_y"]] <- y
   data[[".maidr_heat_fill"]] <- fill
   list(data = data, fill_label = fill_label)
+}
+
+#' A heatmap's fill values as the numbers its legend shows
+#'
+#' Each cell holds a number. A category's is the one its legend shows, where
+#' its name is a number, as `factor(score * 10)` shows 10, 20 and 30;
+#' categories named otherwise, and colours as `after_scale()` gives, have
+#' none. Read as numbers, a factor gave its level codes, and the rest came
+#' out missing with a coercion warning.
+#'
+#' @param values The fill's values
+#' @return `values`, its categories as their numbers or, where any name is
+#'   not one, all missing
+#' @keywords internal
+heat_fill_numbers <- function(values) {
+  if (!is.factor(values) && !is.character(values)) {
+    return(values)
+  }
+  shown <- as.character(values)
+  numbers <- suppressWarnings(as.numeric(shown))
+  if (identical(is.na(numbers), is.na(shown))) numbers else rep(NA, length(values))
+}
+
+#' The values a stat computed a heatmap's fill from
+#'
+#' A grid a stat computes is coloured by what ggplot2 evaluates after the
+#' stat, over what the stat computed: the layer's fill, or the plot's where
+#' the layer inherits it, when ggplot2 evaluates it after the stat
+#' ([heat_after_stat()]), and otherwise the stat's own, `after_stat(count)`
+#' for `geom_bin_2d()` and `after_stat(value)` for `stat_summary_2d()`. The
+#' built data holds what the stat computed, so it is evaluated there. The
+#' bins' counts were read whatever the fill was, as `after_stat(density)`,
+#' under the fill's title; and the cells of `stat_summary_2d()` and of a
+#' density raster were read as missing.
+#'
+#' A fill the stat does not compute is read as missing: a constant, as
+#' `stat_summary_2d(fill = "steelblue")` gives, or none, as on a density
+#' raster that maps no fill, draws every tile in one colour; and ggplot2
+#' drops a fill of the data's own columns from what such a stat draws.
+#'
+#' @param layer The heatmap's layer
+#' @param plot The ggplot2 object
+#' @param data The layer's built data, every panel's rows
+#' @return A list: `values`, one number per row of `data`, `NA` where there
+#'   is none; and `label`, the fill's name as ggplot2 names it, or NULL
+#'   where the stat computes no fill
+#' @keywords internal
+heat_stat_fill <- function(layer, plot, data) {
+  rows <- nrow(data)
+  none <- list(values = rep(NA_real_, rows), label = NULL)
+  if (is.null(layer) || !is.null(layer$aes_params$fill)) {
+    return(none)
+  }
+  mapping <- as.list(layer$mapping)
+  if (!isFALSE(layer$inherit.aes)) {
+    inherited <- as.list(plot$mapping)
+    mapping <- c(mapping, inherited[setdiff(names(inherited), names(mapping))])
+  }
+  fill <- mapping[["fill"]] %||% layer$stat$default_aes[["fill"]]
+  if (!heat_after_stat(fill)) {
+    return(none)
+  }
+  env <- if (rlang::is_quosure(fill)) rlang::quo_get_env(fill) else rlang::base_env()
+  values <- tryCatch(
+    heat_fill_numbers(rlang::eval_tidy(mapping_expr(fill), data, env)),
+    error = function(e) NULL
+  )
+  if (!(is.numeric(values) || is.logical(values)) || !length(values) %in% c(1L, rows)) {
+    values <- NA_real_
+  }
+  list(values = rep_len(as.numeric(values), rows), label = mapping_label(fill))
+}
+
+#' Whether ggplot2 evaluates a mapping after the stat
+#'
+#' As ggplot2 decides it: an `after_stat()`, a `stage()` given an
+#' `after_stat` argument, or the older `stat()` and `..count..` spellings,
+#' anywhere in the expression; not an `after_scale()`, which is evaluated on
+#' the colours.
+#'
+#' @param mapping A quosure or expression from `aes()`, or NULL
+#' @return `TRUE` or `FALSE`
+#' @keywords internal
+heat_after_stat <- function(mapping) {
+  expr <- if (rlang::is_quosure(mapping)) rlang::quo_get_expr(mapping) else mapping
+  if (is.symbol(expr)) {
+    return(grepl("^\\.\\.([a-zA-Z._]+)\\.\\.$", as.character(expr)))
+  }
+  if (!is.call(expr) || rlang::is_call(expr, "after_scale")) {
+    return(FALSE)
+  }
+  if (rlang::is_call(expr, c("after_stat", "stat"))) {
+    return(TRUE)
+  }
+  if (rlang::is_call(expr, "stage")) {
+    staged <- tryCatch(
+      as.list(match.call(
+        function(start = NULL, after_stat = NULL, after_scale = NULL) NULL,
+        expr
+      )),
+      error = function(e) list()
+    )
+    return(!is.null(staged$after_stat))
+  }
+  any(vapply(as.list(expr)[-1], heat_after_stat, logical(1)))
 }
 
 #' Whether a heatmap source column can be coded by level
