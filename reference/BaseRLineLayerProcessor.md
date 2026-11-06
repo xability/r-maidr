@@ -21,7 +21,7 @@ Processes Base R line plot layers based on recorded plot calls
 
 - [`BaseRLineLayerProcessor$get_axis_ticks()`](#method-BaseRLineLayerProcessor-get_axis_ticks)
 
-- [`BaseRLineLayerProcessor$get_axis_labels()`](#method-BaseRLineLayerProcessor-get_axis_labels)
+- [`BaseRLineLayerProcessor$name_x_ticks()`](#method-BaseRLineLayerProcessor-name_x_ticks)
 
 - [`BaseRLineLayerProcessor$extract_single_line_data()`](#method-BaseRLineLayerProcessor-extract_single_line_data)
 
@@ -234,27 +234,38 @@ a factor's values by their levels' names, a date as it prints.
 
 ------------------------------------------------------------------------
 
-### `BaseRLineLayerProcessor$get_axis_labels()`
+### `BaseRLineLayerProcessor$name_x_ticks()`
 
-Get custom axis labels from axis() LOW-level calls
+The names of the x ticks an
+[`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) call drawn
+on this plot named, for the points that sit on them
+
+Each label names the tick at its `at`, as R draws it: under
+`axis(1, at = 1:12, labels = month.abb)` the point at 7 is July,
+whichever point it is. The labels were handed to the points in turn, the
+first label to the first point, so a line from July on was read from
+"Jan". The points are named only when every one of them sits on a named
+tick (`tick_names_at()`), as on the y axis (`name_y_ticks()`). Labels
+given without `at` name the ticks R puts where it chooses, which the
+recording does not keep, so they name no point.
 
 #### Usage
 
-    BaseRLineLayerProcessor$get_axis_labels(layer_info, axis_side = 1)
+    BaseRLineLayerProcessor$name_x_ticks(x, layer_info)
 
 #### Arguments
+
+- `x`:
+
+  The points' x positions
 
 - `layer_info`:
 
   Layer information containing group data
 
-- `axis_side`:
-
-  Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
-
 #### Returns
 
-Character vector of labels or NULL if not found
+A character vector as long as `x`, NA where a value is missing, or NULL
 
 ------------------------------------------------------------------------
 
@@ -278,7 +289,8 @@ The points of one line, pairing each x with its y
 
 - `x_labels`:
 
-  Category labels to announce in place of the x positions (optional)
+  The names to announce in place of the x positions, one per position
+  (`name_x_ticks()`), or NULL
 
 #### Returns
 
@@ -306,7 +318,8 @@ One series per column of `y_matrix`, named after the columns
 
 - `x_labels`:
 
-  Category labels to announce in place of the x positions (optional)
+  The names to announce in place of the x positions, one per position
+  (`name_x_ticks()`), or NULL
 
 #### Returns
 

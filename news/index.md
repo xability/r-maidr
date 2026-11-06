@@ -1574,6 +1574,13 @@
   text [`as.character()`](https://rdrr.io/r/base/character.html) makes
   of them, but maidr read only character labels, so the points were read
   by their numbers.
+- A line’s x axis labels set with `axis(1, at = , labels = )` name the
+  points at their ticks. They were handed to the points in turn, the
+  first label to the first point. So a line from July on, under
+  `axis(1, at = 1:12, labels = month.abb)`, was read from “Jan”, and a
+  line drawn right to left was read with its names reversed. The points
+  are now named only when every one sits on a named tick, as on the y
+  axis.
 - A [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) chart
   highlights the star being read. Its reading emitted no selectors, so
   no move outlined anything; each star is now outlined through the

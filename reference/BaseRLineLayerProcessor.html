@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-30">
+<meta name="DC.date" content="2026-11-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -102,7 +102,7 @@
 <li><p><a href="#method-BaseRLineLayerProcessor-extract_data"><code>BaseRLineLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-name_y_ticks"><code>BaseRLineLayerProcessor$name_y_ticks()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-get_axis_ticks"><code>BaseRLineLayerProcessor$get_axis_ticks()</code></a></p></li>
-<li><p><a href="#method-BaseRLineLayerProcessor-get_axis_labels"><code>BaseRLineLayerProcessor$get_axis_labels()</code></a></p></li>
+<li><p><a href="#method-BaseRLineLayerProcessor-name_x_ticks"><code>BaseRLineLayerProcessor$name_x_ticks()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-extract_single_line_data"><code>BaseRLineLayerProcessor$extract_single_line_data()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-extract_multiline_data"><code>BaseRLineLayerProcessor$extract_multiline_data()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-extract_axis_titles"><code>BaseRLineLayerProcessor$extract_axis_titles()</code></a></p></li>
@@ -277,24 +277,35 @@ names, a date as it prints.</p><div class="section">
 
 </div>
 
-<p></p><hr><a id="method-BaseRLineLayerProcessor-get_axis_labels"></a><div class="section">
-<h3 id="baserlinelayerprocessor-get-axis-labels-"><code>BaseRLineLayerProcessor$get_axis_labels()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-get-axis-labels-"></a></h3>
-<p>Get custom axis labels from axis() LOW-level calls</p><div class="section">
+<p></p><hr><a id="method-BaseRLineLayerProcessor-name_x_ticks"></a><div class="section">
+<h3 id="baserlinelayerprocessor-name-x-ticks-"><code>BaseRLineLayerProcessor$name_x_ticks()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-name-x-ticks-"></a></h3>
+<p>The names of the x ticks an <code><a href="base-r-wrappers.html">axis()</a></code> call drawn on this
+plot named, for the points that sit on them</p>
+<p>Each label names the tick at its <code>at</code>, as R draws it: under
+<code>axis(1, at = 1:12, labels = month.abb)</code> the point at 7 is July,
+whichever point it is. The labels were handed to the points in turn,
+the first label to the first point, so a line from July on was read
+from "Jan". The points are named only when every one of them sits on
+a named tick (<code>tick_names_at()</code>), as on the y axis
+(<code>name_y_ticks()</code>). Labels given without <code>at</code> name the ticks R puts
+where it chooses, which the recording does not keep, so they name no
+point.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">get_axis_labels</span><span class="op">(</span><span class="va">layer_info</span>, axis_side <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">name_x_ticks</span><span class="op">(</span><span class="va">x</span>, <span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
-<dd><p>Layer information containing group data</p></dd>
+<p></p><div class="arguments"><dl><dt><code>x</code></dt>
+<dd><p>The points' x positions</p></dd>
 
-      <dt><code>axis_side</code></dt>
-<dd><p>Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)</p></dd>
+      <dt><code>layer_info</code></dt>
+<dd><p>Layer information containing group data</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>Character vector of labels or NULL if not found</p>
+<p>A character vector as long as <code>x</code>, NA where a value is
+missing, or NULL</p>
 </div>
 
 </div>
@@ -313,7 +324,8 @@ names, a date as it prints.</p><div class="section">
 <dd><p>y values</p></dd>
 
       <dt><code>x_labels</code></dt>
-<dd><p>Category labels to announce in place of the x positions (optional)</p></dd>
+<dd><p>The names to announce in place of the x positions,
+one per position (<code>name_x_ticks()</code>), or NULL</p></dd>
 
 
 </dl><p></p></div>
@@ -338,7 +350,8 @@ names, a date as it prints.</p><div class="section">
 <dd><p>One column of y values per series</p></dd>
 
       <dt><code>x_labels</code></dt>
-<dd><p>Category labels to announce in place of the x positions (optional)</p></dd>
+<dd><p>The names to announce in place of the x positions,
+one per position (<code>name_x_ticks()</code>), or NULL</p></dd>
 
 
 </dl><p></p></div>
