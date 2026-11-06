@@ -151,14 +151,20 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
   # name given first, as in `scale_fill_viridis_c("Correlation")`; then by
   # `labs()`. A guide or scale given no title, or NULL, leaves the title to
   # the next in turn.
+  #
+  # ggplot2 3.5 and later also take a function, or a formula for one, as the
+  # scale's name or the guide's title (`legend_title_value()`).
   for (aes_name in aes_names) {
     scale <- tryCatch(built$plot$scales$get_scales(aes_name), error = function(e) NULL)
-    title <- legend_guide_title(built, aes_name, scale)
+    name <- if (!is.null(scale)) legend_title_value(scale$name, labels[[aes_name]])
+    if (!legend_title_given(name)) {
+      name <- NULL
+    }
+    title <- legend_guide_title(built, aes_name, scale, name %||% labels[[aes_name]])
     if (!is.null(title)) {
       return(title)
     }
-    name <- if (!is.null(scale)) scale$name
-    if (legend_title_given(name)) {
+    if (!is.null(name)) {
       return(as.character(name))
     }
   }
@@ -193,12 +199,39 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
 #' Whether a legend title was given: one non-empty string or plotmath value
 #'
 #' @param title A guide's title, a scale's name or a `labs()` label
-#' @return TRUE or FALSE; FALSE for a `waiver()`, NULL, NA or ""
+#' @return TRUE or FALSE; FALSE for a `waiver()`, NULL, NA or "", and for
+#'   anything that is not one string as written, as a function
 #' @keywords internal
 #' @noRd
 legend_title_given <- function(title) {
-  !is.null(title) && !inherits(title, "waiver") && length(title) == 1L &&
-    !is.na(title) && nzchar(as.character(title))
+  text <- tryCatch(as.character(title), error = function(e) NULL)
+  !inherits(title, "waiver") && length(text) == 1L && !is.na(text) && nzchar(text)
+}
+
+#' A legend title given as a function, called as ggplot2 calls it
+#'
+#' ggplot2 3.5 and later take a function as a scale's name or a guide's
+#' title, or a formula for one, as `scale_fill_gradient(name = toupper)` or
+#' `guide_colourbar(title = ~ paste(.x, "(%)"))`, and title the legend by
+#' what it returns for the title it would otherwise have: the scale's is
+#' handed the title from `labs()` or the mapping, and the guide's the title
+#' so far. Coerced as a string, the function stopped the reading with
+#' "cannot coerce type 'closure' to vector of type 'character'".
+#'
+#' @param title A guide's title or a scale's name
+#' @param default The title it is handed
+#' @return What the function returns, NULL where it fails, or `title` where
+#'   it is no function
+#' @keywords internal
+#' @noRd
+legend_title_value <- function(title, default) {
+  if (rlang::is_formula(title)) {
+    title <- tryCatch(rlang::as_function(title), error = function(e) NULL)
+  }
+  if (is.function(title)) {
+    title <- tryCatch(title(default), error = function(e) NULL)
+  }
+  title
 }
 
 #' The title a legend's guide was given
@@ -219,10 +252,12 @@ legend_title_given <- function(title) {
 #' @param built Built plot from `ggplot2::ggplot_build()`
 #' @param aes_name The aesthetic, as ggplot2 spells it
 #' @param scale The aesthetic's scale, or NULL
+#' @param default The title a guide's function is handed: the scale's name,
+#'   or else the title from `labs()` or the mapping
 #' @return The title as one string, or NULL where the guide gives none
 #' @keywords internal
 #' @noRd
-legend_guide_title <- function(built, aes_name, scale) {
+legend_guide_title <- function(built, aes_name, scale, default = NULL) {
   # No scale, no legend: ggplot2 3.4 keeps a plot's guide for an aesthetic
   # nothing maps, and read, it titled a constant-fill heatmap's values.
   if (is.null(scale)) {
@@ -244,6 +279,7 @@ legend_guide_title <- function(built, aes_name, scale) {
   if (is.null(title) && is.list(guide) && !inherits(guide, "ggproto")) {
     title <- guide$title
   }
+  title <- legend_title_value(title, default)
   # A plotmath title given as a call, as `bquote(alpha^2)` makes one, is one
   # title, read as it is written; taken apart it was three, and dropped.
   if (is.call(title) || is.name(title)) {

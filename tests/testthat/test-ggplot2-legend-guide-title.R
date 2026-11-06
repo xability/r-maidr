@@ -100,3 +100,43 @@ test_that("a plotmath guide title given as a call is read as written", {
   testthat::expect_identical(layer$axes$z$label, "alpha^2")
 })
 
+
+test_that("a title given as a function is read as the title it returns", {
+  # ggplot2 3.5 and later title a legend by what a function, or a formula for
+  # one, given as the scale's name or the guide's title returns for the title
+  # it would otherwise have. Coerced as a string, the function stopped the
+  # reading with "cannot coerce type 'closure' to vector of type
+  # 'character'"; the scale's name did so before this change, and a guide's
+  # title with it. ggplot2 3.4 cannot draw one.
+  testthat::skip_if(
+    utils::packageVersion("ggplot2") < "3.5.0",
+    "ggplot2 3.4 cannot draw a function as a title"
+  )
+  axes_of <- function(plot) {
+    figure <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
+    figure$subplots[[1]][[1]]$layers[[1]]$axes
+  }
+  testthat::expect_identical(
+    axes_of(heat + ggplot2::scale_fill_gradient(name = toupper))$z$label,
+    "SCORE"
+  )
+  testthat::expect_identical(
+    axes_of(
+      heat + ggplot2::guides(fill = ggplot2::guide_colourbar(title = ~ paste(.x, "(%)")))
+    )$z$label,
+    "score (%)"
+  )
+  # The guide's function is handed the scale's name.
+  testthat::expect_identical(
+    axes_of(
+      heat + ggplot2::scale_fill_gradient(name = "Share") +
+        ggplot2::guides(fill = ggplot2::guide_colourbar(title = toupper))
+    )$z$label,
+    "SHARE"
+  )
+  # A heatmap's axes are titled through the same reading.
+  testthat::expect_identical(
+    axes_of(heat + ggplot2::scale_x_discrete(toupper))$x$label,
+    "X"
+  )
+})
