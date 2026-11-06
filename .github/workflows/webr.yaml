@@ -51,6 +51,11 @@ env:
   # this: change the two together.
   WEBR_VERSION: '0.6.0'
 
+# Cancel obsolete PR runs without sharing a queue with push or manual runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     name: build for webR
