@@ -1141,6 +1141,14 @@
 
 #### Base R
 
+- A [`vioplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  violin’s curve is read as the density it is. Each point’s
+  [`sm.density()`](https://rdrr.io/pkg/sm/man/sm.density.html) estimate
+  was sent as `width`, the field the ggplot2 and matplotlib violins fill
+  with the width a violin is drawn at, and a maidr.js that names the
+  number by its field called it a width, in the data table and as each
+  point was read. It is now sent as `density` too, and `width` keeps the
+  same number for a maidr.js that reads only that.
 - A Base R chart that draws random numbers is exported as it was drawn.
   maidr exports a chart by drawing the recorded call again, and drew it
   from whatever random state the session had by then: a
