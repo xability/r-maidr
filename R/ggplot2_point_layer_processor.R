@@ -191,7 +191,12 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       x_label <- ""
       y_label <- ""
 
-      if (!is.null(built$plot$labels$x)) {
+      # The scale's name first: ggplot2 titles the axis by it before `labs()`.
+      x_scale_title <- axis_scale_title(built, "x")
+      y_scale_title <- axis_scale_title(built, "y")
+      if (!is.null(x_scale_title)) {
+        x_label <- x_scale_title
+      } else if (!is.null(built$plot$labels$x)) {
         x_label <- built$plot$labels$x
       } else if (!is.null(plot$labels$x)) {
         x_label <- plot$labels$x
@@ -201,7 +206,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         }
       }
 
-      if (!is.null(built$plot$labels$y)) {
+      if (!is.null(y_scale_title)) {
+        y_label <- y_scale_title
+      } else if (!is.null(built$plot$labels$y)) {
         y_label <- built$plot$labels$y
       } else if (!is.null(plot$labels$y)) {
         y_label <- plot$labels$y

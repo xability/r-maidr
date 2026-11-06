@@ -324,16 +324,18 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       # may be empty; labels are only resolved after ggplot_build().
       built_labels <- built$plot$labels
 
-      # Extract x label: try built labels first, then user labels, then mapping
-      x_label <- built_labels$x
+      # Extract x label: the scale's name, as ggplot2 titles the axis by it
+      # before `labs()`; then built labels, then user labels, then mapping
+      x_label <- axis_scale_title(built, "x") %||% built_labels$x
       if (is.null(x_label)) x_label <- private$.plot$labels$x
       if (is.null(x_label) && !is.null(private$.plot$mapping$x)) {
         x_label <- rlang::as_label(private$.plot$mapping$x)
       }
       if (is.null(x_label)) x_label <- ""
 
-      # Extract y label: try built labels first, then user labels, then mapping
-      y_label <- built_labels$y
+      # Extract y label: the scale's name, then built labels, then user
+      # labels, then mapping
+      y_label <- axis_scale_title(built, "y") %||% built_labels$y
       if (is.null(y_label)) y_label <- private$.plot$labels$y
       if (is.null(y_label) && !is.null(private$.plot$mapping$y)) {
         y_label <- rlang::as_label(private$.plot$mapping$y)
