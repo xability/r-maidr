@@ -936,6 +936,13 @@
   scale's name replaces it on the chart. A name given as a function, as
   ggplot2 3.5 and later allow with `scale_x_continuous(toupper)`, is read as
   the title it returns.
+* A legend titled in plotmath is read by its title as it is written:
+  `labs(fill = quote(alpha^2))` as "alpha^2", and
+  `scale_fill_gradient(name = bquote(Delta ~ .(n) ~ m))` as "Delta ~ 2 ~ m".
+  A title given to `labs()` or a scale as a call was taken for no title, and
+  the values were read under the mapped column, as was a two-sided formula,
+  taken for a function, and an `expression()` of two. An `expression()` of
+  one, and a guide's plotmath title, were already read as written.
 
 ### Base R
 
