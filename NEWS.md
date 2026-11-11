@@ -952,9 +952,9 @@
   legend's first category and the highest its last. Categories named by
   numbers, as `factor(score * 10)`, are read by those numbers, as before,
   unless a scale relabels them. An NA is read as missing. The description's
-  "Min value" and "Max value" still read the
-  first and last places, 1 and the number of categories: maidr.js states
-  those two without the axis's format.
+  "Min value" and "Max value" still read the first and last places, 1 and
+  the number of categories: maidr.js states those two without the axis's
+  format.
 
 ### Base R
 

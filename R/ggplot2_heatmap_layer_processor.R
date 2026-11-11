@@ -600,6 +600,8 @@ heat_fill_numbers <- function(values, levels = NULL, labels = levels) {
   }
   shown <- as.character(values)
   numbers <- suppressWarnings(as.numeric(shown))
+  # Numbers its legend shows as they are, unrelabelled -- a scale giving
+  # them their own names again is no relabelling -- are read as numbers.
   if (identical(is.na(numbers), is.na(shown)) && identical(labels, levels)) {
     return(numbers)
   }
