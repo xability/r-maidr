@@ -218,6 +218,11 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         }
       }
 
+      # A title given in plotmath -- `labs(x = expression(x^2))` -- is read
+      # as it is written, as every other axis title is (`plotmath_text()`).
+      x_label <- as.character(plotmath_text(x_label))
+      y_label <- as.character(plotmath_text(y_label))
+
       # Those are the axis titles. A point layer beside one that plots
       # something else on an axis is named for what it plots there, as every
       # layer read through `extract_layer_axes()` is: the points of

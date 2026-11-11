@@ -26,12 +26,19 @@ as_axis_config <- function(value) {
   if (is.null(value)) {
     return(NULL)
   }
+  # An axis titled in plotmath, as `labs(x = expression(x[1]))` titles it,
+  # is read by its title as written (`plotmath_text()`). Neither a string
+  # nor a list, it stopped the reading here, and no page was written.
+  value <- plotmath_text(value)
   if (is.list(value)) {
     # An axis with nothing to say is not emitted at all: an empty list
     # serializes as `[]`, and a key holding it would claim an axis config
     # that carries neither a label nor a navigation grid.
     if (length(value) == 0) {
       return(NULL)
+    }
+    if (!is.null(value$label)) {
+      value$label <- plotmath_text(value$label)
     }
     return(value)
   }
@@ -60,11 +67,11 @@ extract_axis_label <- function(value, default = "") {
   }
   if (is.list(value)) {
     if (!is.null(value$label)) {
-      return(as.character(value$label))
+      return(as.character(plotmath_text(value$label)))
     }
     return(default)
   }
-  as.character(value)
+  as.character(plotmath_text(value))
 }
 
 #' Build a single AxisConfig
@@ -81,7 +88,7 @@ extract_axis_label <- function(value, default = "") {
 #' @keywords internal
 build_axis_config <- function(label = NULL, min = NULL, max = NULL, tickStep = NULL) {
   cfg <- structure(list(), names = character(0))
-  if (!is.null(label)) cfg$label <- as.character(label)
+  if (!is.null(label)) cfg$label <- as.character(plotmath_text(label))
   if (!is.null(min)) cfg$min <- min
   if (!is.null(max)) cfg$max <- max
   if (!is.null(tickStep)) cfg$tickStep <- tickStep
@@ -363,9 +370,15 @@ positional_axis_label <- function(plot, built = NULL, aes_name = "x",
 #' ggplot2 3.5 and later also take a function as the name, or a formula for
 #' one, as `scale_x_continuous(toupper)` or `~ paste(.x, "(kg)")`: the axis
 #' is titled by what it returns for the title the axis would otherwise have.
-#' It is called on that title here too. Coerced as a string, the function
-#' stopped the reading with "cannot coerce type 'closure' to vector of type
+#' It is called on that title here too, as a legend's is
+#' (`legend_title_value()`). Coerced as a string, the function stopped the
+#' reading with "cannot coerce type 'closure' to vector of type
 #' 'character'". One that fails leaves the title to `labs()` and the mapping.
+#'
+#' A name written in plotmath, as `quote(alpha^2)` or
+#' `bquote(Delta ~ .(n) ~ m)`, is read as written (`plotmath_text()`): coerced
+#' to text, a call was one string per part, and a two-sided formula was taken
+#' for a function, and either was dropped for the title from `labs()`.
 #'
 #' @param built The built ggplot2 object, or NULL
 #' @param aes_name `"x"` or `"y"`
@@ -373,18 +386,14 @@ positional_axis_label <- function(plot, built = NULL, aes_name = "x",
 #' @keywords internal
 axis_scale_title <- function(built, aes_name) {
   scale <- tryCatch(built$plot$scales$get_scales(aes_name), error = function(e) NULL)
-  name <- if (!is.null(scale)) scale$name
-  if (rlang::is_formula(name)) {
-    name <- tryCatch(rlang::as_function(name), error = function(e) NULL)
-  }
-  if (is.function(name)) {
-    name <- tryCatch(name(built$plot$labels[[aes_name]]), error = function(e) NULL)
-  }
-  title <- tryCatch(as.character(name), error = function(e) NULL)
-  if (inherits(name, "waiver") || length(title) != 1L || is.na(title) || !nzchar(title)) {
+  if (is.null(scale)) {
     return(NULL)
   }
-  title
+  name <- plotmath_text(legend_title_value(scale$name, built$plot$labels[[aes_name]]))
+  if (!legend_title_given(name)) {
+    return(NULL)
+  }
+  as.character(name)
 }
 
 #' A mapped expression as ggplot2 names it

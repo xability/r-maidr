@@ -24,8 +24,14 @@ to them.
 ggplot2 3.5 and later also take a function as the name, or a formula for
 one, as \code{scale_x_continuous(toupper)} or \code{~ paste(.x, "(kg)")}: the axis
 is titled by what it returns for the title the axis would otherwise have.
-It is called on that title here too. Coerced as a string, the function
-stopped the reading with "cannot coerce type 'closure' to vector of type
+It is called on that title here too, as a legend's is
+(\code{legend_title_value()}). Coerced as a string, the function stopped the
+reading with "cannot coerce type 'closure' to vector of type
 'character'". One that fails leaves the title to \code{labs()} and the mapping.
+
+A name written in plotmath, as \code{quote(alpha^2)} or
+\code{bquote(Delta ~ .(n) ~ m)}, is read as written (\code{plotmath_text()}): coerced
+to text, a call was one string per part, and a two-sided formula was taken
+for a function, and either was dropped for the title from \code{labs()}.
 }
 \keyword{internal}

@@ -342,15 +342,22 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       }
       if (is.null(y_label)) y_label <- ""
 
-      # Extract title/subtitle/caption from built labels (includes user labs())
+      # Extract title/subtitle/caption from built labels (includes user
+      # labs()), each read as written where it is plotmath
+      # (`plotmath_text()`): `labs(title = quote(alpha^2))` stopped the
+      # reading, and an `expression()` the payload, so the chart was drawn
+      # as a picture.
       plot_title <- built_labels$title
       if (is.null(plot_title)) plot_title <- private$.plot$labels$title
+      plot_title <- plotmath_text(plot_title)
 
       plot_subtitle <- built_labels$subtitle
       if (is.null(plot_subtitle)) plot_subtitle <- private$.plot$labels$subtitle
+      plot_subtitle <- plotmath_text(plot_subtitle)
 
       plot_caption <- built_labels$caption
       if (is.null(plot_caption)) plot_caption <- private$.plot$labels$caption
+      plot_caption <- plotmath_text(plot_caption)
 
       layout <- list(
         title = if (!is.null(plot_title)) plot_title else "",
