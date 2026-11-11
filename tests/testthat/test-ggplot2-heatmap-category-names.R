@@ -66,6 +66,43 @@ test_that("the categories are placed in the order the legend lists them", {
   testthat::expect_identical(read_cells(layer), drawn)
 })
 
+test_that("a category is read by the label its legend shows for it", {
+  plain <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = grade)) + ggplot2::geom_tile()
+  relabelled <- function(...) first_layer(plain + ggplot2::scale_fill_discrete(...))
+  as_drawn <- function(labels) {
+    lapply(drawn, function(row) unname(labels[row]))
+  }
+
+  given <- c(high = "High grade", low = "Low grade", mid = "Mid grade")
+  layer <- relabelled(labels = unname(given))
+  testthat::expect_identical(z_names(layer), unname(given))
+  testthat::expect_identical(read_cells(layer), as_drawn(given))
+
+  manual <- plain + ggplot2::scale_fill_manual(
+    values = c("red", "green", "blue"), labels = c("Hi", "Lo", "Md")
+  )
+  testthat::expect_identical(z_names(first_layer(manual)), c("Hi", "Lo", "Md"))
+
+  layer <- relabelled(labels = toupper)
+  testthat::expect_identical(z_names(layer), c("HIGH", "LOW", "MID"))
+
+  layer <- relabelled(labels = expression(alpha, beta, gamma))
+  testthat::expect_identical(z_names(layer), c("alpha", "beta", "gamma"))
+
+  # Categories named by numbers are read by their labels where the scale
+  # gives them some, in place of the numbers the legend no longer shows.
+  scores$score <- c(10, 20, 30, 40, 50, 60)
+  numbered <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = factor(score))) +
+    ggplot2::geom_tile() +
+    ggplot2::scale_fill_discrete(labels = paste("level", 1:6))
+  layer <- first_layer(numbered)
+  testthat::expect_identical(z_names(layer), paste("level", 1:6))
+  testthat::expect_identical(
+    read_cells(layer),
+    list(paste("level", 4:6), paste("level", 1:3))
+  )
+})
+
 test_that("one category is read by its name, and a missing one as missing", {
   scores$kind <- "only"
   single <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = kind)) + ggplot2::geom_tile()

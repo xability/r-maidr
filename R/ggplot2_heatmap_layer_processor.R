@@ -362,7 +362,8 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         tryCatch(as.character(fill_scale$get_limits()), error = function(e) NULL)
       }
       fill_levels <- fill_levels[!is.na(fill_levels)]
-      source <- heat_source_frame(plot, layer_index, fill_levels)
+      fill_labels <- heat_legend_labels(fill_scale, fill_levels)
+      source <- heat_source_frame(plot, layer_index, fill_levels, fill_labels)
       original_data <- source$data
       x_col <- ".maidr_heat_x"
       y_col <- ".maidr_heat_y"
@@ -513,13 +514,15 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 #' @param layer_index The layer's index in `plot$layers`
 #' @param fill_levels The categories of the fill's legend in its order, or
 #'   NULL where it has none (`heat_fill_numbers()`)
+#' @param fill_labels What the legend shows for each of `fill_levels`
+#'   (`heat_legend_labels()`)
 #' @return A list: `data`, the layer's data with each tile's x, y and fill in
 #'   the columns `.maidr_heat_x`, `.maidr_heat_y` and `.maidr_heat_fill`;
 #'   `fill_label`, the fill's name as ggplot2 labels it ("score * 2"), or
-#'   `NULL` when the fill is not mapped; and `fill_levels`, the categories
-#'   the fill's cells are places in, or `NULL`
+#'   `NULL` when the fill is not mapped; and `fill_levels`, the names of the
+#'   places the fill's cells hold, as the legend shows them, or `NULL`
 #' @keywords internal
-heat_source_frame <- function(plot, layer_index, fill_levels = NULL) {
+heat_source_frame <- function(plot, layer_index, fill_levels = NULL, fill_labels = fill_levels) {
   layer <- plot$layers[[layer_index]]
   data <- tryCatch(layer$layer_data(plot$data), error = function(e) plot$data)
   if (!is.data.frame(data)) {
@@ -560,7 +563,7 @@ heat_source_frame <- function(plot, layer_index, fill_levels = NULL) {
 
   x <- read("x", 1L)
   y <- read("y", 2L)
-  fill <- heat_fill_numbers(read("fill"), fill_levels)
+  fill <- heat_fill_numbers(read("fill"), fill_levels, fill_labels)
   placed_in <- attr(fill, "maidr_levels")
   attr(fill, "maidr_levels") <- NULL
   data[[".maidr_heat_x"]] <- x
@@ -576,31 +579,68 @@ heat_source_frame <- function(plot, layer_index, fill_levels = NULL) {
 #' a name is not one, as `fill = grade` shows "high", "low" and "mid", a
 #' category is its place in the legend, 1 for the first: the layer's z axis
 #' names each place (`heat_level_format()`), so the cell is read by its
-#' category's name. Where there is no legend to place them in, as for the
-#' colours `after_scale()` gives, they are missing. Read as numbers, a factor
-#' gave its level codes, and the rest came out missing with a coercion
-#' warning; then categories named otherwise were all read as missing.
+#' category's name, or by the label the legend shows for it where a scale
+#' relabels it (`heat_legend_labels()`), numbers too. Where there is no
+#' legend to place them in, as for the colours `after_scale()` gives, they
+#' are missing. Read as numbers, a factor gave its level codes, and the rest
+#' came out missing with a coercion warning; then categories named otherwise
+#' were all read as missing.
 #'
 #' @param values The fill's values
 #' @param levels The legend's categories in its order, or NULL where it has
 #'   none
+#' @param labels What the legend shows for each of `levels`
 #' @return `values`, its categories as their numbers or as their places in
-#'   `levels`, with those levels as the attribute `maidr_levels`; or, where
-#'   any name is not a number and there are no levels, all missing
+#'   `levels`, with `labels` as the attribute `maidr_levels`; or, where any
+#'   name is not a number and there are no levels, all missing
 #' @keywords internal
-heat_fill_numbers <- function(values, levels = NULL) {
+heat_fill_numbers <- function(values, levels = NULL, labels = levels) {
   if (!is.factor(values) && !is.character(values)) {
     return(values)
   }
   shown <- as.character(values)
   numbers <- suppressWarnings(as.numeric(shown))
-  if (identical(is.na(numbers), is.na(shown))) {
+  if (identical(is.na(numbers), is.na(shown)) && identical(labels, levels)) {
     return(numbers)
   }
   if (length(levels) == 0L) {
     return(rep(NA, length(values)))
   }
-  structure(as.numeric(match(shown, levels)), maidr_levels = levels)
+  structure(as.numeric(match(shown, levels)), maidr_levels = labels)
+}
+
+#' What a heatmap's fill legend shows for each of its categories
+#'
+#' A discrete fill scale's `labels`, as `scale_fill_discrete(labels = )` or
+#' `scale_fill_manual(labels = )` gives them, replace the categories' names
+#' in the legend, and a function of them, as `labels = toupper`, or plotmath
+#' does too. Each category is named by the label shown for it; one the
+#' legend gives none, as a category its `breaks` leave out, keeps its name.
+#'
+#' @param scale The discrete fill scale, or NULL
+#' @param levels The legend's categories in its order
+#' @return A character vector as long as `levels`
+#' @keywords internal
+heat_legend_labels <- function(scale, levels) {
+  if (is.null(scale) || length(levels) == 0L) {
+    return(levels)
+  }
+  shown <- tryCatch(
+    {
+      breaks <- scale$get_breaks()
+      labels <- scale$get_labels(breaks)
+      if (length(labels) != length(breaks)) {
+        stop("one label per break")
+      }
+      drawn <- !is.na(breaks)
+      as.character(labels[drawn])[match(levels, as.character(breaks[drawn]))]
+    },
+    error = function(e) NULL
+  )
+  if (length(shown) != length(levels)) {
+    return(levels)
+  }
+  ifelse(is.na(shown), levels, shown)
 }
 
 #' A z axis format that names the categories of a heatmap's fill
@@ -608,8 +648,12 @@ heat_fill_numbers <- function(values, levels = NULL) {
 #' A cell of categories holds its category's place in the legend
 #' (`heat_fill_numbers()`); the frontend reads the z axis's `format`
 #' function on each value it announces, so the cell is read by the name.
+#' The names are a JSON array, which is a JavaScript one: `toJSON()` escapes
+#' quotes and backslashes, and U+2028 and U+2029 are legal in a JavaScript
+#' string since ES2019. A name like `</script>` reaches the page escaped,
+#' in the chart's attribute.
 #'
-#' @param levels The legend's categories in its order
+#' @param levels The names, in the legend's order
 #' @return An AxisFormat holding a `function`
 #' @keywords internal
 heat_level_format <- function(levels) {

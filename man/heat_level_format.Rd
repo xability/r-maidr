@@ -7,7 +7,7 @@
 heat_level_format(levels)
 }
 \arguments{
-\item{levels}{The legend's categories in its order}
+\item{levels}{The names, in the legend's order}
 }
 \value{
 An AxisFormat holding a \code{function}
@@ -16,5 +16,9 @@ An AxisFormat holding a \code{function}
 A cell of categories holds its category's place in the legend
 (\code{heat_fill_numbers()}); the frontend reads the z axis's \code{format}
 function on each value it announces, so the cell is read by the name.
+The names are a JSON array, which is a JavaScript one: \code{toJSON()} escapes
+quotes and backslashes, and U+2028 and U+2029 are legal in a JavaScript
+string since ES2019. A name like \verb{</script>} reaches the page escaped,
+in the chart's attribute.
 }
 \keyword{internal}

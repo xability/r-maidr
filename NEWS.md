@@ -947,10 +947,12 @@
   `aes(fill = grade)` is read "grade is low", "grade is high", where every
   tile was read "grade is missing". Each cell holds its category's place in
   the legend, in the order the legend lists them -- a factor's levels, or a
-  scale's `limits` -- and the layer's z axis names each place, so the lowest
-  cell is the legend's first category and the highest its last. Categories
-  named by numbers, as `factor(score * 10)`, are read by those numbers, as
-  before. The description's "Min value" and "Max value" still read the
+  scale's `limits` -- and the layer's z axis names each place as the legend
+  does, by a scale's `labels` where it gives them, so the lowest cell is the
+  legend's first category and the highest its last. Categories named by
+  numbers, as `factor(score * 10)`, are read by those numbers, as before,
+  unless a scale relabels them. An NA is read as missing. The description's
+  "Min value" and "Max value" still read the
   first and last places, 1 and the number of categories: maidr.js states
   those two without the axis's format.
 

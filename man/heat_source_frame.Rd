@@ -4,7 +4,12 @@
 \alias{heat_source_frame}
 \title{The data a heatmap layer drew its tiles from, one column per aesthetic}
 \usage{
-heat_source_frame(plot, layer_index, fill_levels = NULL)
+heat_source_frame(
+  plot,
+  layer_index,
+  fill_levels = NULL,
+  fill_labels = fill_levels
+)
 }
 \arguments{
 \item{plot}{The ggplot2 object}
@@ -13,13 +18,16 @@ heat_source_frame(plot, layer_index, fill_levels = NULL)
 
 \item{fill_levels}{The categories of the fill's legend in its order, or
 NULL where it has none (\code{heat_fill_numbers()})}
+
+\item{fill_labels}{What the legend shows for each of \code{fill_levels}
+(\code{heat_legend_labels()})}
 }
 \value{
 A list: \code{data}, the layer's data with each tile's x, y and fill in
 the columns \code{.maidr_heat_x}, \code{.maidr_heat_y} and \code{.maidr_heat_fill};
 \code{fill_label}, the fill's name as ggplot2 labels it ("score * 2"), or
-\code{NULL} when the fill is not mapped; and \code{fill_levels}, the categories
-the fill's cells are places in, or \code{NULL}
+\code{NULL} when the fill is not mapped; and \code{fill_levels}, the names of the
+places the fill's cells hold, as the legend shows them, or \code{NULL}
 }
 \description{
 ggplot2 evaluates each aesthetic in the data the layer draws, its own
