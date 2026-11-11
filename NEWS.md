@@ -1377,6 +1377,12 @@
   page whose only plot is `graphics-plot-1`, so no move highlighted
   anything: the computing call, made from the drawing call's arguments,
   took the plot the drawing call started (#408).
+* In a figure of several Base R panels, as `par(mfrow = c(2, 2))` draws, a
+  panel R framed with `box()`, as `plot()` and `boxplot()` do, is outlined
+  in the lobby along its frame. A box plot's panel had no outline: the
+  frontend outlines the one element holding a panel's marks, and a box
+  plot's boxes, whiskers and outliers are several, held together only with
+  every other panel's marks.
 
 ## Documentation
 
