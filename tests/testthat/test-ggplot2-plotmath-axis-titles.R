@@ -29,6 +29,20 @@ axis_titles <- function(schema) {
   })
 }
 
+test_that("an axis config reads a plotmath label as written, given alone or in a list", {
+  testthat::expect_identical(
+    maidr:::as_axis_config(list(label = quote(x^2), min = 0)),
+    list(label = "x^2", min = 0)
+  )
+  testthat::expect_identical(maidr:::as_axis_config(expression(x[1])), list(label = "x[1]"))
+  testthat::expect_identical(
+    maidr:::extract_axis_label(list(label = quote(mu[i]))),
+    "mu[i]"
+  )
+  testthat::expect_identical(maidr:::extract_axis_label(quote(beta[1])), "beta[1]")
+  testthat::expect_identical(maidr:::build_axis_config(label = quote(gamma^2))$label, "gamma^2")
+})
+
 test_that("an axis titled in plotmath is read as written, in every kind of layer", {
   skip_if_no_render()
   charts <- list(
