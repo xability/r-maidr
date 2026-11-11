@@ -18,9 +18,17 @@
 chart_sizes <- list(c(4, 3), c(7, 5), c(10, 4), c(5, 8))
 
 #' The root `<svg>` element of some markup that holds one chart
+#'
+#' Matched with PCRE, which reports where a match is in characters. R's
+#' default engine, TRE, matches on `wchar_t`, which is 16 bits on Windows,
+#' where a character outside the Basic Multilingual Plane is two of them:
+#' after one, every match was reported a character late, and `regmatches()`
+#' cut each element from its "s", with no "<". A self-contained page
+#' carries maidr.js, and maidr.js 4.17.0 carries one (U+1D55C, in KaTeX's
+#' font code), ahead of every chart.
 chart_svg_root <- function(markup) {
   markup <- paste(as.character(markup), collapse = "\n")
-  regmatches(markup, regexpr("<svg[^>]*>", markup))
+  regmatches(markup, regexpr("<svg[^>]*>", markup, perl = TRUE))
 }
 
 #' The width, height and viewBox of a chart's svg, as written
@@ -348,9 +356,10 @@ draw_chartseries <- function() {
 #' The root `<svg>` element of every inline chart of a knitted page
 #'
 #' A self-contained page carries knitr-inline.js, whose comments name such an
-#' element too; a chart's has a size.
+#' element too; a chart's has a size. Matched with PCRE, as
+#' `chart_svg_root()` is, for the maidr.js it carries too.
 inline_svg_roots <- function(page) {
-  roots <- regmatches(page, gregexpr("<svg[^>]*>", page))[[1]]
+  roots <- regmatches(page, gregexpr("<svg[^>]*>", page, perl = TRUE))[[1]]
   roots[grepl("data-maidr-knitr=", roots, fixed = TRUE) & grepl("\\swidth=", roots)]
 }
 
@@ -386,6 +395,31 @@ embedded_png_size <- function(html) {
   testthat::expect_identical(rawToChar(raw[13:16]), "IHDR")
   readBin(raw[17:24], "integer", n = 2L, size = 4L, endian = "big")
 }
+
+# ==============================================================================
+# Reading a page
+# ==============================================================================
+
+test_that("a page's chart roots are read whole past a character outside the BMP", {
+  # On Windows, R's default regex engine reported each match after such a
+  # character one character late for each one before it (`chart_svg_root()`),
+  # so an R Markdown page carrying maidr.js 4.17.0 read as three charts of
+  # no size. Where `wchar_t` is 32 bits, as on Linux and macOS, this passed
+  # before as well.
+  astral <- intToUtf8(0x1D55C)
+  first <- '<svg data-maidr-knitr="{}" width="672px" height="480px" viewBox="0 0 504 360">'
+  second <- '<svg data-maidr-knitr="{}" width="960px" height="384px" viewBox="0 0 720 288">'
+  page <- paste0(
+    "<script>var k = \"", astral, "\";</script>\n",
+    first, "<g></g></svg>\n<p>", astral, "</p>\n", second, "<g></g></svg>"
+  )
+  testthat::expect_identical(inline_svg_roots(page), c(first, second))
+  testthat::expect_identical(chart_svg_root(page), first)
+  testthat::expect_identical(
+    lapply(inline_svg_roots(page), svg_size),
+    list(svg_size_for(c(7, 5), ppi = 96), svg_size_for(c(10, 4), ppi = 96))
+  )
+})
 
 # ==============================================================================
 # The size asked for
