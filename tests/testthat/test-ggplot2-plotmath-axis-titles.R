@@ -41,6 +41,14 @@ test_that("an axis config reads a plotmath label as written, given alone or in a
   )
   testthat::expect_identical(maidr:::extract_axis_label(quote(beta[1])), "beta[1]")
   testthat::expect_identical(maidr:::build_axis_config(label = quote(gamma^2))$label, "gamma^2")
+
+  # Read more than once on its way to the payload, a title is unchanged by
+  # each read after the first: a string, NULL and a number pass as they are.
+  read_twice <- function(title) maidr:::plotmath_text(maidr:::plotmath_text(title))
+  testthat::expect_identical(read_twice(quote(x^2)), "x^2")
+  testthat::expect_identical(read_twice("Weight (kg)"), "Weight (kg)")
+  testthat::expect_null(read_twice(NULL))
+  testthat::expect_identical(read_twice(5), 5)
 })
 
 test_that("an axis titled in plotmath is read as written, in every kind of layer", {
