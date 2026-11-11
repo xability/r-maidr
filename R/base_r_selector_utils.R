@@ -166,6 +166,34 @@ find_graphics_plot_grobs <- function(grob, element_type, plot_index) {
   names[order(suppressWarnings(as.integer(sub(".*-([0-9]+)$", "\\1", names))))]
 }
 
+#' The frame round a Base R panel, as a selector
+#'
+#' `box()`, which `plot()` and `boxplot()` draw by default, outlines the plot
+#' region, and gridGraphics names it `graphics-plot-<n>-box-<k>`. Named as a
+#' subplot's own `selector`, it is what the frontend outlines in the lobby of
+#' a figure of several panels, as lattice's panel borders are. A panel with
+#' no frame of its own was outlined round the one element holding all of its
+#' marks, where there was one: a bar chart's bars are one grob, but a box
+#' plot's boxes, whiskers and outliers are several, and nothing on the page
+#' held them and no other panel's marks, so its panel had no outline.
+#'
+#' @param page The page's drawing ([base_r_drawing_grob()])
+#' @param plot_number The panel's plot number on the page, which names its
+#'   grobs
+#' @return A selector for the group of the first frame drawn, or NULL where
+#'   the panel drew none
+#' @keywords internal
+base_r_panel_frame <- function(page, plot_number) {
+  if (is.null(page) || length(plot_number) != 1L || is.na(plot_number)) {
+    return(NULL)
+  }
+  frames <- find_graphics_plot_grobs(page, "box", plot_number)
+  if (length(frames) == 0L) {
+    return(NULL)
+  }
+  paste0("g#", frames[[1]], "\\.1")
+}
+
 #' Address one grob that a chart draws a datum into as a polygon
 #'
 #' A pie's wedges and a mosaic's tiles are each their own grob, so each needs

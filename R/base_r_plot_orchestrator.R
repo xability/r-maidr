@@ -883,6 +883,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
         # Panel slot for each plot group (NA = drawn before the layout
         # call or on an earlier, no-longer-visible page)
         panel_slots <- compute_panel_slots(private$.plot_groups, panel_config)
+        # Each plot's number on the page, which names its grobs, and the
+        # page's drawing, where each panel's frame is found
+        # (`base_r_panel_frame()`).
+        plot_numbers <- private$plot_numbers(panel_slots)
+        page <- if (length(private$.grob_list) > 0) private$.grob_list[[1]]
 
         # Map layers to panels based on their group's panel slot
         for (i in seq_along(layer_results)) {
@@ -973,6 +978,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
                 id = paste0("maidr-subplot-", row, "-", col),
                 layers = list()
               )
+              # The panel the lobby outlines: the frame R drew round the
+              # plot region, where it drew one.
+              frame <- base_r_panel_frame(page, plot_numbers[[group_idx]])
+              if (!is.null(frame)) {
+                subplot_grid[[row]][[col]]$selector <- frame
+              }
             }
 
             subplot_grid[[row]][[col]]$layers <- append(
