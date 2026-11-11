@@ -20,7 +20,8 @@ skip_unless_hilow <- function() {
 # up in the global environment, so the layer draws only with ggplot2
 # attached ("object 'median_hilow' of mode 'function' was not found"
 # otherwise); 4.0 finds it in its own namespace. Attached here where it is
-# not, and detached again after the test.
+# not, and detached again after the test; where an earlier file left it
+# attached, it is left so.
 attach_ggplot2 <- function(envir = parent.frame()) {
   testthat::skip_if_not_installed("withr")
   if (!"package:ggplot2" %in% search()) {
