@@ -16,6 +16,19 @@ skip_unless_hilow <- function() {
   testthat::skip_if_not_installed("Hmisc")
 }
 
+# ggplot2 3.4 looks a summary named by a string, `fun.data = "median_hilow"`,
+# up in the global environment, so the layer draws only with ggplot2
+# attached ("object 'median_hilow' of mode 'function' was not found"
+# otherwise); 4.0 finds it in its own namespace. Attached here where it is
+# not, and detached again after the test; where an earlier file left it
+# attached, it is left so.
+attach_ggplot2 <- function(envir = parent.frame()) {
+  testthat::skip_if_not_installed("withr")
+  if (!"package:ggplot2" %in% search()) {
+    withr::local_package("ggplot2", .local_envir = envir)
+  }
+}
+
 draws <- function() {
   set.seed(1)
   d <- data.frame(week = rep(1:6, each = 40))
@@ -71,6 +84,7 @@ test_that("a median_hilow ribbon is read as a percentile band", {
 
 test_that("the width defaults to 0.95 and the name of the function reads too", {
   skip_unless_hilow()
+  attach_ggplot2()
 
   plot <- ggplot2::ggplot(draws(), ggplot2::aes(week, sales)) +
     ggplot2::stat_summary(geom = "ribbon", fun.data = "median_hilow")
@@ -116,6 +130,7 @@ test_that("a median line on the same rows is folded into the band", {
 
 test_that("a median_hilow summary drawn as a line is a median line too", {
   skip_unless_hilow()
+  attach_ggplot2()
 
   plot <- ggplot2::ggplot(draws(), ggplot2::aes(week, sales)) +
     hilow_ribbon() +
