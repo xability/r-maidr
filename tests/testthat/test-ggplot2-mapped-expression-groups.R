@@ -72,6 +72,11 @@ test_that("a stack's rows are drawn in one order, its fill a column or an expres
   }
   testthat::expect_identical(drawn_order(h), c(2L, 1L, 4L, 3L, 6L, 5L))
   testthat::expect_identical(drawn_order(factor(wt %% 2)), drawn_order(h))
+
+  # By the levels the expression gives, as ggplot2 stacks them, not by name.
+  pts$h_rev <- factor(pts$wt %% 2, levels = c("1", "0"))
+  testthat::expect_identical(drawn_order(h_rev), 1:6)
+  testthat::expect_identical(drawn_order(factor(wt %% 2, levels = c("1", "0"))), drawn_order(h_rev))
 })
 
 test_that("bars whose categories are an expression are read as when it is a column", {
@@ -96,6 +101,22 @@ test_that("areas filled by an expression name their series as its legend does", 
   testthat::expect_identical(
     vapply(by_expression$data, function(series) series[[1]]$z, ""),
     c("0", "1")
+  )
+
+  # An expression that is no factor makes a discrete scale too, as a
+  # logical one does, and its bands are named "FALSE" and "TRUE" as its
+  # legend names them.
+  pts$odd <- pts$wt %% 2 == 1
+  logical_expression <- first_layer(
+    ggplot2::ggplot(pts, ggplot2::aes(yr, n, fill = wt %% 2 == 1)) + ggplot2::geom_area()
+  )
+  logical_column <- first_layer(
+    ggplot2::ggplot(pts, ggplot2::aes(yr, n, fill = odd)) + ggplot2::geom_area()
+  )
+  testthat::expect_identical(points_json(logical_expression), points_json(logical_column))
+  testthat::expect_identical(
+    vapply(logical_expression$data, function(series) series[[1]]$z, ""),
+    c("FALSE", "TRUE")
   )
 })
 
