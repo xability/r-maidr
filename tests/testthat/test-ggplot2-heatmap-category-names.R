@@ -66,6 +66,37 @@ test_that("the categories are placed in the order the legend lists them", {
   testthat::expect_identical(read_cells(layer), drawn)
 })
 
+test_that("one category is read by its name, and a missing one as missing", {
+  scores$kind <- "only"
+  single <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = kind)) + ggplot2::geom_tile()
+  layer <- first_layer(single)
+  testthat::expect_identical(z_names(layer), "only")
+  testthat::expect_identical(read_cells(layer), rep(list(rep("only", 3)), 2))
+
+  # ggplot2 draws an NA grey, under its legend's "NA", which is no category.
+  scores$grade[2] <- NA
+  gap <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = grade)) + ggplot2::geom_tile()
+  layer <- first_layer(gap)
+  testthat::expect_identical(z_names(layer), c("high", "low", "mid"))
+  testthat::expect_identical(read_cells(layer), list(drawn[[1]], c("low", NA, "mid")))
+})
+
+test_that("a category named like markup stays inside the page's escaped attribute", {
+  skip_if_no_render()
+  # The names reach the page in the chart's `maidr-data` attribute, whose
+  # "<" is written "&lt;", so a name cannot end a script there.
+  # A factor's levels give the order, which sorting such a name would leave
+  # to the locale.
+  names <- c("</script>", "low", "mid", "high")
+  scores$grade <- factor(c("</script>", "low", "mid", "mid", "high", "high"), levels = names)
+  plot <- ggplot2::ggplot(scores, ggplot2::aes(x, y, fill = grade)) + ggplot2::geom_tile()
+  html <- rendered(plot)
+  count <- function(text) lengths(regmatches(html, gregexpr(text, html, fixed = TRUE)))
+  testthat::expect_identical(count("</script>"), count("<script"))
+  layer <- schema_from(html)$subplots[[1]][[1]]$layers[[1]]
+  testthat::expect_identical(z_names(layer), names)
+})
+
 test_that("a colour drawn under no legend is still read as missing", {
   coloured <- ggplot2::ggplot(
     scores, ggplot2::aes(x, y, fill = ggplot2::after_scale(scales::alpha("steelblue", 0.5)))

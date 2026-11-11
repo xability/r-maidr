@@ -71,7 +71,10 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         }
       )
       # A cell of categories holds its category's place in the legend, and
-      # is read by the category's name (`heat_level_format()`).
+      # is read by the category's name (`heat_level_format()`). maidr.js
+      # 4.17.0 states the description's "Min value" and "Max value" without
+      # the format, so those two read the first and last places, 1 and the
+      # number of categories, until it reads them through it.
       if (length(fill_levels) > 0L && !is.null(axes$z)) {
         axes <- attach_axis_format(axes, "z", heat_level_format(fill_levels))
       }
@@ -351,11 +354,14 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 
       # The values each tile was drawn from, evaluated as ggplot2 evaluates
       # them (`heat_source_frame()`). A fill of categories is placed in its
-      # legend, which lists the discrete fill scale's limits in order.
+      # legend, which lists the discrete fill scale's limits in order. Their
+      # NA, which ggplot2 draws in its `na.value` grey, is no category: such
+      # a tile is read as missing, as a numeric fill's NA is.
       fill_scale <- tryCatch(built$plot$scales$get_scales("fill"), error = function(e) NULL)
       fill_levels <- if (!is.null(fill_scale) && isTRUE(fill_scale$is_discrete())) {
         tryCatch(as.character(fill_scale$get_limits()), error = function(e) NULL)
       }
+      fill_levels <- fill_levels[!is.na(fill_levels)]
       source <- heat_source_frame(plot, layer_index, fill_levels)
       original_data <- source$data
       x_col <- ".maidr_heat_x"

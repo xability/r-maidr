@@ -950,7 +950,9 @@
   scale's `limits` -- and the layer's z axis names each place, so the lowest
   cell is the legend's first category and the highest its last. Categories
   named by numbers, as `factor(score * 10)`, are read by those numbers, as
-  before.
+  before. The description's "Min value" and "Max value" still read the
+  first and last places, 1 and the number of categories: maidr.js states
+  those two without the axis's format.
 
 ### Base R
 
