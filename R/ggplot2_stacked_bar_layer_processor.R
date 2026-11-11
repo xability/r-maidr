@@ -73,41 +73,31 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @return The reordered data frame
     reorder_layer_data = function(data, plot) {
-      columns <- self$extract_plot_columns(plot)
-      fill_col <- columns$fill_col
-      category_col <- columns$category_col
-      if (is.null(fill_col) || is.null(category_col)) {
-        return(data)
-      }
-      if (!(fill_col %in% names(data)) || !(category_col %in% names(data))) {
-        return(data)
-      }
-
-      data <- data[order(data[[category_col]], data[[fill_col]]), , drop = FALSE]
-      data
-    },
-    #' @description The column names the plot maps to x, y and fill
-    #' @param plot The ggplot2 object
-    #' @return List with `category_col`, `value_col` and `fill_col`
-    extract_plot_columns = function(plot) {
-      plot_mapping <- plot$mapping
-
-      extract_col_name <- function(quo) {
-        if (is.null(quo)) {
+      # ggplot2 draws a stack's rects in the order of the rows it is given,
+      # so they are sorted by category and fill for the drawn order to be
+      # the one the series are emitted in. A mapping that names a column
+      # (`mapping_column()`) is read from it; an expression of the data, as
+      # `fill = factor(wt %% 2)`, is evaluated in it, as ggplot2 evaluates
+      # it. Left unsorted, such a chart's highlight fell on the other
+      # series' rects.
+      values_of <- function(mapping) {
+        column <- mapping_column(mapping)
+        if (is.null(column)) {
           return(NULL)
         }
-        expr <- rlang::quo_get_expr(quo)
-        if (is.call(expr) && expr[[1]] == "factor") {
-          as.character(expr[[2]])
-        } else {
-          rlang::as_label(expr)
+        if (column %in% names(data)) {
+          return(data[[column]])
         }
+        values <- tryCatch(rlang::eval_tidy(mapping, data), error = function(e) NULL)
+        if (is.atomic(values) && length(values) == nrow(data)) values
+      }
+      fill_values <- values_of(plot$mapping$fill)
+      category_values <- values_of(plot$mapping$x)
+      if (is.null(fill_values) || is.null(category_values)) {
+        return(data)
       }
 
-      list(
-        fill_col = extract_col_name(plot_mapping$fill),
-        category_col = extract_col_name(plot_mapping$x)
-      )
+      data[order(category_values, fill_values), , drop = FALSE]
     },
     #' @description One series per fill level, restricted to the panel's rows under faceting
     #' @param plot The ggplot2 object

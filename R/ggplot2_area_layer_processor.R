@@ -403,8 +403,19 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       }
 
       column <- self$mapped_column(plot$mapping$fill)
-      if (is.null(column) || !column %in% names(plot$data)) {
+      if (is.null(column)) {
         return(character(0))
+      }
+      if (!column %in% names(plot$data)) {
+        # An expression of the data, `fill = factor(wt %% 2)`, names no
+        # column. Its categories are the discrete fill scale's, in the
+        # order ggplot2 numbers the groups by.
+        scale <- tryCatch(plot$scales$get_scales("fill"), error = function(e) NULL)
+        if (is.null(scale) || !isTRUE(scale$is_discrete())) {
+          return(character(0))
+        }
+        limits <- tryCatch(as.character(scale$get_limits()), error = function(e) character(0))
+        return(limits[!is.na(limits)])
       }
 
       values <- plot$data[[column]]
@@ -443,20 +454,13 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     #' `aes(x = factor(year))` maps a call rather than a bare name, and the
     #' column the data actually holds is its argument -- so the call is
     #' unwrapped rather than labelled, which would give `"factor(year)"` and
-    #' match nothing.
+    #' match nothing. Any other expression names no column
+    #' (`mapping_column()`).
     #'
     #' @param quo The mapped quosure, or NULL
     #' @return The column name, or NULL when there is no mapping
     mapped_column = function(quo) {
-      if (is.null(quo)) {
-        return(NULL)
-      }
-      expr <- rlang::quo_get_expr(quo)
-      if (is.call(expr) && expr[[1]] == "factor") {
-        as.character(expr[[2]])
-      } else {
-        rlang::as_label(expr)
-      }
+      mapping_column(quo)
     },
 
     #' @description Convert one coordinate to a JSON-safe scalar.

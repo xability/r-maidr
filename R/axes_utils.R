@@ -512,6 +512,31 @@ mapping_label <- function(mapping) {
   )
 }
 
+#' The data column a mapping names
+#'
+#' A bare name, `aes(fill = group)`, names its column, and `factor()` of
+#' one, `aes(fill = factor(cyl))`, names the column it converts. Any other
+#' mapping is an expression of the data, as `aes(fill = factor(wt %% 2))`,
+#' and is named as a whole, as ggplot2 labels it: one string, which names
+#' no column of the data. Unwrapped, the expression inside `factor()` was
+#' one string per part, "%%", "wt" and "2", and testing them against the
+#' data's names stopped the reading with "'length = 3' in coercion to
+#' 'logical(1)'".
+#'
+#' @param mapping A quosure or expression from `aes()`, or NULL
+#' @return One string, or NULL when there is no mapping
+#' @keywords internal
+mapping_column <- function(mapping) {
+  if (is.null(mapping)) {
+    return(NULL)
+  }
+  expr <- if (rlang::is_quosure(mapping)) rlang::quo_get_expr(mapping) else mapping
+  if (rlang::is_call(expr, "factor") && length(expr) >= 2L && is.symbol(expr[[2]])) {
+    return(as.character(expr[[2]]))
+  }
+  rlang::as_label(expr)
+}
+
 #' Whether two mappings plot the same thing, as a string
 #'
 #' The whole of [mapping_expr()]'s expression, on one line, so that mappings

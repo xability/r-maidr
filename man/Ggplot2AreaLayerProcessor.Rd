@@ -471,7 +471,8 @@ whose baseline is the axis draws a band of exactly that height.
 \code{aes(x = factor(year))} maps a call rather than a bare name, and the
 column the data actually holds is its argument -- so the call is
 unwrapped rather than labelled, which would give \code{"factor(year)"} and
-match nothing.
+match nothing. Any other expression names no column
+(\code{mapping_column()}).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2AreaLayerProcessor$mapped_column(quo)}
