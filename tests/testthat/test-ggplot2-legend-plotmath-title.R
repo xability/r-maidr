@@ -26,6 +26,8 @@ test_that("a legend title given as a call is read as written", {
     legend_title(heat + ggplot2::scale_fill_gradient(name = quote(alpha^2))),
     "alpha^2"
   )
+  # A bare symbol is a call's simplest case.
+  testthat::expect_identical(legend_title(heat + ggplot2::labs(fill = quote(alpha))), "alpha")
 
   # The groups of stacked bars are read under the same title.
   counts <- data.frame(g = rep(c("A", "B"), each = 2), k = rep(c("u", "v"), 2), n = c(3, 5, 2, 4))
@@ -42,6 +44,21 @@ test_that("a two-sided formula is plotmath, not a function", {
   testthat::expect_identical(
     legend_title(heat + ggplot2::scale_fill_gradient(name = bquote(Delta ~ .(width) ~ m))),
     "Delta ~ 2 ~ m"
+  )
+  # A one-sided `~` quoted, as `quote()` returns it, is a call: plotmath too.
+  testthat::expect_identical(
+    legend_title(heat + ggplot2::scale_fill_gradient(name = quote(~alpha))),
+    "~alpha"
+  )
+
+  # The same `~`, evaluated, is a function, as ggplot2 3.5 and later take it.
+  testthat::skip_if(
+    utils::packageVersion("ggplot2") < "3.5.0",
+    "ggplot2 before 3.5 takes no function as a scale's name"
+  )
+  testthat::expect_identical(
+    legend_title(heat + ggplot2::scale_fill_gradient(name = ~ toupper(.x))),
+    "SCORE"
   )
 })
 
