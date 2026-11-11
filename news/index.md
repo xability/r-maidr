@@ -1814,6 +1814,14 @@
   anything: the computing call, made from the drawing call’s arguments,
   took the plot the drawing call started
   ([\#408](https://github.com/xability/r-maidr/issues/408)).
+- In a figure of several Base R panels, as `par(mfrow = c(2, 2))` draws,
+  a panel R framed with [`box()`](https://rdrr.io/r/graphics/box.html),
+  as [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+  [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) do, is
+  outlined in the lobby along its frame. A box plot’s panel had no
+  outline: the frontend outlines the one element holding a panel’s
+  marks, and a box plot’s boxes, whiskers and outliers are several, held
+  together only with every other panel’s marks.
 
 ### Documentation
 

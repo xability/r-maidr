@@ -31,7 +31,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-11-05">
+<meta name="DC.date" content="2026-11-11">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -287,6 +287,7 @@
 <li>A Base R chart is clipped to its plot region where R clips it. maidr drew it with every graphical parameter <code><a href="https://rdrr.io/pkg/ggplotify/man/as-grob.html" class="external-link">ggplotify::as.grob()</a></code> sets, among them <code>xpd = NA</code>, which draws past the plot region what R clips to it: the spikes of <code>plot(type = "h")</code> ran from zero down through the x axis and its labels to the edge of the chart, and an <code><a href="../reference/base-r-wrappers.html">abline()</a></code> or a density curve drawn with <code><a href="../reference/base-r-wrappers.html">lines()</a></code> ran across the axes, with the reader’s highlight drawn along them. Each call is drawn with the <code>xpd</code> R had as it started, so a line drawn after <code>par(xpd = NA)</code> still runs past the plot region, as R draws it (<a href="https://github.com/xability/r-maidr/issues/415" class="external-link">#415</a>).</li>
 <li>
 <code>bxp(boxplot(x, plot = FALSE))</code>, <code>barplot(hist(x, plot = FALSE)$counts)</code> and <code>plot(barplot(h, plot = FALSE), h)</code> highlight the chart being read. Every selector named a plot after the last, <code>graphics-plot-2-...</code> on a page whose only plot is <code>graphics-plot-1</code>, so no move highlighted anything: the computing call, made from the drawing call’s arguments, took the plot the drawing call started (<a href="https://github.com/xability/r-maidr/issues/408" class="external-link">#408</a>).</li>
+<li>In a figure of several Base R panels, as <code>par(mfrow = c(2, 2))</code> draws, a panel R framed with <code><a href="https://rdrr.io/r/graphics/box.html" class="external-link">box()</a></code>, as <code><a href="../reference/base-r-wrappers.html">plot()</a></code> and <code><a href="../reference/base-r-wrappers.html">boxplot()</a></code> do, is outlined in the lobby along its frame. A box plot’s panel had no outline: the frontend outlines the one element holding a panel’s marks, and a box plot’s boxes, whiskers and outliers are several, held together only with every other panel’s marks.</li>
 </ul></div>
 </div>
 <div class="section level3">
