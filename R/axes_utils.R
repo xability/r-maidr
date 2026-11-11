@@ -28,7 +28,8 @@ as_axis_config <- function(value) {
   }
   # An axis titled in plotmath, as `labs(x = expression(x[1]))` titles it,
   # is read by its title as written (`plotmath_text()`). Neither a string
-  # nor a list, it stopped the reading here, and no page was written.
+  # nor a list, it stopped the reading here, and no page was written. A
+  # list passes unchanged, and its `label` is read below.
   value <- plotmath_text(value)
   if (is.list(value)) {
     # An axis with nothing to say is not emitted at all: an empty list

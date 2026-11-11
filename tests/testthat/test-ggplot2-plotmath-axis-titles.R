@@ -68,6 +68,14 @@ test_that("an axis titled in plotmath is read as written, in every kind of layer
     ggplot2::geom_histogram(bins = 2) +
     ggplot2::xlab(expression(x[1]))
   testthat::expect_identical(axis_titles(written_schema(hist))[[1]][["x"]], "x[1]")
+
+  # A bare symbol is a call's simplest case, and an expression of two is
+  # read one after the other, as ggplot2 draws them in one place.
+  named <- point + ggplot2::labs(x = quote(alpha), y = expression(a, b))
+  testthat::expect_identical(
+    axis_titles(written_schema(named)),
+    list(c(x = "alpha", y = "a b"))
+  )
 })
 
 test_that("a scale named in plotmath titles its axis as written", {

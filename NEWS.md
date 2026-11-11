@@ -962,11 +962,11 @@
   `labs()`, `xlab()` or `ylab()`, stopped `show()` and `save_html()` with
   "Axis value must be a list, string, numeric, or NULL", and no page was
   written. A title, subtitle or caption in plotmath drew the chart as a
-  picture, with
-  "Plot could not be rendered interactively" ("'length = 3' in coercion to
-  'logical(1)'" for a call, "No method asJSON S3 class: expression" for an
-  `expression()`). A scale's name or a patchwork's `plot_annotation()` title
-  given in plotmath was dropped for `labs()` or the mapped column.
+  picture, with "Plot could not be rendered interactively" ("'length = 3'
+  in coercion to 'logical(1)'" for a call, "No method asJSON S3 class:
+  expression" for an `expression()`). A scale's name or a patchwork's
+  `plot_annotation()` title given in plotmath was dropped for `labs()` or
+  the mapped column.
 
 ### Base R
 
