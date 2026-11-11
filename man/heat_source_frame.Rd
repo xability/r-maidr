@@ -4,18 +4,30 @@
 \alias{heat_source_frame}
 \title{The data a heatmap layer drew its tiles from, one column per aesthetic}
 \usage{
-heat_source_frame(plot, layer_index)
+heat_source_frame(
+  plot,
+  layer_index,
+  fill_levels = NULL,
+  fill_labels = fill_levels
+)
 }
 \arguments{
 \item{plot}{The ggplot2 object}
 
 \item{layer_index}{The layer's index in \code{plot$layers}}
+
+\item{fill_levels}{The categories of the fill's legend in its order, or
+NULL where it has none (\code{heat_fill_numbers()})}
+
+\item{fill_labels}{What the legend shows for each of \code{fill_levels}
+(\code{heat_legend_labels()})}
 }
 \value{
 A list: \code{data}, the layer's data with each tile's x, y and fill in
 the columns \code{.maidr_heat_x}, \code{.maidr_heat_y} and \code{.maidr_heat_fill};
-and \code{fill_label}, the fill's name as ggplot2 labels it ("score * 2"),
-or \code{NULL} when the fill is not mapped
+\code{fill_label}, the fill's name as ggplot2 labels it ("score * 2"), or
+\code{NULL} when the fill is not mapped; and \code{fill_levels}, the names of the
+places the fill's cells hold, as the legend shows them, or \code{NULL}
 }
 \description{
 ggplot2 evaluates each aesthetic in the data the layer draws, its own
@@ -40,8 +52,9 @@ names a function: \code{after_stat(density)} is \code{stats::density()} there,
 which stopped the reading. A grid a stat computes is read from what the
 stat computed instead (\code{\link[=heat_stat_fill]{heat_stat_fill()}}). A fill of categories is read
 by the numbers its legend shows, as \code{factor(score * 10)} shows 10, 20
-and 30, and as missing where the names are not numbers, as
-\code{fill = grade} and the colours \code{after_scale()} gives: a factor was read
-as its level codes.
+and 30, and by the names it shows where they are not numbers, as
+\code{fill = grade} shows "high", "low" and "mid" (\code{\link[=heat_fill_numbers]{heat_fill_numbers()}}); the
+colours \code{after_scale()} gives, under no legend, are missing. A factor was
+read as its level codes.
 }
 \keyword{internal}
