@@ -28,8 +28,11 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
       fill_label <- extracted_data$fill_label
+      fill_levels <- extracted_data$fill_levels
       cells <- extracted_data$cells
-      data <- extracted_data[!names(extracted_data) %in% c("fill_label", "cells")]
+      data <- extracted_data[
+        !names(extracted_data) %in% c("fill_label", "fill_levels", "cells")
+      ]
 
       # A grid a stat computed is named cell by cell, with `null` where no
       # tile was drawn, which the frontend's heatmap model reads as a hole.
@@ -67,6 +70,11 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
           resolve_legend_label(plot, built, "fill", layer_index) %||% fill_label
         }
       )
+      # A cell of categories holds its category's place in the legend, and
+      # is read by the category's name (`heat_level_format()`).
+      if (length(fill_levels) > 0L && !is.null(axes$z)) {
+        axes <- attach_axis_format(axes, "z", heat_level_format(fill_levels))
+      }
 
       list(
         data = data,
@@ -342,8 +350,13 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       }
 
       # The values each tile was drawn from, evaluated as ggplot2 evaluates
-      # them (`heat_source_frame()`).
-      source <- heat_source_frame(plot, layer_index)
+      # them (`heat_source_frame()`). A fill of categories is placed in its
+      # legend, which lists the discrete fill scale's limits in order.
+      fill_scale <- tryCatch(built$plot$scales$get_scales("fill"), error = function(e) NULL)
+      fill_levels <- if (!is.null(fill_scale) && isTRUE(fill_scale$is_discrete())) {
+        tryCatch(as.character(fill_scale$get_limits()), error = function(e) NULL)
+      }
+      source <- heat_source_frame(plot, layer_index, fill_levels)
       original_data <- source$data
       x_col <- ".maidr_heat_x"
       y_col <- ".maidr_heat_y"
@@ -429,7 +442,8 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         points = points,
         x = as.character(x_values),
         y = as.character(y_values_reversed),
-        fill_label = source$fill_label
+        fill_label = source$fill_label,
+        fill_levels = source$fill_levels
       ))
     },
     #' @description Selectors for the tiles, scoped to the panel
@@ -484,18 +498,22 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 #' which stopped the reading. A grid a stat computes is read from what the
 #' stat computed instead ([heat_stat_fill()]). A fill of categories is read
 #' by the numbers its legend shows, as `factor(score * 10)` shows 10, 20
-#' and 30, and as missing where the names are not numbers, as
-#' `fill = grade` and the colours `after_scale()` gives: a factor was read
-#' as its level codes.
+#' and 30, and by the names it shows where they are not numbers, as
+#' `fill = grade` shows "high", "low" and "mid" ([heat_fill_numbers()]); the
+#' colours `after_scale()` gives, under no legend, are missing. A factor was
+#' read as its level codes.
 #'
 #' @param plot The ggplot2 object
 #' @param layer_index The layer's index in `plot$layers`
+#' @param fill_levels The categories of the fill's legend in its order, or
+#'   NULL where it has none (`heat_fill_numbers()`)
 #' @return A list: `data`, the layer's data with each tile's x, y and fill in
 #'   the columns `.maidr_heat_x`, `.maidr_heat_y` and `.maidr_heat_fill`;
-#'   and `fill_label`, the fill's name as ggplot2 labels it ("score * 2"),
-#'   or `NULL` when the fill is not mapped
+#'   `fill_label`, the fill's name as ggplot2 labels it ("score * 2"), or
+#'   `NULL` when the fill is not mapped; and `fill_levels`, the categories
+#'   the fill's cells are places in, or `NULL`
 #' @keywords internal
-heat_source_frame <- function(plot, layer_index) {
+heat_source_frame <- function(plot, layer_index, fill_levels = NULL) {
   layer <- plot$layers[[layer_index]]
   data <- tryCatch(layer$layer_data(plot$data), error = function(e) plot$data)
   if (!is.data.frame(data)) {
@@ -536,32 +554,64 @@ heat_source_frame <- function(plot, layer_index) {
 
   x <- read("x", 1L)
   y <- read("y", 2L)
-  fill <- heat_fill_numbers(read("fill"))
+  fill <- heat_fill_numbers(read("fill"), fill_levels)
+  placed_in <- attr(fill, "maidr_levels")
+  attr(fill, "maidr_levels") <- NULL
   data[[".maidr_heat_x"]] <- x
   data[[".maidr_heat_y"]] <- y
   data[[".maidr_heat_fill"]] <- fill
-  list(data = data, fill_label = fill_label)
+  list(data = data, fill_label = fill_label, fill_levels = placed_in)
 }
 
 #' A heatmap's fill values as the numbers its legend shows
 #'
 #' Each cell holds a number. A category's is the one its legend shows, where
-#' its name is a number, as `factor(score * 10)` shows 10, 20 and 30;
-#' categories named otherwise, and colours as `after_scale()` gives, have
-#' none. Read as numbers, a factor gave its level codes, and the rest came
-#' out missing with a coercion warning.
+#' its name is a number, as `factor(score * 10)` shows 10, 20 and 30. Where
+#' a name is not one, as `fill = grade` shows "high", "low" and "mid", a
+#' category is its place in the legend, 1 for the first: the layer's z axis
+#' names each place (`heat_level_format()`), so the cell is read by its
+#' category's name. Where there is no legend to place them in, as for the
+#' colours `after_scale()` gives, they are missing. Read as numbers, a factor
+#' gave its level codes, and the rest came out missing with a coercion
+#' warning; then categories named otherwise were all read as missing.
 #'
 #' @param values The fill's values
-#' @return `values`, its categories as their numbers or, where any name is
-#'   not one, all missing
+#' @param levels The legend's categories in its order, or NULL where it has
+#'   none
+#' @return `values`, its categories as their numbers or as their places in
+#'   `levels`, with those levels as the attribute `maidr_levels`; or, where
+#'   any name is not a number and there are no levels, all missing
 #' @keywords internal
-heat_fill_numbers <- function(values) {
+heat_fill_numbers <- function(values, levels = NULL) {
   if (!is.factor(values) && !is.character(values)) {
     return(values)
   }
   shown <- as.character(values)
   numbers <- suppressWarnings(as.numeric(shown))
-  if (identical(is.na(numbers), is.na(shown))) numbers else rep(NA, length(values))
+  if (identical(is.na(numbers), is.na(shown))) {
+    return(numbers)
+  }
+  if (length(levels) == 0L) {
+    return(rep(NA, length(values)))
+  }
+  structure(as.numeric(match(shown, levels)), maidr_levels = levels)
+}
+
+#' A z axis format that names the categories of a heatmap's fill
+#'
+#' A cell of categories holds its category's place in the legend
+#' (`heat_fill_numbers()`); the frontend reads the z axis's `format`
+#' function on each value it announces, so the cell is read by the name.
+#'
+#' @param levels The legend's categories in its order
+#' @return An AxisFormat holding a `function`
+#' @keywords internal
+heat_level_format <- function(levels) {
+  names <- as.character(jsonlite::toJSON(as.character(levels)))
+  list(`function` = paste0(
+    "var names = ", names, "; var name = names[value - 1]; ",
+    "return name === undefined ? String(value) : name;"
+  ))
 }
 
 #' The values a stat computed a heatmap's fill from

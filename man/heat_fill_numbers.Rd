@@ -4,20 +4,28 @@
 \alias{heat_fill_numbers}
 \title{A heatmap's fill values as the numbers its legend shows}
 \usage{
-heat_fill_numbers(values)
+heat_fill_numbers(values, levels = NULL)
 }
 \arguments{
 \item{values}{The fill's values}
+
+\item{levels}{The legend's categories in its order, or NULL where it has
+none}
 }
 \value{
-\code{values}, its categories as their numbers or, where any name is
-not one, all missing
+\code{values}, its categories as their numbers or as their places in
+\code{levels}, with those levels as the attribute \code{maidr_levels}; or, where
+any name is not a number and there are no levels, all missing
 }
 \description{
 Each cell holds a number. A category's is the one its legend shows, where
-its name is a number, as \code{factor(score * 10)} shows 10, 20 and 30;
-categories named otherwise, and colours as \code{after_scale()} gives, have
-none. Read as numbers, a factor gave its level codes, and the rest came
-out missing with a coercion warning.
+its name is a number, as \code{factor(score * 10)} shows 10, 20 and 30. Where
+a name is not one, as \code{fill = grade} shows "high", "low" and "mid", a
+category is its place in the legend, 1 for the first: the layer's z axis
+names each place (\code{heat_level_format()}), so the cell is read by its
+category's name. Where there is no legend to place them in, as for the
+colours \code{after_scale()} gives, they are missing. Read as numbers, a factor
+gave its level codes, and the rest came out missing with a coercion
+warning; then categories named otherwise were all read as missing.
 }
 \keyword{internal}
