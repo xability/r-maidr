@@ -153,10 +153,13 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
   # the next in turn.
   #
   # ggplot2 3.5 and later also take a function, or a formula for one, as the
-  # scale's name or the guide's title (`legend_title_value()`).
+  # scale's name or the guide's title (`legend_title_value()`). Any of them
+  # may be plotmath, read as written (`plotmath_text()`).
   for (aes_name in aes_names) {
     scale <- tryCatch(built$plot$scales$get_scales(aes_name), error = function(e) NULL)
-    name <- if (!is.null(scale)) legend_title_value(scale$name, labels[[aes_name]])
+    name <- if (!is.null(scale)) {
+      plotmath_text(legend_title_value(scale$name, labels[[aes_name]]))
+    }
     if (!legend_title_given(name)) {
       name <- NULL
     }
@@ -170,7 +173,7 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
   }
 
   for (aes_name in aes_names) {
-    label <- labels[[aes_name]]
+    label <- plotmath_text(labels[[aes_name]])
     if (!is.null(label) && length(label) == 1L && !is.na(label) &&
       nzchar(as.character(label))) {
       return(as.character(label))
@@ -218,6 +221,12 @@ legend_title_given <- function(title) {
 #' so far. Coerced as a string, the function stopped the reading with
 #' "cannot coerce type 'closure' to vector of type 'character'".
 #'
+#' A formula is a function only as ggplot2 takes one (its `allow_lambda()`):
+#' one-sided, and made by evaluating `~`. A two-sided one, as
+#' `bquote(Delta ~ .(n) ~ m)` makes, and any call to `~` that `quote()` or
+#' `bquote()` returns, are plotmath, drawn as written, `~` being plotmath's
+#' space: taken for a function, they failed and the title was dropped.
+#'
 #' @param title A guide's title or a scale's name
 #' @param default The title it is handed
 #' @return What the function returns, NULL where it fails, or `title` where
@@ -225,7 +234,7 @@ legend_title_given <- function(title) {
 #' @keywords internal
 #' @noRd
 legend_title_value <- function(title, default) {
-  if (rlang::is_formula(title)) {
+  if (rlang::is_formula(title, lhs = FALSE) && !inherits(title, "call")) {
     title <- tryCatch(rlang::as_function(title), error = function(e) NULL)
   }
   if (is.function(title)) {
@@ -279,13 +288,32 @@ legend_guide_title <- function(built, aes_name, scale, default = NULL) {
   if (is.null(title) && is.list(guide) && !inherits(guide, "ggproto")) {
     title <- guide$title
   }
-  title <- legend_title_value(title, default)
-  # A plotmath title given as a call, as `bquote(alpha^2)` makes one, is one
-  # title, read as it is written; taken apart it was three, and dropped.
-  if (is.call(title) || is.name(title)) {
-    title <- paste(deparse(title), collapse = "")
-  }
+  title <- plotmath_text(legend_title_value(title, default))
   if (legend_title_given(title)) as.character(title)
+}
+
+#' A title written in plotmath, as the text it is written in
+#'
+#' ggplot2 draws a title given as plotmath -- an `expression()`, or a call
+#' as `quote(alpha^2)` and `bquote()` make one -- as mathematics. Its text is
+#' the expression as written, "alpha^2", and a string inside it is its own
+#' text, unquoted. Coerced to text, a call is one string per part, "^",
+#' "alpha" and "2", and was taken for no title, as an expression of several
+#' was: ggplot2 draws those one over another, and they are read one after
+#' another.
+#'
+#' @param title A title: a string, plotmath, or NULL
+#' @return The text of a plotmath title, or `title` as it is
+#' @keywords internal
+#' @noRd
+plotmath_text <- function(title) {
+  if (is.call(title) || is.name(title)) {
+    title <- as.expression(title)
+  }
+  if (is.expression(title)) {
+    return(paste(as.character(title), collapse = " "))
+  }
+  title
 }
 
 #' Resolve the printed label for a positional axis
