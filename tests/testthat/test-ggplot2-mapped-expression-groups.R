@@ -79,6 +79,41 @@ test_that("a stack's rows are drawn in one order, its fill a column or an expres
   testthat::expect_identical(drawn_order(factor(wt %% 2, levels = c("1", "0"))), drawn_order(h_rev))
 })
 
+test_that("each facet panel of a stack filled by an expression is read as with a column", {
+  # The rows are sorted across the whole layer, and ggplot2 draws each
+  # panel's rects in its own rows' order: within a panel that is sorted by
+  # category and fill too, as it is for a column.
+  faceted <- data.frame(
+    g = rep(rep(c("a", "b", "c"), each = 2), 2),
+    am = rep(c(0, 1), each = 6),
+    wt = 1:12,
+    n = c(3, 5, 2, 4, 6, 1, 2, 3, 4, 5, 1, 6)
+  )
+  faceted$h <- factor(faceted$wt %% 2)
+  chart <- function(fill) {
+    ggplot2::ggplot(faceted, ggplot2::aes(g, n, fill = {{ fill }})) +
+      ggplot2::geom_col() +
+      ggplot2::facet_wrap(~am)
+  }
+  panels <- function(plot) {
+    figure <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
+    lapply(unlist(figure$subplots, recursive = FALSE), function(cell) cell$layers[[1]])
+  }
+  by_expression <- panels(chart(factor(wt %% 2)))
+  by_column <- panels(chart(h))
+  testthat::expect_length(by_expression, 2L)
+  for (i in seq_along(by_expression)) {
+    expression_points <- points_json(by_expression[[i]])
+    testthat::expect_identical(expression_points, points_json(by_column[[i]]), info = i)
+  }
+
+  processor <- maidr:::Ggplot2StackedBarProcessor$new(list(index = 1L))
+  sorted <- processor$reorder_layer_data(faceted, chart(factor(wt %% 2)))
+  testthat::expect_identical(sorted$wt, processor$reorder_layer_data(faceted, chart(h))$wt)
+  testthat::expect_identical(sorted$wt[sorted$am == 0], c(2L, 1L, 4L, 3L, 6L, 5L))
+  testthat::expect_identical(sorted$wt[sorted$am == 1], c(8L, 7L, 10L, 9L, 12L, 11L))
+})
+
 test_that("bars whose categories are an expression are read as when it is a column", {
   pts$third <- factor(pts$wt %% 3)
   by_expression <- first_layer(

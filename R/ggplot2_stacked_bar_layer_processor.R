@@ -88,6 +88,8 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         if (column %in% names(data)) {
           return(data[[column]])
         }
+        # One that cannot be evaluated in the data, as `after_stat(count)`,
+        # leaves the rows unsorted, as they were before.
         values <- tryCatch(rlang::eval_tidy(mapping, data), error = function(e) NULL)
         if (is.atomic(values) && length(values) == nrow(data)) values
       }
