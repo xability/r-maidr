@@ -16,12 +16,11 @@ skip_unless_hilow <- function() {
   testthat::skip_if_not_installed("Hmisc")
 }
 
-# A summary given by its name, as `fun.data = "median_hilow"`, is looked up
-# where the plot is drawn. ggplot2 4.0 finds it unattached. ggplot2 3.4 looks
-# in the global environment, which holds it only with ggplot2 attached, as it
-# is wherever a plot names it so: unattached, ggplot2 3.4 computes nothing
-# for the layer ("object 'median_hilow' of mode 'function' was not found")
-# and draws nothing. Attached for the test, and left as it was found.
+# ggplot2 3.4 looks a summary named by a string, `fun.data = "median_hilow"`,
+# up in the global environment, so the layer draws only with ggplot2
+# attached ("object 'median_hilow' of mode 'function' was not found"
+# otherwise); 4.0 finds it in its own namespace. Attached here where it is
+# not, and detached again after the test.
 attach_ggplot2 <- function(envir = parent.frame()) {
   testthat::skip_if_not_installed("withr")
   if (!"package:ggplot2" %in% search()) {
