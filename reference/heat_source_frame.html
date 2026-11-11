@@ -51,7 +51,7 @@ of its own, stopped the reading.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-11-05">
+<meta name="DC.date" content="2026-11-11">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -117,7 +117,12 @@ of its own, stopped the reading.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">heat_source_frame</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layer_index</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">heat_source_frame</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  <span class="va">layer_index</span>,</span>
+<span>  fill_levels <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fill_labels <span class="op">=</span> <span class="va">fill_levels</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -131,13 +136,24 @@ of its own, stopped the reading.</p>
 <dt id="arg-layer-index">layer_index<a class="anchor" aria-label="anchor" href="#arg-layer-index"></a></dt>
 <dd><p>The layer's index in <code>plot$layers</code></p></dd>
 
+
+<dt id="arg-fill-levels">fill_levels<a class="anchor" aria-label="anchor" href="#arg-fill-levels"></a></dt>
+<dd><p>The categories of the fill's legend in its order, or
+NULL where it has none (<code><a href="heat_fill_numbers.html">heat_fill_numbers()</a></code>)</p></dd>
+
+
+<dt id="arg-fill-labels">fill_labels<a class="anchor" aria-label="anchor" href="#arg-fill-labels"></a></dt>
+<dd><p>What the legend shows for each of <code>fill_levels</code>
+(<code><a href="heat_legend_labels.html">heat_legend_labels()</a></code>)</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list: <code>data</code>, the layer's data with each tile's x, y and fill in
 the columns <code>.maidr_heat_x</code>, <code>.maidr_heat_y</code> and <code>.maidr_heat_fill</code>;
-and <code>fill_label</code>, the fill's name as ggplot2 labels it ("score * 2"),
-or <code>NULL</code> when the fill is not mapped</p>
+<code>fill_label</code>, the fill's name as ggplot2 labels it ("score * 2"), or
+<code>NULL</code> when the fill is not mapped; and <code>fill_levels</code>, the names of the
+places the fill's cells hold, as the legend shows them, or <code>NULL</code></p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -153,9 +169,10 @@ names a function: <code>after_stat(density)</code> is <code><a href="https://rdr
 which stopped the reading. A grid a stat computes is read from what the
 stat computed instead (<code><a href="heat_stat_fill.html">heat_stat_fill()</a></code>). A fill of categories is read
 by the numbers its legend shows, as <code>factor(score * 10)</code> shows 10, 20
-and 30, and as missing where the names are not numbers, as
-<code>fill = grade</code> and the colours <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_scale()</a></code> gives: a factor was read
-as its level codes.</p>
+and 30, and by the names it shows where they are not numbers, as
+<code>fill = grade</code> shows "high", "low" and "mid" (<code><a href="heat_fill_numbers.html">heat_fill_numbers()</a></code>); the
+colours <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html" class="external-link">after_scale()</a></code> gives, under no legend, are missing. A factor was
+read as its level codes.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

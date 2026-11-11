@@ -12,7 +12,12 @@ of its own, stopped the reading.
 ## Usage
 
 ``` r
-heat_source_frame(plot, layer_index)
+heat_source_frame(
+  plot,
+  layer_index,
+  fill_levels = NULL,
+  fill_labels = fill_levels
+)
 ```
 
 ## Arguments
@@ -25,12 +30,24 @@ heat_source_frame(plot, layer_index)
 
   The layer's index in `plot$layers`
 
+- fill_levels:
+
+  The categories of the fill's legend in its order, or NULL where it has
+  none
+  ([`heat_fill_numbers()`](https://r.maidr.ai/reference/heat_fill_numbers.md))
+
+- fill_labels:
+
+  What the legend shows for each of `fill_levels`
+  ([`heat_legend_labels()`](https://r.maidr.ai/reference/heat_legend_labels.md))
+
 ## Value
 
 A list: `data`, the layer's data with each tile's x, y and fill in the
-columns `.maidr_heat_x`, `.maidr_heat_y` and `.maidr_heat_fill`; and
+columns `.maidr_heat_x`, `.maidr_heat_y` and `.maidr_heat_fill`;
 `fill_label`, the fill's name as ggplot2 labels it ("score \* 2"), or
-`NULL` when the fill is not mapped
+`NULL` when the fill is not mapped; and `fill_levels`, the names of the
+places the fill's cells hold, as the legend shows them, or `NULL`
 
 ## Details
 
@@ -49,7 +66,11 @@ stopped the reading. A grid a stat computes is read from what the stat
 computed instead
 ([`heat_stat_fill()`](https://r.maidr.ai/reference/heat_stat_fill.md)).
 A fill of categories is read by the numbers its legend shows, as
-`factor(score * 10)` shows 10, 20 and 30, and as missing where the names
-are not numbers, as `fill = grade` and the colours
+`factor(score * 10)` shows 10, 20 and 30, and by the names it shows
+where they are not numbers, as `fill = grade` shows "high", "low" and
+"mid"
+([`heat_fill_numbers()`](https://r.maidr.ai/reference/heat_fill_numbers.md));
+the colours
 [`after_scale()`](https://ggplot2.tidyverse.org/reference/aes_eval.html)
-gives: a factor was read as its level codes.
+gives, under no legend, are missing. A factor was read as its level
+codes.
