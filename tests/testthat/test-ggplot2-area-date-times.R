@@ -107,6 +107,29 @@ test_that("each band of a stacked area over date-times writes them as date-times
   }
 })
 
+test_that("each facet panel of an area over dates writes them as dates", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  frame <- data.frame(
+    d = rep(as.Date("2026-01-01") + 0:2, 2),
+    y = c(3, 1, 4, 2, 2, 2),
+    g = rep(c("a", "b"), each = 3)
+  )
+  schema <- maidr:::Ggplot2PlotOrchestrator$new(
+    ggplot2::ggplot(frame, ggplot2::aes(d, y)) +
+      ggplot2::geom_area() +
+      ggplot2::facet_wrap(~g)
+  )$generate_maidr_data()
+
+  testthat::expect_length(schema$subplots[[1]], 2L)
+  for (cell in schema$subplots[[1]]) {
+    testthat::expect_identical(
+      layer_xs(cell$layers[[1]]),
+      c("2026-01-01", "2026-01-02", "2026-01-03")
+    )
+  }
+})
+
 test_that("an area over plain numbers still writes numbers", {
   testthat::skip_if_not_installed("ggplot2")
 
