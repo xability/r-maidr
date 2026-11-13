@@ -290,7 +290,7 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
     #' @return Character vector
     format_x_value = function(x) {
       if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
-        return(format(x))
+        return(time_text(x))
       }
       as.character(x)
     },

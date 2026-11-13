@@ -231,7 +231,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
             matched_vals <- original_values[match_idx[hit]]
             if (inherits(original_values, c("Date", "POSIXct", "POSIXlt"))) {
               mapped <- as.character(x_pos)
-              mapped[hit] <- format(matched_vals)
+              mapped[hit] <- time_text(matched_vals)
             } else {
               # A plain number stays a number (see `line_x_value()`), and it
               # is already the datum: the break/label mapping below must not
@@ -572,7 +572,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #'
     #' A plain number stays a number, so a line over a numeric column carries
     #' the same x a `geom_point()` over it does. Date / POSIXct / POSIXlt
-    #' values are formatted via `format()` so that a `Date` column emits ISO
+    #' values are written by `time_text()` so that a `Date` column emits ISO
     #' date strings (e.g. "2024-01-02") rather than the underlying numeric
     #' days-since-epoch representation produced by `ggplot_build()`, which
     #' keeps them aligned string-wise with

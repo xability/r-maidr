@@ -462,16 +462,17 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
 
     #' @description Format an x-axis value as character.
     #'
-    #' Date / POSIXct / POSIXlt values are formatted via `format()` so that a
+    #' Date / POSIXct / POSIXlt values are written by `time_text()` so that a
     #' `Date` column emits ISO date strings ("2024-01-02") rather than the
-    #' default scale-tick labels ("Jan 02"). All other types use
-    #' `as.character()`. Mirrors `Ggplot2CandlestickProcessor$format_x_value()`
-    #' so candle and bar layers from the same Date column align string-wise.
+    #' default scale-tick labels ("Jan 02"), and a date-time keeps its time
+    #' at midnight. All other types use `as.character()`. Mirrors
+    #' `Ggplot2CandlestickProcessor$format_x_value()` so candle and bar layers
+    #' from the same Date column align string-wise.
     #' @param x The value to format
     #' @return Character vector
     format_x_value = function(x) {
       if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
-        return(format(x))
+        return(time_text(x))
       }
       as.character(x)
     },
