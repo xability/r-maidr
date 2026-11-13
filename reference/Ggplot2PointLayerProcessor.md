@@ -24,6 +24,10 @@ generate selectors for individual points in the SVG structure.
 
 - [`Ggplot2PointLayerProcessor$extract_data()`](#method-Ggplot2PointLayerProcessor-extract_data)
 
+- [`Ggplot2PointLayerProcessor$announced_positions()`](#method-Ggplot2PointLayerProcessor-announced_positions)
+
+- [`Ggplot2PointLayerProcessor$axis_time_format()`](#method-Ggplot2PointLayerProcessor-axis_time_format)
+
 - [`Ggplot2PointLayerProcessor$generate_selectors()`](#method-Ggplot2PointLayerProcessor-generate_selectors)
 
 - [`Ggplot2PointLayerProcessor$find_panel_grob()`](#method-Ggplot2PointLayerProcessor-find_panel_grob)
@@ -303,6 +307,87 @@ Extract data from point layer
 #### Returns
 
 List with points array and color information
+
+------------------------------------------------------------------------
+
+### `Ggplot2PointLayerProcessor$announced_positions()`
+
+The positions one axis's points are sent at
+
+maidr.js orders a scatter's points, finds its extremes, measures its
+correlation and pitches its tones from numbers: the grammar's
+`ScatterPoint` holds a number on each axis. A date, date-time or
+clock-time axis sends the scale's own numbers – days since 1970, seconds
+since 1970, seconds since midnight – and its format draws them
+(`axis_time_format()`). Sent as strings, as they were, the points of a
+scatter over dates were walked in the order of their y values, `[` and
+`]` found no extreme, the correlation and the x range went, and each
+tone failed. Any other axis is put back into the space the reader sees
+([`untransform_positions()`](https://r.maidr.ai/reference/untransform_positions.md)).
+
+#### Usage
+
+    Ggplot2PointLayerProcessor$announced_positions(
+      values,
+      built,
+      axis,
+      panel_id = NULL
+    )
+
+#### Arguments
+
+- `values`:
+
+  The axis's built positions
+
+- `built`:
+
+  Built plot data
+
+- `axis`:
+
+  `"x"` or `"y"`
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+The positions to send
+
+------------------------------------------------------------------------
+
+### `Ggplot2PointLayerProcessor$axis_time_format()`
+
+The format a date, date-time or clock-time axis is drawn with
+
+The kind follows the scale's transformation, `date`, `time` or `hms`,
+and a date-time is drawn in the scale's time zone, as the histogram's
+bins are
+([`time_axis_format()`](https://r.maidr.ai/reference/time_axis_format.md)).
+
+#### Usage
+
+    Ggplot2PointLayerProcessor$axis_time_format(built, axis, panel_id = NULL)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `axis`:
+
+  `"x"` or `"y"`
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+An AxisFormat, or NULL for any other axis
 
 ------------------------------------------------------------------------
 

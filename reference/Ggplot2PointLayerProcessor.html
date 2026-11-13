@@ -33,7 +33,7 @@ for individual points in the SVG structure.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-11-05">
+<meta name="DC.date" content="2026-11-13">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -107,6 +107,8 @@ for individual points in the SVG structure.</p>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-extract_axes_labels"><code>Ggplot2PointLayerProcessor$extract_axes_labels()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-extract_axis_grid_info"><code>Ggplot2PointLayerProcessor$extract_axis_grid_info()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-extract_data"><code>Ggplot2PointLayerProcessor$extract_data()</code></a></p></li>
+<li><p><a href="#method-Ggplot2PointLayerProcessor-announced_positions"><code>Ggplot2PointLayerProcessor$announced_positions()</code></a></p></li>
+<li><p><a href="#method-Ggplot2PointLayerProcessor-axis_time_format"><code>Ggplot2PointLayerProcessor$axis_time_format()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-generate_selectors"><code>Ggplot2PointLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-find_panel_grob"><code>Ggplot2PointLayerProcessor$find_panel_grob()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-find_children_by_type"><code>Ggplot2PointLayerProcessor$find_children_by_type()</code></a></p></li>
@@ -345,10 +347,81 @@ Kept as a method so this class's own callers are unchanged.</p><div class="secti
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2PointLayerProcessor-announced_positions"></a><div class="section">
+<h3 id="ggplot-pointlayerprocessor-announced-positions-"><code>Ggplot2PointLayerProcessor$announced_positions()</code><a class="anchor" aria-label="anchor" href="#ggplot-pointlayerprocessor-announced-positions-"></a></h3>
+<p>The positions one axis's points are sent at</p>
+<p>maidr.js orders a scatter's points, finds its extremes, measures its
+correlation and pitches its tones from numbers: the grammar's
+<code>ScatterPoint</code> holds a number on each axis. A date, date-time or
+clock-time axis sends the scale's own numbers – days since 1970,
+seconds since 1970, seconds since midnight – and its format draws them
+(<code>axis_time_format()</code>). Sent as strings, as they were, the points of a
+scatter over dates were walked in the order of their y values, <code>[</code> and
+<code>]</code> found no extreme, the correlation and the x range went, and each
+tone failed. Any other axis is put back into the space the reader sees
+(<code><a href="untransform_positions.html">untransform_positions()</a></code>).</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">announced_positions</span><span class="op">(</span></span>
+<span>  <span class="va">values</span>,</span>
+<span>  <span class="va">built</span>,</span>
+<span>  <span class="va">axis</span>,</span>
+<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>values</code></dt>
+<dd><p>The axis's built positions</p></dd>
+
+      <dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+      <dt><code>axis</code></dt>
+<dd><p><code>"x"</code> or <code>"y"</code></p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>The positions to send</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2PointLayerProcessor-axis_time_format"></a><div class="section">
+<h3 id="ggplot-pointlayerprocessor-axis-time-format-"><code>Ggplot2PointLayerProcessor$axis_time_format()</code><a class="anchor" aria-label="anchor" href="#ggplot-pointlayerprocessor-axis-time-format-"></a></h3>
+<p>The format a date, date-time or clock-time axis is drawn with</p>
+<p>The kind follows the scale's transformation, <code>date</code>, <code>time</code> or <code>hms</code>,
+and a date-time is drawn in the scale's time zone, as the histogram's
+bins are (<code><a href="time_axis_format.html">time_axis_format()</a></code>).</p><div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">axis_time_format</span><span class="op">(</span><span class="va">built</span>, <span class="va">axis</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+      <dt><code>axis</code></dt>
+<dd><p><code>"x"</code> or <code>"y"</code></p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>An AxisFormat, or NULL for any other axis</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2PointLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-pointlayerprocessor-generate-selectors-"><code>Ggplot2PointLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-pointlayerprocessor-generate-selectors-"></a></h3>
 <p>Generate selectors for point elements</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -356,7 +429,7 @@ Kept as a method so this class's own callers are unchanged.</p><div class="secti
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -372,7 +445,7 @@ Kept as a method so this class's own callers are unchanged.</p><div class="secti
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>List of selectors</p>
 </div>
 
@@ -381,10 +454,10 @@ Kept as a method so this class's own callers are unchanged.</p><div class="secti
 <p></p><hr><a id="method-Ggplot2PointLayerProcessor-find_panel_grob"></a><div class="section">
 <h3 id="ggplot-pointlayerprocessor-find-panel-grob-"><code>Ggplot2PointLayerProcessor$find_panel_grob()</code><a class="anchor" aria-label="anchor" href="#ggplot-pointlayerprocessor-find-panel-grob-"></a></h3>
 <p>Find the panel grob this layer draws into</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">find_panel_grob</span><span class="op">(</span><span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>gt</code></dt>
 <dd><p>The gtable to search</p></dd>
 
@@ -395,7 +468,7 @@ for a single plot, where the panel is the cell literally named "panel"</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>The panel grob or NULL</p>
 </div>
 
@@ -404,10 +477,10 @@ for a single plot, where the panel is the cell literally named "panel"</p></dd>
 <p></p><hr><a id="method-Ggplot2PointLayerProcessor-find_children_by_type"></a><div class="section">
 <h3 id="ggplot-pointlayerprocessor-find-children-by-type-"><code>Ggplot2PointLayerProcessor$find_children_by_type()</code><a class="anchor" aria-label="anchor" href="#ggplot-pointlayerprocessor-find-children-by-type-"></a></h3>
 <p>Find children by type pattern</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">find_children_by_type</span><span class="op">(</span><span class="va">grob</span>, <span class="va">type_pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>The grob to search</p></dd>
 
@@ -417,7 +490,7 @@ for a single plot, where the panel is the cell literally named "panel"</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>List of matching children</p>
 </div>
 
@@ -426,10 +499,10 @@ for a single plot, where the panel is the cell literally named "panel"</p></dd>
 <p></p><hr><a id="method-Ggplot2PointLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-pointlayerprocessor-clone-"><code>Ggplot2PointLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-pointlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

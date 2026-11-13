@@ -1283,6 +1283,20 @@
   its own time zone, in each layer alike, so a move between layers still
   finds the same x. A candlestick chart’s date-times keep their time
   too. A `Date` is still read as a date.
+- A scatter over dates or date-times is read in time order.
+  [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+  over a `Date` or `POSIXct` sent its x as text, where maidr.js reads a
+  scatter’s positions as numbers: its points were walked in the order of
+  their y values, `[` and `]` found no extreme (“No maximum value to go
+  to in this layer”), the description lost the correlation and the x
+  range, and its tones raised errors in the browser. The points now send
+  the axis’s own numbers, days or seconds since 1970, and the axis a
+  format that draws them as dates or date-times in the scale’s time
+  zone, so they are read as before and walked in time order, and `[`,
+  `]`, the correlation and the tones work. The description’s x range is
+  still stated in those numbers, and a move from the points to a line
+  over the same column does not land on the same x: maidr.js states the
+  range without the format, and matches no number to a line’s text.
 
 #### Base R
 
@@ -1921,6 +1935,11 @@
   its midnight point with its time, “2026-01-01 00:00:00”, where it read
   “2026-01-01” beside “2026-01-01 01:00:00” (see ggplot2 above). So does
   a candlestick chart over date-times.
+- `plot(times, y)` over `POSIXct` or `Date` reads its points as the
+  date-times or dates they are: it read “t is 1,767,243,600”, the
+  seconds since 1970. The points keep those numbers, so they are still
+  walked in time order, and the axis draws them, in the values’ own time
+  zone (see ggplot2 above).
 
 ### Documentation
 
