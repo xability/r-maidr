@@ -22,6 +22,16 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
+      # `hist()` of dates or times bins their own numbers, days or seconds,
+      # and draws them as the dates or times they are
+      # (`time_axis_format()`).
+      values <- self$histogram_values(layer_info$plot_call$args)
+      kind <- time_kind_of(values)
+      if (!is.null(kind)) {
+        tz <- time_zone_of(if (identical(kind, "datetime")) attr(values, "tzone"))
+        axes <- attach_axis_format(axes, "x", time_axis_format(kind, tz))
+      }
+
       list(
         data = data,
         selectors = selectors,
@@ -72,18 +82,7 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
     #' @param args Recorded argument list
     #' @return A "histogram" object, or NULL when the call recorded no data
     recompute_histogram = function(args) {
-      hist_data <- args[["x"]]
-      if (is.null(hist_data) && length(args) > 0) {
-        arg_names <- names(args)
-        unnamed <- if (is.null(arg_names)) {
-          seq_along(args)
-        } else {
-          which(!nzchar(arg_names))
-        }
-        if (length(unnamed) > 0) {
-          hist_data <- args[[unnamed[1]]]
-        }
-      }
+      hist_data <- self$histogram_values(args)
       if (is.null(hist_data)) {
         return(NULL)
       }
@@ -100,6 +99,19 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
 
       # Use graphics::hist directly to avoid calling the wrapped version
       suppressWarnings(do.call(graphics::hist, c(list(hist_data), hist_params)))
+    },
+
+    #' @description The values the recorded call binned
+    #'
+    #' @param args Recorded argument list
+    #' @return The `x` argument, else the first unnamed one, or NULL
+    histogram_values = function(args) {
+      if (!is.null(args[["x"]])) {
+        return(args[["x"]])
+      }
+      arg_names <- names(args)
+      unnamed <- if (is.null(arg_names)) seq_along(args) else which(!nzchar(arg_names))
+      if (length(unnamed) > 0) args[[unnamed[1]]] else NULL
     },
 
     #' @description Is this a frequency histogram rather than a density one?

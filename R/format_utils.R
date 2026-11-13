@@ -340,99 +340,96 @@ prefix_to_currency_code <- function(prefix) {
   "USD"
 }
 
-#' Convert R Date Format to Intl.DateTimeFormat Options
+#' The format a time axis's numbers are drawn with
 #'
-#' Converts R strftime format strings to JavaScript Intl.DateTimeFormat options.
+#' A histogram over dates or times carries its axis's own numbers: R's
+#' `Date` counts days since 1970-01-01, `POSIXct` seconds since then, and
+#' `hms` seconds since midnight. Read as numbers, a bin of a histogram of
+#' dates was "d is 20,457.5 through 20,464.5". The format draws each number
+#' as the date, date-time or clock time it stands for, as an ISO date, a
+#' date and time in the axis's time zone, or hh:mm:ss. Its `unit` says what
+#' one of the numbers counts, so a bin's width reads as a span of time, "1
+#' week", in a maidr.js that reads it (xability/maidr#1695); an older one
+#' ignores it.
 #'
-#' @param format R date format string (e.g., "%Y-%m-%d")
-#' @return List of Intl.DateTimeFormat options
+#' @param kind `"date"`, `"datetime"` or `"time"`
+#' @param tz The IANA time zone a date-time is drawn in (`time_zone_of()`)
+#' @return An AxisFormat holding a `function` and a `unit`, or NULL for any
+#'   other kind
 #' @keywords internal
-r_date_format_to_intl_options <- function(format) {
-  if (is.null(format)) {
-    return(list(year = "numeric", month = "2-digit", day = "2-digit"))
-  }
-
-  options <- list()
-
-  # Year formats
-  if (grepl("%Y", format)) {
-    options$year <- "numeric"
-  } else if (grepl("%y", format)) {
-    options$year <- "2-digit"
-  }
-
-  # Month formats
-  if (grepl("%B", format)) {
-    options$month <- "long"
-  } else if (grepl("%b", format)) {
-    options$month <- "short"
-  } else if (grepl("%m", format)) {
-    options$month <- "2-digit"
-  }
-
-
-  # Day formats
-  if (grepl("%d", format)) {
-    options$day <- "2-digit"
-  } else if (grepl("%e", format)) {
-    options$day <- "numeric"
-  }
-
-  # Weekday formats
-  if (grepl("%A", format)) {
-    options$weekday <- "long"
-  } else if (grepl("%a", format)) {
-    options$weekday <- "short"
-  }
-
-  # Time formats
-  if (grepl("%H", format) || grepl("%I", format)) {
-    options$hour <- "2-digit"
-  }
-  if (grepl("%M", format)) {
-    options$minute <- "2-digit"
-  }
-  if (grepl("%S", format)) {
-    options$second <- "2-digit"
-  }
-
-  # If no options matched, provide defaults
-
-  if (length(options) == 0) {
-    options <- list(year = "numeric", month = "2-digit", day = "2-digit")
-  }
-
-  options
+time_axis_format <- function(kind, tz = "UTC") {
+  # A value the browser cannot draw as a date -- NaN, one past the range of
+  # a JavaScript Date, a zone it does not know -- reads as the number it is,
+  # as it did before, rather than as "Invalid Date" or a thrown RangeError.
+  switch(kind,
+    date = list(
+      `function` = paste0(
+        "try { return new Date(Number(value) * 864e5).toISOString().slice(0, 10); } ",
+        "catch (e) { return String(value); }"
+      ),
+      unit = "day"
+    ),
+    datetime = list(
+      `function` = paste0(
+        "try { var p = {}; new Intl.DateTimeFormat('en-US', {timeZone: ",
+        as.character(jsonlite::toJSON(tz, auto_unbox = TRUE)),
+        ", year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', ",
+        "minute: '2-digit', second: '2-digit', hourCycle: 'h23'})",
+        ".formatToParts(new Date(Number(value) * 1000))",
+        ".forEach(function (part) { p[part.type] = part.value; }); ",
+        "return p.year + '-' + p.month + '-' + p.day + ' ' + ",
+        "p.hour + ':' + p.minute + ':' + p.second; } ",
+        "catch (e) { return String(value); }"
+      ),
+      unit = "second"
+    ),
+    time = list(
+      `function` = paste0(
+        "var s = Math.round(Number(value)); if (!isFinite(s)) return String(value); ",
+        "var sign = s < 0 ? '-' : ''; s = Math.abs(s); ",
+        "var pad = function (n) { return (n < 10 ? '0' : '') + n; }; ",
+        "return sign + pad(Math.floor(s / 3600)) + ':' + ",
+        "pad(Math.floor(s % 3600 / 60)) + ':' + pad(s % 60);"
+      ),
+      unit = "second"
+    ),
+    NULL
+  )
 }
 
-#' Convert R Date Format to JavaScript Function
+#' The kind of time a vector of values holds
 #'
-#' Creates a JavaScript function string that formats dates according to
-#' an R strftime format string. Used for complex date formats that cannot
-#' be represented by Intl.DateTimeFormat options alone.
-#'
-#' @param format R date format string
-#' @param tz Timezone
-#' @return JavaScript function body string
+#' @param values A vector
+#' @return `"date"` for a `Date`, `"datetime"` for a `POSIXct`, `"time"` for
+#'   an `hms`, or NULL for anything else
 #' @keywords internal
-r_date_format_to_js_function <- function(format, tz = "UTC") {
-  # For simple formats, return NULL (use dateOptions instead)
-  # For complex formats, generate a JS function
-
-  # Check if format can be handled by Intl.DateTimeFormat
-  simple_formats <- c("%Y-%m-%d", "%Y/%m/%d", "%m/%d/%Y", "%d/%m/%Y",
-                      "%b %d, %Y", "%B %d, %Y", "%Y", "%b %Y", "%B %Y")
-
-  if (format %in% simple_formats) {
-    return(NULL)
+time_kind_of <- function(values) {
+  if (inherits(values, "Date")) {
+    return("date")
   }
+  if (inherits(values, "POSIXct")) {
+    return("datetime")
+  }
+  if (inherits(values, "hms")) {
+    return("time")
+  }
+  NULL
+}
 
-  # For complex formats, create a JS function
-  # This is a simplified implementation - may need expansion
-  sprintf(
-    "var d = new Date(value); return d.toLocaleDateString('en-US', %s);",
-    jsonlite::toJSON(r_date_format_to_intl_options(format), auto_unbox = TRUE)
-  )
+#' The IANA time zone a date-time is drawn in
+#'
+#' R draws a `POSIXct` in the zone its `tzone` names, and otherwise in the
+#' session's. A name not in `OlsonNames()` is passed over, and with none
+#' left a date-time is drawn in UTC.
+#'
+#' @param tz A time zone name, or NULL or "" for the session's
+#' @return One name from `OlsonNames()`, or `"UTC"`
+#' @keywords internal
+time_zone_of <- function(tz = NULL) {
+  zones <- c(tz, Sys.getenv("TZ"), Sys.timezone())
+  zones <- zones[!is.na(zones) & nzchar(zones)]
+  zones <- zones[zones %in% OlsonNames()]
+  if (length(zones)) zones[[1]] else "UTC"
 }
 
 # ============================================================================

@@ -17,6 +17,7 @@ and selector generation logic.
     \item \href{#method-BaseRHistogramLayerProcessor-process}{\code{BaseRHistogramLayerProcessor$process()}}
     \item \href{#method-BaseRHistogramLayerProcessor-extract_data}{\code{BaseRHistogramLayerProcessor$extract_data()}}
     \item \href{#method-BaseRHistogramLayerProcessor-recompute_histogram}{\code{BaseRHistogramLayerProcessor$recompute_histogram()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-histogram_values}{\code{BaseRHistogramLayerProcessor$histogram_values()}}
     \item \href{#method-BaseRHistogramLayerProcessor-is_frequency}{\code{BaseRHistogramLayerProcessor$is_frequency()}}
     \item \href{#method-BaseRHistogramLayerProcessor-generate_selectors}{\code{BaseRHistogramLayerProcessor$generate_selectors()}}
     \item \href{#method-BaseRHistogramLayerProcessor-find_rect_grobs}{\code{BaseRHistogramLayerProcessor$find_rect_grobs()}}
@@ -126,6 +127,28 @@ the recorded call
   }
   \subsection{Returns}{
     A "histogram" object, or NULL when the call recorded no data
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-histogram_values"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-histogram_values}{}}}
+\subsection{\code{BaseRHistogramLayerProcessor$histogram_values()}}{
+  The values the recorded call binned
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$histogram_values(args)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{args}}{Recorded argument list}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The \code{x} argument, else the first unnamed one, or NULL
   }
 }
 
