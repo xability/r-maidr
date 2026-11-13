@@ -1,5 +1,11 @@
 # maidr (development version)
 
+## Breaking changes
+
+* maidr is now licensed under the MIT License instead of GPL (>= 3)
+  (`License: MIT + file LICENSE`), as is the MAIDR JavaScript library it
+  bundles.
+
 ## New Features
 
 ### Chart size
