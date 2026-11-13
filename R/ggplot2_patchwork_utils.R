@@ -607,6 +607,8 @@ reorder_leaf_plot <- function(leaf_plot) {
 patchwork_annotation_text <- function(plot) {
   annotation <- tryCatch(plot$patches$annotation, error = function(e) NULL)
   one_string <- function(value) {
+    # Plotmath, as `plot_annotation(title = expression(beta^2))`, as written
+    value <- plotmath_text(value)
     if (is.character(value) && length(value) == 1L && !is.na(value) && nzchar(value)) {
       value
     }
@@ -652,6 +654,8 @@ extract_leaf_plot_layout <- function(leaf_plot, leaf_built = NULL) {
 
   plot_title <- built_labels$title
   if (is.null(plot_title)) plot_title <- leaf_plot$labels$title
+  # Read as written where it is plotmath, as the single plot's is
+  plot_title <- plotmath_text(plot_title)
 
   list(
     title = if (!is.null(plot_title)) plot_title else "",

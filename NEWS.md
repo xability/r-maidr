@@ -955,6 +955,18 @@
   "Min value" and "Max value" still read the first and last places, 1 and
   the number of categories: maidr.js states those two without the axis's
   format.
+* A chart whose axes or title are written in plotmath is read, with each
+  title as it is written: `labs(x = expression(x^2))` as "x^2", and
+  `labs(title = quote(alpha^2))` as "alpha^2", in every kind of layer, each
+  facet panel and each plot of a patchwork. An axis titled in plotmath, by
+  `labs()`, `xlab()` or `ylab()`, stopped `show()` and `save_html()` with
+  "Axis value must be a list, string, numeric, or NULL", and no page was
+  written. A title, subtitle or caption in plotmath drew the chart as a
+  picture, with "Plot could not be rendered interactively" ("'length = 3'
+  in coercion to 'logical(1)'" for a call, "No method asJSON S3 class:
+  expression" for an `expression()`). A scale's name or a patchwork's
+  `plot_annotation()` title given in plotmath was dropped for `labs()` or
+  the mapped column.
 
 ### Base R
 
