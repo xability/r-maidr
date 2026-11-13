@@ -17,8 +17,6 @@ Processes stacked bar plot layers with complete logic included
 
 - [`Ggplot2StackedBarProcessor$reorder_layer_data()`](#method-Ggplot2StackedBarProcessor-reorder_layer_data)
 
-- [`Ggplot2StackedBarProcessor$extract_plot_columns()`](#method-Ggplot2StackedBarProcessor-extract_plot_columns)
-
 - [`Ggplot2StackedBarProcessor$extract_data()`](#method-Ggplot2StackedBarProcessor-extract_data)
 
 - [`Ggplot2StackedBarProcessor$generate_selectors()`](#method-Ggplot2StackedBarProcessor-generate_selectors)
@@ -139,26 +137,6 @@ drawn rects
 #### Returns
 
 The reordered data frame
-
-------------------------------------------------------------------------
-
-### `Ggplot2StackedBarProcessor$extract_plot_columns()`
-
-The column names the plot maps to x, y and fill
-
-#### Usage
-
-    Ggplot2StackedBarProcessor$extract_plot_columns(plot)
-
-#### Arguments
-
-- `plot`:
-
-  The ggplot2 object
-
-#### Returns
-
-List with `category_col`, `value_col` and `fill_col`
 
 ------------------------------------------------------------------------
 

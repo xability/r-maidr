@@ -463,6 +463,12 @@ A named list of group key to label
 
 The fill levels, in the order ggplot2 numbered the groups.
 
+ggplot2 numbers the groups in `add_group()` from the values the fill
+mapping gives on the data: the levels present, in a factor's order, or
+sorted. A scale's `limits` play no part, and a level no row holds
+numbers no group, so the levels are read from those values – a column,
+or an expression such as `factor(wt %% 2)` – and never from the scale.
+
 #### Usage
 
     Ggplot2AreaLayerProcessor$fill_levels(built)
@@ -518,7 +524,8 @@ Name the source column an aesthetic is mapped to.
 `aes(x = factor(year))` maps a call rather than a bare name, and the
 column the data actually holds is its argument – so the call is
 unwrapped rather than labelled, which would give `"factor(year)"` and
-match nothing.
+match nothing. Any other expression names no column
+([`mapping_column()`](https://r.maidr.ai/reference/mapping_column.md)).
 
 #### Usage
 

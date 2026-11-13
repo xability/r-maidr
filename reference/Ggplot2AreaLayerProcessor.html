@@ -153,7 +153,7 @@ which is verified to give the same answer as stat = &quot;identity&quot;.
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-30">
+<meta name="DC.date" content="2026-11-12">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -608,7 +608,13 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-fill_levels"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-fill-levels-"><code>Ggplot2AreaLayerProcessor$fill_levels()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-fill-levels-"></a></h3>
-<p>The fill levels, in the order ggplot2 numbered the groups.</p><div class="section">
+<p>The fill levels, in the order ggplot2 numbered the groups.</p>
+<p>ggplot2 numbers the groups in <code>add_group()</code> from the values the fill
+mapping gives on the data: the levels present, in a factor's order, or
+sorted. A scale's <code>limits</code> play no part, and a level no row holds
+numbers no group, so the levels are read from those values – a
+column, or an expression such as <code>factor(wt %% 2)</code> – and never from
+the scale.</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">fill_levels</span><span class="op">(</span><span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -659,7 +665,8 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 <p><code>aes(x = factor(year))</code> maps a call rather than a bare name, and the
 column the data actually holds is its argument – so the call is
 unwrapped rather than labelled, which would give <code>"factor(year)"</code> and
-match nothing.</p><div class="section">
+match nothing. Any other expression names no column
+(<code><a href="mapping_column.html">mapping_column()</a></code>).</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">mapped_column</span><span class="op">(</span><span class="va">quo</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
