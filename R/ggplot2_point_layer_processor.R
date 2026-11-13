@@ -444,6 +444,17 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       announced_x <- untransform_positions(layer_data$x, built, "x", panel_id)
       announced_y <- untransform_positions(layer_data$y, built, "y", panel_id)
 
+      # A date-time axis gives date-times back. Each is written here, with its
+      # time (`time_text()`): left to jsonlite, which writes one value at a
+      # time as `format()` does, a point at midnight was written without it.
+      # A date is left to jsonlite, which writes it as `time_text()` does.
+      if (inherits(announced_x, "POSIXt")) {
+        announced_x <- time_text(announced_x)
+      }
+      if (inherits(announced_y, "POSIXt")) {
+        announced_y <- time_text(announced_y)
+      }
+
       # The name each position stands for, on whichever axis is discrete.
       # ggplot2 maps a discrete scale onto consecutive integers, so a point in
       # category "a" arrives as `x = 1` and was announced as the number -- "g

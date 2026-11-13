@@ -441,6 +441,31 @@ time_zone_of <- function(tz = NULL) {
   if (is.null(x)) y else x
 }
 
+#' A date or date-time written as the payload carries it
+#'
+#' `format()` leaves the time off a date-time when every one it is given
+#' falls at midnight. The layers write their values one at a time, so a
+#' series of date-times read its midnight point as "2026-01-01" beside
+#' "2026-01-01 01:00:00", and a series that is all midnights read as dates.
+#' A date-time is written with its time, always, in its own time zone (its
+#' `tzone`, else the session's); a date as a date. Seconds keep the decimal
+#' places `getOption("digits.secs")` asks for, as `format()` gave them, and
+#' are whole seconds when it is unset.
+#'
+#' @param x A `Date`, `POSIXct` or `POSIXlt` vector
+#' @return A character vector, or `x` unchanged when it is neither
+#' @keywords internal
+#' @noRd
+time_text <- function(x) {
+  if (inherits(x, "Date")) {
+    return(format(x, "%Y-%m-%d"))
+  }
+  if (inherits(x, "POSIXt")) {
+    return(format(x, "%Y-%m-%d %H:%M:%OS"))
+  }
+  x
+}
+
 #' The x of one line point, as the payload carries it
 #'
 #' maidr.js reads a line point's `x` as `number | string` and treats the two
@@ -453,7 +478,7 @@ time_zone_of <- function(tz = NULL) {
 #'
 #' So a plain number stays a number, and everything else keeps the string
 #' form the line layers have always emitted for it: dates and date-times as
-#' ISO strings via `format()`, a `difftime`/`hms` as its clock form, and a
+#' ISO strings (`time_text()`), a `difftime`/`hms` as its clock form, and a
 #' discrete level (`mapped_discrete`, factor, character) as its label.
 #'
 #' @param x A single x value
@@ -462,7 +487,7 @@ time_zone_of <- function(tz = NULL) {
 #' @noRd
 line_x_value <- function(x) {
   if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
-    return(format(x))
+    return(time_text(x))
   }
   # `is.numeric()` is FALSE for difftime, and a factor or a discrete level
   # code is a category even though it is stored as a number.

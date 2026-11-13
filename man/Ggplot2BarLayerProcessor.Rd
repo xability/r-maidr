@@ -389,11 +389,12 @@ is not discrete or a position names no limit.
 \subsection{\code{Ggplot2BarLayerProcessor$format_x_value()}}{
   Format an x-axis value as character.
 
-Date / POSIXct / POSIXlt values are formatted via \code{format()} so that a
+Date / POSIXct / POSIXlt values are written by \code{time_text()} so that a
 \code{Date} column emits ISO date strings ("2024-01-02") rather than the
-default scale-tick labels ("Jan 02"). All other types use
-\code{as.character()}. Mirrors \code{Ggplot2CandlestickProcessor$format_x_value()}
-so candle and bar layers from the same Date column align string-wise.
+default scale-tick labels ("Jan 02"), and a date-time keeps its time
+at midnight. All other types use \code{as.character()}. Mirrors
+\code{Ggplot2CandlestickProcessor$format_x_value()} so candle and bar layers
+from the same Date column align string-wise.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$format_x_value(x)}

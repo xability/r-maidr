@@ -517,7 +517,7 @@ or NULL}
 
 A plain number stays a number, so a line over a numeric column carries
 the same x a \code{geom_point()} over it does. Date / POSIXct / POSIXlt
-values are formatted via \code{format()} so that a \code{Date} column emits ISO
+values are written by \code{time_text()} so that a \code{Date} column emits ISO
 date strings (e.g. "2024-01-02") rather than the underlying numeric
 days-since-epoch representation produced by \code{ggplot_build()}, which
 keeps them aligned string-wise with

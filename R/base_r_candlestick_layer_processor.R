@@ -498,7 +498,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     #' @return Character vector
     format_x_values = function(idx) {
       if (inherits(idx, c("Date", "POSIXct", "POSIXlt"))) {
-        format(idx)
+        time_text(idx)
       } else {
         as.character(idx)
       }
