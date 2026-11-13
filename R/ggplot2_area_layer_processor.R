@@ -222,11 +222,12 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
         subset <- rows[groups == key, , drop = FALSE]
         subset <- subset[order(subset$x), , drop = FALSE]
         label <- labels[[as.character(key)]]
+        xs <- self$x_values(built, subset$x, panel_id)
 
         points <- vector("list", nrow(subset))
         for (i in seq_len(nrow(subset))) {
           point <- list(
-            x = self$scalar(subset$x[i]),
+            x = xs[[i]],
             # The band's height, not its top edge.
             y = self$band_height(subset, i)
           )
@@ -464,6 +465,27 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     #' @return The column name, or NULL when there is no mapping
     mapped_column = function(quo) {
       mapping_column(quo)
+    },
+
+    #' @description The x of each point of a band, as the payload carries it.
+    #'
+    #' ggplot2 builds a date axis in days since 1970 and a date-time axis in
+    #' seconds, and a band over either read those numbers: "t is
+    #' 1,767,243,600" where a line over the same column read the date-time.
+    #' A date or date-time is read back through the scale and written as a
+    #' line writes it (`time_text()`), so a move between the two lands on the
+    #' same x. Any other x is written as it is built (`scalar()`).
+    #'
+    #' @param built Built plot data
+    #' @param x The band's built x values
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return A list with one x per value
+    x_values = function(built, x, panel_id = NULL) {
+      times <- untransform_positions(x, built, "x", panel_id)
+      if (inherits(times, c("Date", "POSIXt"))) {
+        return(as.list(time_text(times)))
+      }
+      lapply(x, self$scalar)
     },
 
     #' @description Convert one coordinate to a JSON-safe scalar.
