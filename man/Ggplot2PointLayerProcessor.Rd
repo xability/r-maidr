@@ -20,6 +20,8 @@ for individual points in the SVG structure.
     \item \href{#method-Ggplot2PointLayerProcessor-extract_axes_labels}{\code{Ggplot2PointLayerProcessor$extract_axes_labels()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}
     \item \href{#method-Ggplot2PointLayerProcessor-extract_data}{\code{Ggplot2PointLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-announced_positions}{\code{Ggplot2PointLayerProcessor$announced_positions()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-axis_time_format}{\code{Ggplot2PointLayerProcessor$axis_time_format()}}
     \item \href{#method-Ggplot2PointLayerProcessor-generate_selectors}{\code{Ggplot2PointLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2PointLayerProcessor-find_panel_grob}{\code{Ggplot2PointLayerProcessor$find_panel_grob()}}
     \item \href{#method-Ggplot2PointLayerProcessor-find_children_by_type}{\code{Ggplot2PointLayerProcessor$find_children_by_type()}}
@@ -253,6 +255,75 @@ Kept as a method so this class's own callers are unchanged.
   }
   \subsection{Returns}{
     List with points array and color information
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-announced_positions"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-announced_positions}{}}}
+\subsection{\code{Ggplot2PointLayerProcessor$announced_positions()}}{
+  The positions one axis's points are sent at
+
+maidr.js orders a scatter's points, finds its extremes, measures its
+correlation and pitches its tones from numbers: the grammar's
+\code{ScatterPoint} holds a number on each axis. A date, date-time or
+clock-time axis sends the scale's own numbers -- days since 1970,
+seconds since 1970, seconds since midnight -- and its format draws them
+(\code{axis_time_format()}). Sent as strings, as they were, the points of a
+scatter over dates were walked in the order of their y values, \code{[} and
+\verb{]} found no extreme, the correlation and the x range went, and each
+tone failed. Any other axis is put back into the space the reader sees
+(\code{untransform_positions()}).
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$announced_positions(
+  values,
+  built,
+  axis,
+  panel_id = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{The axis's built positions}
+      \item{\code{built}}{Built plot data}
+      \item{\code{axis}}{\code{"x"} or \code{"y"}}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The positions to send
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-axis_time_format"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-axis_time_format}{}}}
+\subsection{\code{Ggplot2PointLayerProcessor$axis_time_format()}}{
+  The format a date, date-time or clock-time axis is drawn with
+
+The kind follows the scale's transformation, \code{date}, \code{time} or \code{hms},
+and a date-time is drawn in the scale's time zone, as the histogram's
+bins are (\code{time_axis_format()}).
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$axis_time_format(built, axis, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{axis}}{\code{"x"} or \code{"y"}}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An AxisFormat, or NULL for any other axis
   }
 }
 

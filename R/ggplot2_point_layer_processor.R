@@ -32,6 +32,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
       axes <- self$extract_axes_labels(plot, built, panel_id)
+      for (axis in c("x", "y")) {
+        axes <- attach_axis_format(axes, axis, self$axis_time_format(built, axis, panel_id))
+      }
       # The values a continuous colour gives the points are named by the
       # legend's title (`resolve_legend_label()`).
       if (any(vapply(extracted_data, function(point) !is.null(point$z), logical(1)))) {
@@ -441,19 +444,11 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       # Done here, at the emission, rather than to `layer_data` as a whole:
       # `scale_*_reverse()` negates, so a frame inverted earlier would order
       # rows opposite to the way they were drawn.
-      announced_x <- untransform_positions(layer_data$x, built, "x", panel_id)
-      announced_y <- untransform_positions(layer_data$y, built, "y", panel_id)
-
-      # A date-time axis gives date-times back. Each is written here, with its
-      # time (`time_text()`): left to jsonlite, which writes one value at a
-      # time as `format()` does, a point at midnight was written without it.
-      # A date is left to jsonlite, which writes it as `time_text()` does.
-      if (inherits(announced_x, "POSIXt")) {
-        announced_x <- time_text(announced_x)
-      }
-      if (inherits(announced_y, "POSIXt")) {
-        announced_y <- time_text(announced_y)
-      }
+      #
+      # A date, date-time or clock-time axis is the exception
+      # (`announced_positions()`).
+      announced_x <- self$announced_positions(layer_data$x, built, "x", panel_id)
+      announced_y <- self$announced_positions(layer_data$y, built, "y", panel_id)
 
       # The name each position stands for, on whichever axis is discrete.
       # ggplot2 maps a discrete scale onto consecutive integers, so a point in
@@ -501,6 +496,56 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
       # For point plots, return the points array directly
       points
+    },
+
+    #' @description The positions one axis's points are sent at
+    #'
+    #' maidr.js orders a scatter's points, finds its extremes, measures its
+    #' correlation and pitches its tones from numbers: the grammar's
+    #' `ScatterPoint` holds a number on each axis. A date, date-time or
+    #' clock-time axis sends the scale's own numbers -- days since 1970,
+    #' seconds since 1970, seconds since midnight -- and its format draws them
+    #' (`axis_time_format()`). Sent as strings, as they were, the points of a
+    #' scatter over dates were walked in the order of their y values, `[` and
+    #' `]` found no extreme, the correlation and the x range went, and each
+    #' tone failed. Any other axis is put back into the space the reader sees
+    #' (`untransform_positions()`).
+    #'
+    #' @param values The axis's built positions
+    #' @param built Built plot data
+    #' @param axis `"x"` or `"y"`
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return The positions to send
+    announced_positions = function(values, built, axis, panel_id = NULL) {
+      if (!is.null(self$axis_time_format(built, axis, panel_id))) {
+        return(as.numeric(values))
+      }
+      untransform_positions(values, built, axis, panel_id)
+    },
+
+    #' @description The format a date, date-time or clock-time axis is drawn with
+    #'
+    #' The kind follows the scale's transformation, `date`, `time` or `hms`,
+    #' and a date-time is drawn in the scale's time zone, as the histogram's
+    #' bins are (`time_axis_format()`).
+    #'
+    #' @param built Built plot data
+    #' @param axis `"x"` or `"y"`
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return An AxisFormat, or NULL for any other axis
+    axis_time_format = function(built, axis, panel_id = NULL) {
+      transformation <- panel_transformation(built, axis, panel_id)
+      kind <- switch(transformation$name %||% "",
+        date = "date",
+        time = "datetime",
+        hms = "time",
+        NULL
+      )
+      if (is.null(kind)) {
+        return(NULL)
+      }
+      scale <- tryCatch(built$plot$scales$get_scales(axis), error = function(e) NULL)
+      time_axis_format(kind, time_zone_of(if (identical(kind, "datetime")) scale$timezone))
     },
 
     #' @description Generate selectors for point elements
