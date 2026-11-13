@@ -110,7 +110,7 @@ jobs:
       # runs in changes only when someone changes it here.
       - name: Install webR, Playwright and Chromium
         run: |
-          npm install --no-save "webr@${WEBR_VERSION}" playwright@1.57.0
+          npm install --no-save "webr@${WEBR_VERSION}" playwright@1.63.0
           npx playwright install --with-deps chromium
 
       - name: Run the webR display tests in webR
