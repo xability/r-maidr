@@ -447,6 +447,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       # A date-time axis gives date-times back. Each is written here, with its
       # time (`time_text()`): left to jsonlite, which writes one value at a
       # time as `format()` does, a point at midnight was written without it.
+      # A date is left to jsonlite, which writes it as `time_text()` does.
       if (inherits(announced_x, "POSIXt")) {
         announced_x <- time_text(announced_x)
       }

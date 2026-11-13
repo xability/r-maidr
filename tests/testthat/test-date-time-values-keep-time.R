@@ -50,6 +50,24 @@ test_that("a date-time is written with its time, in its own zone", {
   )
   testthat::expect_identical(maidr:::time_text(as.Date("2026-01-01")), "2026-01-01")
   testthat::expect_identical(maidr:::time_text(c(1, 2)), c(1, 2))
+  testthat::expect_identical(maidr:::time_text(as.POSIXct(NA)), NA_character_)
+})
+
+test_that("a date-time keeps the decimal places of a second the session asks for", {
+  half <- as.POSIXct("2026-01-01", tz = "UTC") + c(0, 0.5)
+
+  withr::local_options(digits.secs = NULL)
+  testthat::expect_identical(
+    maidr:::time_text(half),
+    c("2026-01-01 00:00:00", "2026-01-01 00:00:00")
+  )
+
+  # As `format()` gave them, so two points half a second apart stay two.
+  withr::local_options(digits.secs = 3)
+  testthat::expect_identical(
+    maidr:::time_text(half),
+    c("2026-01-01 00:00:00.000", "2026-01-01 00:00:00.500")
+  )
 })
 
 test_that("a ggplot2 line over date-times keeps the time at midnight", {

@@ -448,7 +448,9 @@ time_zone_of <- function(tz = NULL) {
 #' series of date-times read its midnight point as "2026-01-01" beside
 #' "2026-01-01 01:00:00", and a series that is all midnights read as dates.
 #' A date-time is written with its time, always, in its own time zone (its
-#' `tzone`, else the session's); a date as a date.
+#' `tzone`, else the session's); a date as a date. Seconds keep the decimal
+#' places `getOption("digits.secs")` asks for, as `format()` gave them, and
+#' are whole seconds when it is unset.
 #'
 #' @param x A `Date`, `POSIXct` or `POSIXlt` vector
 #' @return A character vector, or `x` unchanged when it is neither
@@ -459,7 +461,7 @@ time_text <- function(x) {
     return(format(x, "%Y-%m-%d"))
   }
   if (inherits(x, "POSIXt")) {
-    return(format(x, "%Y-%m-%d %H:%M:%S"))
+    return(format(x, "%Y-%m-%d %H:%M:%OS"))
   }
   x
 }
