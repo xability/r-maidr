@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-30">
+<meta name="DC.date" content="2026-11-12">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -453,11 +453,12 @@ is not discrete or a position names no limit.</p>
 <p></p><hr><a id="method-Ggplot2BarLayerProcessor-format_x_value"></a><div class="section">
 <h3 id="ggplot-barlayerprocessor-format-x-value-"><code>Ggplot2BarLayerProcessor$format_x_value()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-format-x-value-"></a></h3>
 <p>Format an x-axis value as character.</p>
-<p>Date / POSIXct / POSIXlt values are formatted via <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> so that a
+<p>Date / POSIXct / POSIXlt values are written by <code>time_text()</code> so that a
 <code>Date</code> column emits ISO date strings ("2024-01-02") rather than the
-default scale-tick labels ("Jan 02"). All other types use
-<code><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character()</a></code>. Mirrors <code>Ggplot2CandlestickProcessor$format_x_value()</code>
-so candle and bar layers from the same Date column align string-wise.</p><div class="section">
+default scale-tick labels ("Jan 02"), and a date-time keeps its time
+at midnight. All other types use <code><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character()</a></code>. Mirrors
+<code>Ggplot2CandlestickProcessor$format_x_value()</code> so candle and bar layers
+from the same Date column align string-wise.</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">format_x_value</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

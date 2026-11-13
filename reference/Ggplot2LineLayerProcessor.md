@@ -591,10 +591,10 @@ Format an x-axis value for the payload.
 A plain number stays a number, so a line over a numeric column carries
 the same x a
 [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
-over it does. Date / POSIXct / POSIXlt values are formatted via
-[`format()`](https://rdrr.io/r/base/format.html) so that a `Date` column
-emits ISO date strings (e.g. "2024-01-02") rather than the underlying
-numeric days-since-epoch representation produced by
+over it does. Date / POSIXct / POSIXlt values are written by
+`time_text()` so that a `Date` column emits ISO date strings (e.g.
+"2024-01-02") rather than the underlying numeric days-since-epoch
+representation produced by
 [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html),
 which keeps them aligned string-wise with
 `Ggplot2BarLayerProcessor$format_x_value()`. Anything else – a category

@@ -42,7 +42,7 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-30">
+<meta name="DC.date" content="2026-11-12">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -586,7 +586,7 @@ or NULL</p></dd>
 <p>Format an x-axis value for the payload.</p>
 <p>A plain number stays a number, so a line over a numeric column carries
 the same x a <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> over it does. Date / POSIXct / POSIXlt
-values are formatted via <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> so that a <code>Date</code> column emits ISO
+values are written by <code>time_text()</code> so that a <code>Date</code> column emits ISO
 date strings (e.g. "2024-01-02") rather than the underlying numeric
 days-since-epoch representation produced by <code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code>, which
 keeps them aligned string-wise with

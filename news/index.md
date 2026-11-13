@@ -1273,6 +1273,16 @@
   ggplot2 numbers the bands by the levels the data holds, and a factor
   level no row held named the band after it: of levels a, b and c with
   no row of b, the c band was read as “b”.
+- A date-time at midnight is read with its time. A line, step, point or
+  bar layer over `POSIXct` read its midnight point as “t is 2026-01-01”
+  beside “t is 2026-01-01 01:00:00”, in the data table too, and a series
+  all at midnight read as dates:
+  [`format()`](https://rdrr.io/r/base/format.html) leaves the time off
+  when every value it is given falls at midnight, and each value was
+  given alone. Every date-time is now written “2026-01-01 00:00:00”, in
+  its own time zone, in each layer alike, so a move between layers still
+  finds the same x. A candlestick chart’s date-times keep their time
+  too. A `Date` is still read as a date.
 
 #### Base R
 
@@ -1907,6 +1917,10 @@
   axis draws each number as an ISO date, or as a date and time in the
   values’ own time zone, else the session’s, and says what one of its
   numbers counts, as a ggplot2 histogram’s does (see ggplot2 above).
+- A line over `POSIXct`, as `plot(times, y, type = "l")` draws it, reads
+  its midnight point with its time, “2026-01-01 00:00:00”, where it read
+  “2026-01-01” beside “2026-01-01 01:00:00” (see ggplot2 above). So does
+  a candlestick chart over date-times.
 
 ### Documentation
 

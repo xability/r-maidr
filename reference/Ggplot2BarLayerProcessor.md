@@ -445,10 +445,10 @@ discrete or a position names no limit.
 
 Format an x-axis value as character.
 
-Date / POSIXct / POSIXlt values are formatted via
-[`format()`](https://rdrr.io/r/base/format.html) so that a `Date` column
-emits ISO date strings ("2024-01-02") rather than the default scale-tick
-labels ("Jan 02"). All other types use
+Date / POSIXct / POSIXlt values are written by `time_text()` so that a
+`Date` column emits ISO date strings ("2024-01-02") rather than the
+default scale-tick labels ("Jan 02"), and a date-time keeps its time at
+midnight. All other types use
 [`as.character()`](https://rdrr.io/r/base/character.html). Mirrors
 `Ggplot2CandlestickProcessor$format_x_value()` so candle and bar layers
 from the same Date column align string-wise.
