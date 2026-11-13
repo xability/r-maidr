@@ -23,15 +23,32 @@ Ggplot2HistogramLayerProcessor <- R6::R6Class(
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
       data <- self$extract_data(plot, built, panel_id = panel_id)
       selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
+      orientation <- self$determine_orientation(plot, built)
+      axes <- self$extract_layer_axes(plot, layout)
+
+      # Bins over dates or times hold the scale's own numbers, days or
+      # seconds, and are drawn as the dates or times they are
+      # (`time_axis_format()`).
+      bins_on <- if (identical(orientation, "horz")) "y" else "x"
+      transformation <- panel_transformation(built, bins_on, panel_id)
+      kind <- switch(transformation$name %||% "", date = "date", time = "datetime", hms = "time")
+      if (!is.null(kind)) {
+        scale <- tryCatch(built$plot$scales$get_scales(bins_on), error = function(e) NULL)
+        tz <- time_zone_of(if (identical(kind, "datetime")) scale$timezone)
+        axes <- attach_axis_format(axes, bins_on, time_axis_format(kind, tz))
+      }
 
       list(
         data = data,
         selectors = selectors,
-        orientation = self$determine_orientation(plot, built),
+        orientation = orientation,
         title = if (!is.null(layout$title)) layout$title else "",
-        axes = self$extract_layer_axes(plot, layout)
+        axes = axes
       )
     },
     #' @description Which axis this histogram's bins run along
