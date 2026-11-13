@@ -18,6 +18,8 @@ and selector generation logic.
 
 - [`BaseRHistogramLayerProcessor$recompute_histogram()`](#method-BaseRHistogramLayerProcessor-recompute_histogram)
 
+- [`BaseRHistogramLayerProcessor$histogram_values()`](#method-BaseRHistogramLayerProcessor-histogram_values)
+
 - [`BaseRHistogramLayerProcessor$is_frequency()`](#method-BaseRHistogramLayerProcessor-is_frequency)
 
 - [`BaseRHistogramLayerProcessor$generate_selectors()`](#method-BaseRHistogramLayerProcessor-generate_selectors)
@@ -140,6 +142,26 @@ Recompute the plotted histogram from the recorded call
 #### Returns
 
 A "histogram" object, or NULL when the call recorded no data
+
+------------------------------------------------------------------------
+
+### `BaseRHistogramLayerProcessor$histogram_values()`
+
+The values the recorded call binned
+
+#### Usage
+
+    BaseRHistogramLayerProcessor$histogram_values(args)
+
+#### Arguments
+
+- `args`:
+
+  Recorded argument list
+
+#### Returns
+
+The `x` argument, else the first unnamed one, or NULL
 
 ------------------------------------------------------------------------
 

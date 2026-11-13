@@ -33,7 +33,7 @@ and selector generation logic.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-04">
+<meta name="DC.date" content="2026-11-12">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -104,6 +104,7 @@ and selector generation logic.</p>
 <p></p><ul><li><p><a href="#method-BaseRHistogramLayerProcessor-process"><code>BaseRHistogramLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-extract_data"><code>BaseRHistogramLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-recompute_histogram"><code>BaseRHistogramLayerProcessor$recompute_histogram()</code></a></p></li>
+<li><p><a href="#method-BaseRHistogramLayerProcessor-histogram_values"><code>BaseRHistogramLayerProcessor$histogram_values()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-is_frequency"><code>BaseRHistogramLayerProcessor$is_frequency()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-generate_selectors"><code>BaseRHistogramLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-find_rect_grobs"><code>BaseRHistogramLayerProcessor$find_rect_grobs()</code></a></p></li>
@@ -209,16 +210,35 @@ the recorded call</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-BaseRHistogramLayerProcessor-histogram_values"></a><div class="section">
+<h3 id="baserhistogramlayerprocessor-histogram-values-"><code>BaseRHistogramLayerProcessor$histogram_values()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-histogram-values-"></a></h3>
+<p>The values the recorded call binned</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">histogram_values</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>args</code></dt>
+<dd><p>Recorded argument list</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>The <code>x</code> argument, else the first unnamed one, or NULL</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BaseRHistogramLayerProcessor-is_frequency"></a><div class="section">
 <h3 id="baserhistogramlayerprocessor-is-frequency-"><code>BaseRHistogramLayerProcessor$is_frequency()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-is-frequency-"></a></h3>
 <p>Is this a frequency histogram rather than a density one?</p>
 <p>The plotted y-axis shows counts only for frequency histograms; with
 freq = FALSE or probability = TRUE it shows densities. hist()'s own
 default is freq = TRUE only for equidistant breaks.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">is_frequency</span><span class="op">(</span><span class="va">args</span>, hist_obj <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>Recorded argument list</p></dd>
 
@@ -228,7 +248,7 @@ default is freq = TRUE only for equidistant breaks.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>Logical</p>
 </div>
 
@@ -237,10 +257,10 @@ default is freq = TRUE only for equidistant breaks.</p><div class="section">
 <p></p><hr><a id="method-BaseRHistogramLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserhistogramlayerprocessor-generate-selectors-"><code>BaseRHistogramLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-generate-selectors-"></a></h3>
 <p>The selector for the bins, scoped to this layer's plot group</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span>, gt <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information with the recorded call</p></dd>
 
@@ -250,7 +270,7 @@ default is freq = TRUE only for equidistant breaks.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>List of selectors</p>
 </div>
 
@@ -259,33 +279,8 @@ default is freq = TRUE only for equidistant breaks.</p><div class="section">
 <p></p><hr><a id="method-BaseRHistogramLayerProcessor-find_rect_grobs"></a><div class="section">
 <h3 id="baserhistogramlayerprocessor-find-rect-grobs-"><code>BaseRHistogramLayerProcessor$find_rect_grobs()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-find-rect-grobs-"></a></h3>
 <p>Find the rect grobs drawn by the recorded call at <code>call_index</code></p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">find_rect_grobs</span><span class="op">(</span><span class="va">grob</span>, <span class="va">call_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
-<dd><p>The grob tree to search</p></dd>
-
-      <dt><code>call_index</code></dt>
-<dd><p>Index of the recorded plot group, which numbers the panel's grobs</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>Character vector of grob names</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-BaseRHistogramLayerProcessor-generate_selectors_from_grob"></a><div class="section">
-<h3 id="baserhistogramlayerprocessor-generate-selectors-from-grob-"><code>BaseRHistogramLayerProcessor$generate_selectors_from_grob()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-generate-selectors-from-grob-"></a></h3>
-<p>Build this layer's selector from the grob tree</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors_from_grob</span><span class="op">(</span></span>
-<span>  <span class="va">grob</span>,</span>
-<span>  call_index <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">find_rect_grobs</span><span class="op">(</span><span class="va">grob</span>, <span class="va">call_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
@@ -298,6 +293,31 @@ default is freq = TRUE only for equidistant breaks.</p><div class="section">
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Character vector of grob names</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRHistogramLayerProcessor-generate_selectors_from_grob"></a><div class="section">
+<h3 id="baserhistogramlayerprocessor-generate-selectors-from-grob-"><code>BaseRHistogramLayerProcessor$generate_selectors_from_grob()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-generate-selectors-from-grob-"></a></h3>
+<p>Build this layer's selector from the grob tree</p><div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors_from_grob</span><span class="op">(</span></span>
+<span>  <span class="va">grob</span>,</span>
+<span>  call_index <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>The grob tree to search</p></dd>
+
+      <dt><code>call_index</code></dt>
+<dd><p>Index of the recorded plot group, which numbers the panel's grobs</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>A selector string, or an empty string when no grob matches</p>
 </div>
 
@@ -314,17 +334,17 @@ bins. The y title is "Frequency" or "Density" depending on what the
 bars measure, so the default repeats hist()'s own choice – resolved by
 the same rule that decides which values extract_data() emits, so the
 noun always names the number being announced.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>Canonical axes list</p>
 </div>
 
@@ -333,17 +353,17 @@ noun always names the number being announced.</p><div class="section">
 <p></p><hr><a id="method-BaseRHistogramLayerProcessor-frequency_label"></a><div class="section">
 <h3 id="baserhistogramlayerprocessor-frequency-label-"><code>BaseRHistogramLayerProcessor$frequency_label()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-frequency-label-"></a></h3>
 <p>The title hist() itself would print above the counted axis</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">frequency_label</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>Recorded argument list</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>"Frequency" or "Density"</p>
 </div>
 
@@ -355,17 +375,17 @@ noun always names the number being announced.</p><div class="section">
 writes</p>
 <p><code>hist(x)</code> titles itself "Histogram of" how <code>x</code> was written unless the
 call gives a <code>main</code>, <code>NULL</code> and <code>""</code> included.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>Character string</p>
 </div>
 
@@ -374,10 +394,10 @@ call gives a <code>main</code>, <code>NULL</code> and <code>""</code> included.<
 <p></p><hr><a id="method-BaseRHistogramLayerProcessor-clone"></a><div class="section">
 <h3 id="baserhistogramlayerprocessor-clone-"><code>BaseRHistogramLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

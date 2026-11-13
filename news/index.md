@@ -1239,6 +1239,24 @@
   title given in plotmath was dropped for
   [`labs()`](https://ggplot2.tidyverse.org/reference/labs.html) or the
   mapped column.
+- A histogram over dates or times is read by the dates and times it
+  bins.
+  [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html)
+  over a `Date` read a bin as “d is 20,457.5 through 20,464.5”, in the
+  days since 1970 ggplot2 bins dates in, and now reads it “d is
+  2026-01-04 through 2026-01-11”. One over `POSIXct` date-times read
+  seconds since 1970, and one over `hms` clock times seconds since
+  midnight, “h is 300 through 900”, now “h is 00:05:00 through
+  00:15:00”. The bins’ axis draws each number as an ISO date, as a date
+  and time in the scale’s time zone – the data’s, or the one
+  `scale_x_datetime(timezone = )` gives – or as hh:mm:ss, as each bin is
+  read, in the description’s bin range and modal bin, and in the data
+  table. A bin edge at noon, where ggplot2 puts the edges of bins
+  centred on days, is read as the day it falls on, as R prints it. The
+  axis also says what one of its numbers counts, a day or a second, so a
+  maidr.js that reads that (xability/maidr#1695) reads the bin width as
+  a span of time, “constant 1 week”; maidr.js 4.17.0 still reads it as a
+  number, “constant 7”.
 
 #### Base R
 
@@ -1865,6 +1883,14 @@
   outline: the frontend outlines the one element holding a panel’s
   marks, and a box plot’s boxes, whiskers and outliers are several, held
   together only with every other panel’s marks.
+- [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) of dates
+  or date-times is read by the dates and times it bins:
+  `hist(days, "weeks")` read a bin as “days is 20,458 through 20,465”,
+  in days since 1970, and now reads it “days is 2026-01-05 through
+  2026-01-12”; `hist(times, "hours")` read seconds since 1970. The bins’
+  axis draws each number as an ISO date, or as a date and time in the
+  values’ own time zone, else the session’s, and says what one of its
+  numbers counts, as a ggplot2 histogram’s does (see ggplot2 above).
 
 ### Documentation
 
