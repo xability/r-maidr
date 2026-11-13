@@ -6,7 +6,8 @@
 # "2026-01-01 01:00:00": in ggplot2's lines, steps, points and bars, and in
 # Base R's lines. A series that was all midnights read as dates. Each
 # date-time is now written with its time, in its own zone; a `Date` is still
-# written as a date.
+# written as a date. A scatter's points are sent as numbers and drawn by the
+# axis's format instead (test-time-scatter-axis-format.R).
 
 midnight_series <- function() {
   data.frame(
@@ -80,17 +81,7 @@ test_that("a ggplot2 line over date-times keeps the time at midnight", {
   testthat::expect_identical(page_xs(layers[[1]]), with_times)
 })
 
-test_that("a ggplot2 point over date-times keeps the time at midnight", {
-  skip_if_no_render()
-
-  layers <- page_layers(
-    ggplot2::ggplot(midnight_series(), ggplot2::aes(t, y)) + ggplot2::geom_point()
-  )
-
-  testthat::expect_identical(page_xs(layers[[1]]), with_times)
-})
-
-test_that("ggplot2 bars, a line and points over the same date-times write the same x", {
+test_that("ggplot2 bars and a line over the same date-times write the same x", {
   skip_if_no_render()
 
   # A move between layers finds the same x in the next one, so they have to
@@ -98,11 +89,10 @@ test_that("ggplot2 bars, a line and points over the same date-times write the sa
   layers <- page_layers(
     ggplot2::ggplot(midnight_series(), ggplot2::aes(t, y)) +
       ggplot2::geom_col() +
-      ggplot2::geom_line() +
-      ggplot2::geom_point()
+      ggplot2::geom_line()
   )
 
-  testthat::expect_length(layers, 3L)
+  testthat::expect_length(layers, 2L)
   for (layer in layers) {
     testthat::expect_identical(page_xs(layer), with_times)
   }

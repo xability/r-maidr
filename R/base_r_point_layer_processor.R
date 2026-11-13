@@ -31,6 +31,22 @@ BaseRPointLayerProcessor <- R6::R6Class(
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
+      # The points of `plot(times, y)` are sent at their own numbers, days or
+      # seconds, which maidr.js orders and measures, and each axis of dates
+      # or times draws them as the dates or times they are
+      # (`time_axis_format()`).
+      xy <- self$resolve_coordinates(layer_info$plot_call)
+      if (!is.null(xy$y)) {
+        for (axis in c("x", "y")) {
+          values <- xy[[axis]]
+          kind <- time_kind_of(values)
+          if (!is.null(kind)) {
+            tz <- time_zone_of(if (identical(kind, "datetime")) attr(values, "tzone"))
+            axes <- attach_axis_format(axes, axis, time_axis_format(kind, tz))
+          }
+        }
+      }
+
       grouped <- self$legend_group_layers(layer_info, data, selectors, axes, title)
       if (!is.null(grouped)) {
         return(grouped)
