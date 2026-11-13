@@ -345,9 +345,12 @@ the other. The caller has an exact rule for that case.
 "Discrete" and "could not be read" are answered differently, because
 the caller must do different things with them. The integer rule that is
 exact for a discrete axis would silently drop the fractional rows of a
-continuous one, and an x mapped through an expression -- \code{aes(x = year / 2)}, say -- resolves to no column and lands here while still being
-continuous. Collapsing the two into one NULL is how that axis loses
-half its data to a rule that was never about it.
+continuous one. An x mapped through an expression -- \code{aes(x = year / 2)}, \code{aes(x = d + 0)} -- names no column, and is read from the values
+the mapping gives on the data, as ggplot2 evaluates it. Read as "could
+not be read", it kept every vertex \code{StatAlign} adds, and a date axis
+wrote those a few minutes either side of a day as that day again.
+Dates and date-times are built as their numbers, so they are matched
+as numbers.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2AreaLayerProcessor$source_x_values(built)}

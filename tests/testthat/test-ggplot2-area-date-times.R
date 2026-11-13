@@ -130,6 +130,58 @@ test_that("each facet panel of an area over dates writes them as dates", {
   }
 })
 
+test_that("a stacked area over an expression of dates reads only the data's days", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The bands sit on different days, so `StatAlign` gives every band a
+  # vertex at every day and one a few minutes either side of it. An x mapped
+  # through an expression named no column, so every vertex was read, three
+  # stops a day under the same date.
+  frame <- data.frame(
+    d = as.Date("2026-01-01") + c(0, 2, 4, 1, 3),
+    y = c(3, 1, 4, 2, 2),
+    g = c("a", "a", "a", "b", "b")
+  )
+  by_column <- area_layers(
+    ggplot2::ggplot(frame, ggplot2::aes(d, y, fill = g)) + ggplot2::geom_area()
+  )[[1]]
+  by_expression <- area_layers(
+    ggplot2::ggplot(frame, ggplot2::aes(d + 0, y, fill = g)) + ggplot2::geom_area()
+  )[[1]]
+
+  testthat::expect_identical(
+    vapply(by_expression$data, function(band) length(band), integer(1)),
+    c(5L, 3L)
+  )
+  for (band in seq_along(by_expression$data)) {
+    xs <- vapply(by_expression$data[[band]], function(point) point$x, character(1))
+    testthat::expect_false(anyDuplicated(xs) > 0)
+    testthat::expect_identical(by_expression$data[[band]], by_column$data[[band]])
+  }
+})
+
+test_that("an area over numbers through an expression, or half seconds, reads its data", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  years <- data.frame(
+    year = c(2000, 2002, 2004, 2001, 2003),
+    y = c(3, 1, 4, 2, 2),
+    g = rep(c("a", "b"), c(3, 2))
+  )
+  halved <- area_layers(
+    ggplot2::ggplot(years, ggplot2::aes(year / 2, y, fill = g)) + ggplot2::geom_area()
+  )[[1]]
+  testthat::expect_identical(
+    vapply(halved$data[[1]], function(point) point$x, numeric(1)),
+    c(1000, 1000.5, 1001, 1001.5, 1002)
+  )
+
+  # Half seconds are no whole numbers, and were taken for the vertices.
+  halves <- data.frame(t = as.POSIXct("2026-01-01", tz = "UTC") + c(0.5, 1.5, 2.5), y = c(3, 1, 4))
+  timed <- area_layers(ggplot2::ggplot(halves, ggplot2::aes(t, y)) + ggplot2::geom_area())[[1]]
+  testthat::expect_length(timed$data[[1]], 3L)
+})
+
 test_that("an area over plain numbers still writes numbers", {
   testthat::skip_if_not_installed("ggplot2")
 

@@ -298,10 +298,13 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     #' "Discrete" and "could not be read" are answered differently, because
     #' the caller must do different things with them. The integer rule that is
     #' exact for a discrete axis would silently drop the fractional rows of a
-    #' continuous one, and an x mapped through an expression -- `aes(x = year
-    #' / 2)`, say -- resolves to no column and lands here while still being
-    #' continuous. Collapsing the two into one NULL is how that axis loses
-    #' half its data to a rule that was never about it.
+    #' continuous one. An x mapped through an expression -- `aes(x = year /
+    #' 2)`, `aes(x = d + 0)` -- names no column, and is read from the values
+    #' the mapping gives on the data, as ggplot2 evaluates it. Read as "could
+    #' not be read", it kept every vertex `StatAlign` adds, and a date axis
+    #' wrote those a few minutes either side of a day as that day again.
+    #' Dates and date-times are built as their numbers, so they are matched
+    #' as numbers.
     #'
     #' @param built Built plot data
     #' @return `list(kind = "discrete")`, `list(kind = "numeric", values =)`,
@@ -331,18 +334,23 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       }
 
       mapping <- if (!is.null(layer)) layer$mapping else NULL
-      column <- self$mapped_column(if (!is.null(mapping) && !is.null(mapping$x)) {
+      x_mapping <- if (!is.null(mapping) && !is.null(mapping$x)) {
         mapping$x
       } else {
         plot$mapping$x
-      })
-      if (is.null(column) || !column %in% names(data)) {
+      }
+      column <- self$mapped_column(x_mapping)
+      values <- if (!is.null(column) && column %in% names(data)) {
+        data[[column]]
+      } else if (!is.null(x_mapping)) {
+        tryCatch(rlang::eval_tidy(x_mapping, data = data), error = function(e) NULL)
+      }
+      if (is.null(values) || length(values) != nrow(data)) {
         return(NULL)
       }
 
-      values <- data[[column]]
-      if (is.numeric(values)) {
-        return(list(kind = "numeric", values = unique(values)))
+      if (is.numeric(values) || inherits(values, c("Date", "POSIXt"))) {
+        return(list(kind = "numeric", values = unique(as.numeric(values))))
       }
 
       # A discrete x is drawn at integer positions assigned by the *scale*,

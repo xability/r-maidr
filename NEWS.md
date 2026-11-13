@@ -1025,7 +1025,12 @@
   through the scale and written as the line writes it, "t is 2026-01-01
   00:00:00" and "d is 2026-01-01", in the description's range and the data
   table too, so a move between an area and a line over the same column
-  lands on the same x.
+  lands on the same x. An area over an expression of the data, as
+  `aes(x = d + 0)` or `aes(x = year / 2)`, or over date-times with
+  fractions of a second, is read at the data's x alone. It also read the
+  vertices ggplot2 adds to align the bands of a stack, a few minutes either
+  side of each day as stops of their own: three stops a day under one
+  date, with totals that counted them.
 
 ### Base R
 
