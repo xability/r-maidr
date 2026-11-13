@@ -79,6 +79,8 @@ which is verified to give the same answer as `stat = "identity"`.
 
 - [`Ggplot2AreaLayerProcessor$mapped_column()`](#method-Ggplot2AreaLayerProcessor-mapped_column)
 
+- [`Ggplot2AreaLayerProcessor$x_values()`](#method-Ggplot2AreaLayerProcessor-x_values)
+
 - [`Ggplot2AreaLayerProcessor$scalar()`](#method-Ggplot2AreaLayerProcessor-scalar)
 
 - [`Ggplot2AreaLayerProcessor$clone()`](#method-Ggplot2AreaLayerProcessor-clone)
@@ -382,10 +384,12 @@ other. The caller has an exact rule for that case.
 "Discrete" and "could not be read" are answered differently, because the
 caller must do different things with them. The integer rule that is
 exact for a discrete axis would silently drop the fractional rows of a
-continuous one, and an x mapped through an expression –
-`aes(x = year / 2)`, say – resolves to no column and lands here while
-still being continuous. Collapsing the two into one NULL is how that
-axis loses half its data to a rule that was never about it.
+continuous one. An x mapped through an expression – `aes(x = year / 2)`,
+`aes(x = d + 0)` – names no column, and is read from the values the
+mapping gives on the data, as ggplot2 evaluates it. Read as "could not
+be read", it kept every vertex `StatAlign` adds, and a date axis wrote
+those a few minutes either side of a day as that day again. Dates and
+date-times are built as their numbers, so they are matched as numbers.
 
 #### Usage
 
@@ -540,6 +544,41 @@ match nothing. Any other expression names no column
 #### Returns
 
 The column name, or NULL when there is no mapping
+
+------------------------------------------------------------------------
+
+### `Ggplot2AreaLayerProcessor$x_values()`
+
+The x of each point of a band, as the payload carries it.
+
+ggplot2 builds a date axis in days since 1970 and a date-time axis in
+seconds, and a band over either read those numbers: "t is 1,767,243,600"
+where a line over the same column read the date-time. A date or
+date-time is read back through the scale and written as a line writes it
+(`time_text()`), so a move between the two lands on the same x. Any
+other x is written as it is built (`scalar()`).
+
+#### Usage
+
+    Ggplot2AreaLayerProcessor$x_values(built, x, panel_id = NULL)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `x`:
+
+  The band's built x values
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+A list with one x per value
 
 ------------------------------------------------------------------------
 

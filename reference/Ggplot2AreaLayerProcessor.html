@@ -153,7 +153,7 @@ which is verified to give the same answer as stat = &quot;identity&quot;.
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-11-12">
+<meta name="DC.date" content="2026-11-13">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -272,6 +272,7 @@ which is verified to give the same answer as <code>stat = "identity"</code>.</p>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-fill_levels"><code>Ggplot2AreaLayerProcessor$fill_levels()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-attach_fill_axis"><code>Ggplot2AreaLayerProcessor$attach_fill_axis()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-mapped_column"><code>Ggplot2AreaLayerProcessor$mapped_column()</code></a></p></li>
+<li><p><a href="#method-Ggplot2AreaLayerProcessor-x_values"><code>Ggplot2AreaLayerProcessor$x_values()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-scalar"><code>Ggplot2AreaLayerProcessor$scalar()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-clone"><code>Ggplot2AreaLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
@@ -537,9 +538,12 @@ the other. The caller has an exact rule for that case.</p>
 <p>"Discrete" and "could not be read" are answered differently, because
 the caller must do different things with them. The integer rule that is
 exact for a discrete axis would silently drop the fractional rows of a
-continuous one, and an x mapped through an expression – <code>aes(x = year / 2)</code>, say – resolves to no column and lands here while still being
-continuous. Collapsing the two into one NULL is how that axis loses
-half its data to a rule that was never about it.</p><div class="section">
+continuous one. An x mapped through an expression – <code>aes(x = year / 2)</code>, <code>aes(x = d + 0)</code> – names no column, and is read from the values
+the mapping gives on the data, as ggplot2 evaluates it. Read as "could
+not be read", it kept every vertex <code>StatAlign</code> adds, and a date axis
+wrote those a few minutes either side of a day as that day again.
+Dates and date-times are built as their numbers, so they are matched
+as numbers.</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">source_x_values</span><span class="op">(</span><span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -683,20 +687,51 @@ match nothing. Any other expression names no column
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2AreaLayerProcessor-x_values"></a><div class="section">
+<h3 id="ggplot-arealayerprocessor-x-values-"><code>Ggplot2AreaLayerProcessor$x_values()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-x-values-"></a></h3>
+<p>The x of each point of a band, as the payload carries it.</p>
+<p>ggplot2 builds a date axis in days since 1970 and a date-time axis in
+seconds, and a band over either read those numbers: "t is
+1,767,243,600" where a line over the same column read the date-time.
+A date or date-time is read back through the scale and written as a
+line writes it (<code>time_text()</code>), so a move between the two lands on the
+same x. Any other x is written as it is built (<code>scalar()</code>).</p><div class="section">
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">x_values</span><span class="op">(</span><span class="va">built</span>, <span class="va">x</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+      <dt><code>x</code></dt>
+<dd><p>The band's built x values</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p>A list with one x per value</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-scalar"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-scalar-"><code>Ggplot2AreaLayerProcessor$scalar()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-scalar-"></a></h3>
 <p>Convert one coordinate to a JSON-safe scalar.</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">scalar</span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>value</code></dt>
 <dd><p>A coordinate read off the built data</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>A number, or a string when the coordinate is not numeric</p>
 </div>
 
@@ -705,10 +740,10 @@ match nothing. Any other expression names no column
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-clone-"><code>Ggplot2AreaLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

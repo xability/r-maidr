@@ -119,6 +119,7 @@ Inherited methods
 - [`Ggplot2AreaLayerProcessor$resolve_series_labels()`](https://r.maidr.ai/reference/Ggplot2AreaLayerProcessor.html#method-resolve_series_labels)
 - [`Ggplot2AreaLayerProcessor$scalar()`](https://r.maidr.ai/reference/Ggplot2AreaLayerProcessor.html#method-scalar)
 - [`Ggplot2AreaLayerProcessor$source_x_values()`](https://r.maidr.ai/reference/Ggplot2AreaLayerProcessor.html#method-source_x_values)
+- [`Ggplot2AreaLayerProcessor$x_values()`](https://r.maidr.ai/reference/Ggplot2AreaLayerProcessor.html#method-x_values)
 
 ------------------------------------------------------------------------
 
