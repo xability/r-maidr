@@ -67,6 +67,7 @@ which is verified to give the same answer as \code{stat = "identity"}.
     \item \href{#method-Ggplot2AreaLayerProcessor-fill_levels}{\code{Ggplot2AreaLayerProcessor$fill_levels()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-attach_fill_axis}{\code{Ggplot2AreaLayerProcessor$attach_fill_axis()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-mapped_column}{\code{Ggplot2AreaLayerProcessor$mapped_column()}}
+    \item \href{#method-Ggplot2AreaLayerProcessor-x_values}{\code{Ggplot2AreaLayerProcessor$x_values()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-scalar}{\code{Ggplot2AreaLayerProcessor$scalar()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-clone}{\code{Ggplot2AreaLayerProcessor$clone()}}
   }
@@ -344,9 +345,12 @@ the other. The caller has an exact rule for that case.
 "Discrete" and "could not be read" are answered differently, because
 the caller must do different things with them. The integer rule that is
 exact for a discrete axis would silently drop the fractional rows of a
-continuous one, and an x mapped through an expression -- \code{aes(x = year / 2)}, say -- resolves to no column and lands here while still being
-continuous. Collapsing the two into one NULL is how that axis loses
-half its data to a rule that was never about it.
+continuous one. An x mapped through an expression -- \code{aes(x = year / 2)}, \code{aes(x = d + 0)} -- names no column, and is read from the values
+the mapping gives on the data, as ggplot2 evaluates it. Read as "could
+not be read", it kept every vertex \code{StatAlign} adds, and a date axis
+wrote those a few minutes either side of a day as that day again.
+Dates and date-times are built as their numbers, so they are matched
+as numbers.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2AreaLayerProcessor$source_x_values(built)}
@@ -494,6 +498,37 @@ match nothing. Any other expression names no column
   }
   \subsection{Returns}{
     The column name, or NULL when there is no mapping
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-x_values"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-x_values}{}}}
+\subsection{\code{Ggplot2AreaLayerProcessor$x_values()}}{
+  The x of each point of a band, as the payload carries it.
+
+ggplot2 builds a date axis in days since 1970 and a date-time axis in
+seconds, and a band over either read those numbers: "t is
+1,767,243,600" where a line over the same column read the date-time.
+A date or date-time is read back through the scale and written as a
+line writes it (\code{time_text()}), so a move between the two lands on the
+same x. Any other x is written as it is built (\code{scalar()}).
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2AreaLayerProcessor$x_values(built, x, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{x}}{The band's built x values}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with one x per value
   }
 }
 

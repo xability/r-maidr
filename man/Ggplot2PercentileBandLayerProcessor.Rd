@@ -110,6 +110,7 @@ maidr 4.14.0.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2AreaLayerProcessor" data-id="resolve_series_labels"><a href='../../maidr/html/Ggplot2AreaLayerProcessor.html#method-Ggplot2AreaLayerProcessor-resolve_series_labels'><code>Ggplot2AreaLayerProcessor$resolve_series_labels()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2AreaLayerProcessor" data-id="scalar"><a href='../../maidr/html/Ggplot2AreaLayerProcessor.html#method-Ggplot2AreaLayerProcessor-scalar'><code>Ggplot2AreaLayerProcessor$scalar()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2AreaLayerProcessor" data-id="source_x_values"><a href='../../maidr/html/Ggplot2AreaLayerProcessor.html#method-Ggplot2AreaLayerProcessor-source_x_values'><code>Ggplot2AreaLayerProcessor$source_x_values()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2AreaLayerProcessor" data-id="x_values"><a href='../../maidr/html/Ggplot2AreaLayerProcessor.html#method-Ggplot2AreaLayerProcessor-x_values'><code>Ggplot2AreaLayerProcessor$x_values()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}

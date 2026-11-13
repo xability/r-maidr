@@ -1018,6 +1018,19 @@
   stated in those numbers, and a move from the points to a line over the
   same column does not land on the same x: maidr.js states the range
   without the format, and matches no number to a line's text.
+* An area over dates or date-times is read by them. `geom_area()` read a
+  band over `POSIXct` as "t is 1,767,243,600", the seconds since 1970
+  ggplot2 builds the axis in, and one over `Date` as "d is 20,454", where a
+  line over the same column read the date. The band's x is now read back
+  through the scale and written as the line writes it, "t is 2026-01-01
+  00:00:00" and "d is 2026-01-01", in the description's range and the data
+  table too, so a move between an area and a line over the same column
+  lands on the same x. An area over an expression of the data, as
+  `aes(x = d + 0)` or `aes(x = year / 2)`, or over date-times with
+  fractions of a second, is read at the data's x alone. It also read the
+  vertices ggplot2 adds to align the bands of a stack, a few minutes either
+  side of each day as stops of their own: three stops a day under one
+  date, with totals that counted them.
 
 ### Base R
 

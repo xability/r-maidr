@@ -252,17 +252,17 @@ test_that("a discrete x keeps its categories and drops the padding", {
   testthat::expect_equal(series_values(result, 1), c(3, 5, 4))
 })
 
-test_that("a continuous x whose values cannot be read keeps every row", {
-  # `source_x_values()` cannot answer for an x mapped through an expression:
+test_that("a continuous x mapped through an expression keeps every observation", {
+  # `source_x_values()` reads an x mapped through an expression from the
+  # values the mapping gives on the data, as ggplot2 evaluates it.
   # `mapped_column()` unwraps `factor(...)` and a bare column name, and this
-  # is neither. The axis is still continuous, so the whole-number rule that
-  # is exact for a discrete axis would drop the fractional halves and keep
-  # the integral ones -- half the chart, silently, and no way to tell from
-  # the output that anything went missing.
+  # is neither, so it was read as an axis that could not be read and every
+  # vertex `StatAlign` adds was kept: a stop a few hundredths either side of
+  # each observation, and on a date axis three stops a day under one date.
   #
-  # The documented behaviour for an unreadable axis is to keep the layer
-  # whole. Noisy beats wrong: the padding vertices read as extra points, but
-  # every observation is still there.
+  # The axis is continuous, so its values are matched exactly. The
+  # whole-number rule that is exact for a discrete axis would drop the
+  # fractional halves and keep the integral ones.
   df <- data.frame(
     year = rep(c(2000, 2001, 2002, 2003), 2),
     grp = rep(c("a", "b"), each = 4),
@@ -273,21 +273,20 @@ test_that("a continuous x whose values cannot be read keeps every row", {
   built <- ggplot2::ggplot_build(plot)
   processor <- Ggplot2AreaLayerProcessor$new(
     # `index` is the key every production site sets; a processor built with
-    # anything else resolves no layer, and the assertions below would then
-    # pass because nothing was found rather than because the axis is
-    # unreadable.
+    # anything else resolves no layer.
     list(index = 1L, geom_class = "GeomArea", stat_class = "StatAlign")
   )
 
-  testthat::expect_null(processor$source_x_values(built))
+  testthat::expect_identical(processor$source_x_values(built)$kind, "numeric")
 
-  # 2000/2 = 1000 is whole; 2001/2 = 1000.5 is not. Filtering on whole
-  # numbers would keep the first and lose the second.
+  # 2000/2 = 1000 is whole; 2001/2 = 1000.5 is not. Every observation is
+  # kept, the halves among them, and none of the vertices.
   layer_data <- built$data[[1]]
   kept <- processor$drop_alignment_vertices(built, layer_data)
 
-  testthat::expect_identical(nrow(kept), nrow(layer_data))
-  testthat::expect_true(any(layer_data$x != round(layer_data$x)))
+  testthat::expect_true(nrow(layer_data) > 8L)
+  testthat::expect_identical(nrow(kept), 8L)
+  testthat::expect_setequal(kept$x, c(1000, 1000.5, 1001, 1001.5))
 })
 
 test_that("each band gets its own selector, in series order", {

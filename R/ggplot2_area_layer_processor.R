@@ -222,11 +222,12 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
         subset <- rows[groups == key, , drop = FALSE]
         subset <- subset[order(subset$x), , drop = FALSE]
         label <- labels[[as.character(key)]]
+        xs <- self$x_values(built, subset$x, panel_id)
 
         points <- vector("list", nrow(subset))
         for (i in seq_len(nrow(subset))) {
           point <- list(
-            x = self$scalar(subset$x[i]),
+            x = xs[[i]],
             # The band's height, not its top edge.
             y = self$band_height(subset, i)
           )
@@ -297,10 +298,13 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     #' "Discrete" and "could not be read" are answered differently, because
     #' the caller must do different things with them. The integer rule that is
     #' exact for a discrete axis would silently drop the fractional rows of a
-    #' continuous one, and an x mapped through an expression -- `aes(x = year
-    #' / 2)`, say -- resolves to no column and lands here while still being
-    #' continuous. Collapsing the two into one NULL is how that axis loses
-    #' half its data to a rule that was never about it.
+    #' continuous one. An x mapped through an expression -- `aes(x = year /
+    #' 2)`, `aes(x = d + 0)` -- names no column, and is read from the values
+    #' the mapping gives on the data, as ggplot2 evaluates it. Read as "could
+    #' not be read", it kept every vertex `StatAlign` adds, and a date axis
+    #' wrote those a few minutes either side of a day as that day again.
+    #' Dates and date-times are built as their numbers, so they are matched
+    #' as numbers.
     #'
     #' @param built Built plot data
     #' @return `list(kind = "discrete")`, `list(kind = "numeric", values =)`,
@@ -330,18 +334,23 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       }
 
       mapping <- if (!is.null(layer)) layer$mapping else NULL
-      column <- self$mapped_column(if (!is.null(mapping) && !is.null(mapping$x)) {
+      x_mapping <- if (!is.null(mapping) && !is.null(mapping$x)) {
         mapping$x
       } else {
         plot$mapping$x
-      })
-      if (is.null(column) || !column %in% names(data)) {
+      }
+      column <- self$mapped_column(x_mapping)
+      values <- if (!is.null(column) && column %in% names(data)) {
+        data[[column]]
+      } else if (!is.null(x_mapping)) {
+        tryCatch(rlang::eval_tidy(x_mapping, data = data), error = function(e) NULL)
+      }
+      if (is.null(values) || length(values) != nrow(data)) {
         return(NULL)
       }
 
-      values <- data[[column]]
-      if (is.numeric(values)) {
-        return(list(kind = "numeric", values = unique(values)))
+      if (is.numeric(values) || inherits(values, c("Date", "POSIXt"))) {
+        return(list(kind = "numeric", values = unique(as.numeric(values))))
       }
 
       # A discrete x is drawn at integer positions assigned by the *scale*,
@@ -464,6 +473,27 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     #' @return The column name, or NULL when there is no mapping
     mapped_column = function(quo) {
       mapping_column(quo)
+    },
+
+    #' @description The x of each point of a band, as the payload carries it.
+    #'
+    #' ggplot2 builds a date axis in days since 1970 and a date-time axis in
+    #' seconds, and a band over either read those numbers: "t is
+    #' 1,767,243,600" where a line over the same column read the date-time.
+    #' A date or date-time is read back through the scale and written as a
+    #' line writes it (`time_text()`), so a move between the two lands on the
+    #' same x. Any other x is written as it is built (`scalar()`).
+    #'
+    #' @param built Built plot data
+    #' @param x The band's built x values
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return A list with one x per value
+    x_values = function(built, x, panel_id = NULL) {
+      times <- untransform_positions(x, built, "x", panel_id)
+      if (inherits(times, c("Date", "POSIXt"))) {
+        return(as.list(time_text(times)))
+      }
+      lapply(x, self$scalar)
     },
 
     #' @description Convert one coordinate to a JSON-safe scalar.
