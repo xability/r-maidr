@@ -983,6 +983,19 @@
   that reads that (xability/maidr#1695) reads the bin width as a span of
   time, "constant 1 week"; maidr.js 4.17.0 still reads it as a number,
   "constant 7".
+* A stacked, filled or counted bar chart, or a stacked area chart, grouped
+  by an expression of the data, as `aes(fill = factor(wt %% 2))`, is read,
+  each group by the name its legend shows. The expression was taken for a
+  column's name, and `show()` and `save_html()` stopped with "'length = 3'
+  in coercion to 'logical(1)'", for an expression on `x` too. A stack
+  grouped by any other expression, as `fill = wt %% 2 == 1`, was read, but
+  each move could highlight another group's bar; its rects are now drawn in
+  the order its groups are read. A mapping that names a column, as
+  `fill = group` or `fill = factor(cyl)`, is read as before.
+* A stacked area chart names each band by the level it is drawn in.
+  ggplot2 numbers the bands by the levels the data holds, and a factor
+  level no row held named the band after it: of levels a, b and c with no
+  row of b, the c band was read as "b".
 
 ### Base R
 

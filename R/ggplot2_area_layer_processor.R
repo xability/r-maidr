@@ -394,6 +394,13 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     },
 
     #' @description The fill levels, in the order ggplot2 numbered the groups.
+    #'
+    #' ggplot2 numbers the groups in `add_group()` from the values the fill
+    #' mapping gives on the data: the levels present, in a factor's order, or
+    #' sorted. A scale's `limits` play no part, and a level no row holds
+    #' numbers no group, so the levels are read from those values -- a
+    #' column, or an expression such as `factor(wt %% 2)` -- and never from
+    #' the scale.
     #' @param built Built plot data
     #' @return A character vector of levels, possibly empty
     fill_levels = function(built) {
@@ -401,14 +408,21 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       if (is.null(plot) || !is.data.frame(plot$data) || nrow(plot$data) == 0) {
         return(character(0))
       }
-
-      column <- self$mapped_column(plot$mapping$fill)
-      if (is.null(column) || !column %in% names(plot$data)) {
+      mapping <- plot$mapping$fill
+      if (is.null(mapping)) {
         return(character(0))
       }
 
-      values <- plot$data[[column]]
-      if (is.factor(values)) levels(values) else sort(unique(as.character(values)))
+      # A mapping that cannot be evaluated on the data names no series, as
+      # a layer with no fill names none.
+      values <- tryCatch(
+        rlang::eval_tidy(mapping, data = plot$data),
+        error = function(e) NULL
+      )
+      if (is.null(values)) {
+        return(character(0))
+      }
+      if (is.factor(values)) levels(droplevels(values)) else sort(unique(as.character(values)))
     },
 
     #' @description Add the legend title as the z axis, when there is one.
@@ -443,20 +457,13 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     #' `aes(x = factor(year))` maps a call rather than a bare name, and the
     #' column the data actually holds is its argument -- so the call is
     #' unwrapped rather than labelled, which would give `"factor(year)"` and
-    #' match nothing.
+    #' match nothing. Any other expression names no column
+    #' (`mapping_column()`).
     #'
     #' @param quo The mapped quosure, or NULL
     #' @return The column name, or NULL when there is no mapping
     mapped_column = function(quo) {
-      if (is.null(quo)) {
-        return(NULL)
-      }
-      expr <- rlang::quo_get_expr(quo)
-      if (is.call(expr) && expr[[1]] == "factor") {
-        as.character(expr[[2]])
-      } else {
-        rlang::as_label(expr)
-      }
+      mapping_column(quo)
     },
 
     #' @description Convert one coordinate to a JSON-safe scalar.

@@ -16,7 +16,6 @@ Processes stacked bar plot layers with complete logic included
     \item \href{#method-Ggplot2StackedBarProcessor-process}{\code{Ggplot2StackedBarProcessor$process()}}
     \item \href{#method-Ggplot2StackedBarProcessor-needs_reordering}{\code{Ggplot2StackedBarProcessor$needs_reordering()}}
     \item \href{#method-Ggplot2StackedBarProcessor-reorder_layer_data}{\code{Ggplot2StackedBarProcessor$reorder_layer_data()}}
-    \item \href{#method-Ggplot2StackedBarProcessor-extract_plot_columns}{\code{Ggplot2StackedBarProcessor$extract_plot_columns()}}
     \item \href{#method-Ggplot2StackedBarProcessor-extract_data}{\code{Ggplot2StackedBarProcessor$extract_data()}}
     \item \href{#method-Ggplot2StackedBarProcessor-generate_selectors}{\code{Ggplot2StackedBarProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2StackedBarProcessor-clone}{\code{Ggplot2StackedBarProcessor$clone()}}
@@ -119,28 +118,6 @@ rects
   }
   \subsection{Returns}{
     The reordered data frame
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StackedBarProcessor-extract_plot_columns"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StackedBarProcessor-extract_plot_columns}{}}}
-\subsection{\code{Ggplot2StackedBarProcessor$extract_plot_columns()}}{
-  The column names the plot maps to x, y and fill
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2StackedBarProcessor$extract_plot_columns(plot)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{plot}}{The ggplot2 object}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    List with \code{category_col}, \code{value_col} and \code{fill_col}
   }
 }
 
