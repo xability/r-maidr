@@ -123,6 +123,23 @@ test_that("a ggplot2 scatter keeps a time zone given to its scale", {
     layer$axes$x$format,
     maidr:::time_axis_format("datetime", "Asia/Tokyo")
   )
+
+  # In each facet panel too, whether the panels share the scale or not.
+  frame <- data.frame(t = times, y = ys, g = c("a", "b", "a", "b"))
+  for (scales in c("fixed", "free_x")) {
+    cells <- maidr:::Ggplot2PlotOrchestrator$new(
+      ggplot2::ggplot(frame, ggplot2::aes(t, y)) +
+        ggplot2::geom_point() +
+        ggplot2::facet_wrap(~g, scales = scales) +
+        ggplot2::scale_x_datetime(timezone = "Asia/Tokyo")
+    )$generate_maidr_data()$subplots[[1]]
+    for (cell in cells) {
+      testthat::expect_identical(
+        cell$layers[[1]]$axes$x$format,
+        maidr:::time_axis_format("datetime", "Asia/Tokyo")
+      )
+    }
+  }
 })
 
 test_that("a Base R scatter over date-times draws its seconds in their zone", {
