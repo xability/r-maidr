@@ -992,6 +992,10 @@
   each move could highlight another group's bar; its rects are now drawn in
   the order its groups are read. A mapping that names a column, as
   `fill = group` or `fill = factor(cyl)`, is read as before.
+* A stacked area chart names each band by the level it is drawn in.
+  ggplot2 numbers the bands by the levels the data holds, and a factor
+  level no row held named the band after it: of levels a, b and c with no
+  row of b, the c band was read as "b".
 
 ### Base R
 

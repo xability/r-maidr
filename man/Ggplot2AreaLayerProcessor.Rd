@@ -420,6 +420,13 @@ whose baseline is the axis draws a band of exactly that height.
 \if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-fill_levels}{}}}
 \subsection{\code{Ggplot2AreaLayerProcessor$fill_levels()}}{
   The fill levels, in the order ggplot2 numbered the groups.
+
+ggplot2 numbers the groups in \code{add_group()} from the values the fill
+mapping gives on the data: the levels present, in a factor's order, or
+sorted. A scale's \code{limits} play no part, and a level no row holds
+numbers no group, so the levels are read from those values -- a
+column, or an expression such as \code{factor(wt \%\% 2)} -- and never from
+the scale.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2AreaLayerProcessor$fill_levels(built)}

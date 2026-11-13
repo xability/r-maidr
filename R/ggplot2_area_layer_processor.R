@@ -394,6 +394,13 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
     },
 
     #' @description The fill levels, in the order ggplot2 numbered the groups.
+    #'
+    #' ggplot2 numbers the groups in `add_group()` from the values the fill
+    #' mapping gives on the data: the levels present, in a factor's order, or
+    #' sorted. A scale's `limits` play no part, and a level no row holds
+    #' numbers no group, so the levels are read from those values -- a
+    #' column, or an expression such as `factor(wt %% 2)` -- and never from
+    #' the scale.
     #' @param built Built plot data
     #' @return A character vector of levels, possibly empty
     fill_levels = function(built) {
@@ -401,25 +408,21 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       if (is.null(plot) || !is.data.frame(plot$data) || nrow(plot$data) == 0) {
         return(character(0))
       }
-
-      column <- self$mapped_column(plot$mapping$fill)
-      if (is.null(column)) {
+      mapping <- plot$mapping$fill
+      if (is.null(mapping)) {
         return(character(0))
       }
-      if (!column %in% names(plot$data)) {
-        # An expression of the data, `fill = factor(wt %% 2)`, names no
-        # column. Its categories are the discrete fill scale's, in the
-        # order ggplot2 numbers the groups by.
-        scale <- tryCatch(plot$scales$get_scales("fill"), error = function(e) NULL)
-        if (is.null(scale) || !isTRUE(scale$is_discrete())) {
-          return(character(0))
-        }
-        limits <- tryCatch(as.character(scale$get_limits()), error = function(e) character(0))
-        return(limits[!is.na(limits)])
-      }
 
-      values <- plot$data[[column]]
-      if (is.factor(values)) levels(values) else sort(unique(as.character(values)))
+      # A mapping that cannot be evaluated on the data names no series, as
+      # a layer with no fill names none.
+      values <- tryCatch(
+        rlang::eval_tidy(mapping, data = plot$data),
+        error = function(e) NULL
+      )
+      if (is.null(values)) {
+        return(character(0))
+      }
+      if (is.factor(values)) levels(droplevels(values)) else sort(unique(as.character(values)))
     },
 
     #' @description Add the legend title as the z axis, when there is one.

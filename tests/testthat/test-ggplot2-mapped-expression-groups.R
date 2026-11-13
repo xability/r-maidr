@@ -155,6 +155,45 @@ test_that("areas filled by an expression name their series as its legend does", 
   )
 })
 
+#' Each band's heights, by the name it is read under
+named_bands <- function(layer) {
+  stats::setNames(
+    lapply(layer$data, function(series) vapply(series, function(point) point$y, 0)),
+    vapply(layer$data, function(series) series[[1]]$z, "")
+  )
+}
+
+test_that("areas filled by an expression are named as drawn, whatever the scale's limits", {
+  # ggplot2 numbers the groups from the fill's values, not from a scale's
+  # `limits`. The band of even weights, 5, 4 and 1, is the "0" band however
+  # the legend orders the levels, or lists one no row holds.
+  for (limits in list(c("1", "0"), c("9", "0", "1"))) {
+    layer <- first_layer(
+      ggplot2::ggplot(pts, ggplot2::aes(yr, n, fill = factor(wt %% 2))) +
+        ggplot2::geom_area() +
+        ggplot2::scale_fill_discrete(limits = limits)
+    )
+    testthat::expect_identical(
+      named_bands(layer),
+      list(`0` = c(5, 4, 1), `1` = c(3, 2, 6))
+    )
+  }
+})
+
+test_that("areas filled by a factor are named as drawn, past a level no row holds", {
+  # Levels a, b and c with no row of b: ggplot2 numbers the c band 2.
+  frame <- data.frame(
+    yr = rep(c(2001, 2002, 2003), 2),
+    n = c(3, 2, 6, 5, 4, 1),
+    k = factor(rep(c("a", "c"), each = 3), levels = c("a", "b", "c"))
+  )
+  layer <- first_layer(
+    ggplot2::ggplot(frame, ggplot2::aes(yr, n, fill = k)) + ggplot2::geom_area()
+  )
+
+  testthat::expect_identical(named_bands(layer), list(a = c(3, 2, 6), c = c(5, 4, 1)))
+})
+
 test_that("a chart grouped by an expression is written as a chart", {
   skip_if_no_render()
   plot <- ggplot2::ggplot(pts, ggplot2::aes(g, n, fill = factor(wt %% 2))) + ggplot2::geom_col()
