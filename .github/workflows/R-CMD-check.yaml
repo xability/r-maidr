@@ -145,9 +145,12 @@ jobs:
 
       # Pinned so the browser the check runs in changes only when someone
       # changes it here. `--no-save` keeps the tree free of a package.json.
+      # 1.61 is the first Playwright that installs Chromium on Ubuntu 26.04,
+      # which `ubuntu-latest` becomes by 2026-11-19; 1.63.0 is the version
+      # maidr's own end-to-end tests run in.
       - name: Install Playwright and its Chromium
         run: |
-          npm install --no-save playwright@1.57.0
+          npm install --no-save playwright@1.63.0
           npx playwright install --with-deps chromium
 
       - name: Press Right Arrow on every chart
