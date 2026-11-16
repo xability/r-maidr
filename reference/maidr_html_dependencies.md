@@ -36,7 +36,7 @@ A list of htmlDependency objects: the `maidr` bundle, preceded by
 
 We default to local bundled assets for deterministic rendering.
 Previously we auto-detected via
-[`curl::has_internet()`](https://jeroen.r-universe.dev/curl/reference/nslookup.html);
+[`curl::has_internet()`](https://rdrr.io/pkg/curl/man/nslookup.html);
 when internet was available the CDN path was selected, which combined
 with a (now-fixed) malformed nested-`<html>` HTML scaffold caused base R
 chart SVGs to render squished in the upper-left of the viewport. Local

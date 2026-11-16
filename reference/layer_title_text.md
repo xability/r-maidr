@@ -2,7 +2,7 @@
 
 maidr.js reads a layer's `title` as text. A layer processor that names
 no title leaves `NULL` in the slot the orchestrator gives it, and
-[`jsonlite::toJSON()`](https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html)
+[`jsonlite::toJSON()`](https://rdrr.io/pkg/jsonlite/man/fromJSON.html)
 writes `NULL` as an empty object,
 [`{}`](https://rdrr.io/r/base/Paren.html). maidr.js took that object for
 a title and failed on it: `d` opened no description, and `L` then `T`

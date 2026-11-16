@@ -115,7 +115,7 @@ rewriting only the JSON to a string restored every one of them.">
 
     <div class="ref-description section level2">
     <p>Every processor builds <code>selectors</code> with <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> or <code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply()</a></code>, so even a
-single CSS selector reaches <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html" class="external-link">jsonlite::toJSON()</a></code> as a list of one, and
+single CSS selector reaches <code><a href="https://rdrr.io/pkg/jsonlite/man/fromJSON.html" class="external-link">jsonlite::toJSON()</a></code> as a list of one, and
 <code>auto_unbox = TRUE</code> cannot unbox a list: the payload says
 <code>"selectors": ["#geom_rect\\.rect\\.2\\.1 rect"]</code>. maidr.js 4.x reads that
 array as one selector per data point, resolves it to one element for

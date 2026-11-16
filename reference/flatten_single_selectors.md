@@ -4,7 +4,7 @@ Every processor builds `selectors` with
 [`list()`](https://rdrr.io/r/base/list.html) or
 [`lapply()`](https://rdrr.io/r/base/lapply.html), so even a single CSS
 selector reaches
-[`jsonlite::toJSON()`](https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html)
+[`jsonlite::toJSON()`](https://rdrr.io/pkg/jsonlite/man/fromJSON.html)
 as a list of one, and `auto_unbox = TRUE` cannot unbox a list: the
 payload says `"selectors": ["#geom_rect\\.rect\\.2\\.1 rect"]`. maidr.js
 4.x reads that array as one selector per data point, resolves it to one

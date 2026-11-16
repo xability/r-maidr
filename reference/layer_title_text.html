@@ -104,7 +104,7 @@ smooth, violin, volcano and gantt chart all carried one.">
     <div class="ref-description section level2">
     <p>maidr.js reads a layer's <code>title</code> as text. A layer processor that names no
 title leaves <code>NULL</code> in the slot the orchestrator gives it, and
-<code><a href="https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html" class="external-link">jsonlite::toJSON()</a></code> writes <code>NULL</code> as an empty object, <code><a href="https://rdrr.io/r/base/Paren.html" class="external-link">{}</a></code>. maidr.js took
+<code><a href="https://rdrr.io/pkg/jsonlite/man/fromJSON.html" class="external-link">jsonlite::toJSON()</a></code> writes <code>NULL</code> as an empty object, <code><a href="https://rdrr.io/r/base/Paren.html" class="external-link">{}</a></code>. maidr.js took
 that object for a title and failed on it: <code>d</code> opened no description, and
 <code>L</code> then <code>T</code> said nothing and left the reader in label mode, where every
 other key was refused. A ggplot2 box plot, heat map, scatter plot,

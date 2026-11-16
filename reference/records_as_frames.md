@@ -1,7 +1,7 @@
 # Hand `jsonlite` each run of flat records as a data frame
 
 A layer's `data` is usually one small named list per point, and
-[`jsonlite::toJSON()`](https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html)
+[`jsonlite::toJSON()`](https://rdrr.io/pkg/jsonlite/man/fromJSON.html)
 serializes a list element by element through S4 dispatch: 10,000 points
 took 2 s of a 5 s ggplot2 render, more than the SVG export. A data frame
 with the same columns is serialized row-wise in one vectorised pass and

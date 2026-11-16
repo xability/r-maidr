@@ -103,7 +103,7 @@ in about a hundredth of the time.">
 
     <div class="ref-description section level2">
     <p>A layer's <code>data</code> is usually one small named list per point, and
-<code><a href="https://jeroen.r-universe.dev/jsonlite/reference/fromJSON.html" class="external-link">jsonlite::toJSON()</a></code> serializes a list element by element through S4
+<code><a href="https://rdrr.io/pkg/jsonlite/man/fromJSON.html" class="external-link">jsonlite::toJSON()</a></code> serializes a list element by element through S4
 dispatch: 10,000 points took 2 s of a 5 s ggplot2 render, more than the
 SVG export. A data frame with the same columns is serialized row-wise in
 one vectorised pass and yields byte-identical JSON under the options

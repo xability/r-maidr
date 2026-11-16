@@ -143,7 +143,7 @@ use bundled files.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>We default to local bundled assets for deterministic rendering. Previously
-we auto-detected via <code><a href="https://jeroen.r-universe.dev/curl/reference/nslookup.html" class="external-link">curl::has_internet()</a></code>; when internet was available
+we auto-detected via <code><a href="https://rdrr.io/pkg/curl/man/nslookup.html" class="external-link">curl::has_internet()</a></code>; when internet was available
 the CDN path was selected, which combined with a (now-fixed) malformed
 nested-<code>&lt;html&gt;</code> HTML scaffold caused base R chart SVGs to render squished
 in the upper-left of the viewport. Local assets match the ggplot path that
