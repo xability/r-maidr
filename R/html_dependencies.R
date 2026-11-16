@@ -1,7 +1,7 @@
 #' MAIDR JavaScript library version bundled with this package
 #'
 #' @keywords internal
-MAIDR_VERSION <- "4.17.0"
+MAIDR_VERSION <- "4.18.0"
 
 #' Register JS dependencies for maidr
 #'
